@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nik's Games</title>
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--accent:#7c5cff;--accent2:#00e5ff;}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:
+    radial-gradient(1200px 600px at 80% -10%,rgba(124,92,255,.25),transparent),
+    radial-gradient(900px 500px at -10% 110%,rgba(0,229,255,.18),transparent),var(--bg);
+    color:#e6edf3;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex;flex-direction:column;align-items:center;padding:48px 18px;}
+  h1{margin:0 0 4px;font-size:34px;letter-spacing:.5px;}
+  p.sub{color:#9da7b3;margin:0 0 32px;text-align:center;}
+  .grid{display:grid;gap:16px;width:100%;max-width:680px;grid-template-columns:1fr;}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid #30363d;border-radius:16px;padding:18px 20px;transition:.15s;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  a.card:hover{border-color:var(--accent2);transform:translateY(-2px);}
+  .card b{font-size:19px;display:block;margin-bottom:4px;}
+  .card span{color:#9da7b3;font-size:14px;line-height:1.4;}
+  .tag{display:inline-block;font-size:11px;color:#0d1117;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border-radius:999px;padding:2px 9px;font-weight:700;margin-left:8px;vertical-align:middle;}
+  footer{margin-top:34px;color:#6e7681;font-size:12px;text-align:center;max-width:640px;line-height:1.5;}
+  .empty{opacity:.6;font-style:italic;}
+</style>
+</head>
+<body>
+  <h1>Nik's Games</h1>
+  <p class="sub">Built for the Quest, the tablet and the phone. Tap a game to play.</p>
+  <div class="grid">
+    <a class="card" href="tower-defense.html">
+      <b>Tower Defense <span class="tag">NEW</span></b>
+      <span>Place towers, hold the line, survive the waves. Works with taps — phone, tablet or headset browser.</span>
+    </a>
+    <a class="card empty" href="#">
+      <b>More coming…</b>
+      <span>Ask for a game and it shows up here.</span>
+    </a>
+  </div>
+  <footer>Hosted on GitHub Pages. Add ?vr=1 style links for headset builds as they arrive.</footer>
+</body>
+</html>
