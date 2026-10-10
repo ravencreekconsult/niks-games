@@ -256,13 +256,7 @@ function resize(){
   scaleS=Math.min(w/VW,h/VH);
   offX=(w-VW*scaleS)/2; offY=(h-VH*scaleS)/2;
 }
-function toLocal(cx,cy){
-  var r=null;
-  try{ if(cv.getBoundingClientRect) r=cv.getBoundingClientRect(); }catch(e){}
-  var l=(r&&isFinite(r.left))?r.left:0, t=(r&&isFinite(r.top))?r.top:0;
-  return { x:(cx-l-offX/scaleS*(typeof devicePixelRatio!=='undefined'?1:1))/scaleS*(typeof devicePixelRatio!=='undefined'&&devicePixelRatio>1.5?1:1), y:0 };
-}
-/* simpler, correct mapping (CSS px -> logical) */
+/* pointer mapping (CSS px -> logical view, uniform scale + letterbox) */
 function toLocal2(cx,cy){
   var r=null;
   try{ if(cv.getBoundingClientRect) r=cv.getBoundingClientRect(); }catch(e){}
@@ -619,7 +613,6 @@ function onPowerup(pu){
 function spawnPowerup(){
   var types=['slow','shells','dbl','bonus','flock'];
   var type=types[(Math.random()*types.length)|0];
-  var label=type==='slow'?'SLOW':type==='shells'+'':'SHELLS';
   var col=type==='slow'?'#8ad4ff':type==='shells'?'#6dffa1':type==='dbl'?'#ffd34d':type==='flock'?'#ff9ad4':'#ffe071';
   powerups.push({ x:Math.random()<0.5?30:VW-30, y:100+Math.random()*90,
     vx:(Math.random()<0.5?1:-1)*0.055, type:type, col:col, dead:false, t:Math.random()*6.28 });
