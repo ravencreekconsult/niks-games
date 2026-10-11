@@ -277,7 +277,6 @@ export const MAPS = {
         'The critters up here wear winter coats.',
       ] },
     ],
-    trainers: [],
     encounters: {
       rate: 0.13,
       table: [
