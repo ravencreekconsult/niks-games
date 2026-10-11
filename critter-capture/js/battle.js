@@ -22,6 +22,7 @@ let endInfo = null;        // {winnerSide, rewards}
 let resultMsg = '';
 let overTimer = 0;
 let caughtFlag = false;
+let caughtJoinedParty = false;
 let catchAnim = null;      // {targetId, success, shakes, t, total} — the ball throw + shakes
 const PLAYER_ID = 'c0_0';
 const VIEW_W = 240, VIEW_H = 160;
@@ -70,6 +71,7 @@ export function start(game, speciesId, level) {
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
   caughtFlag = false;
+  caughtJoinedParty = false;
   catchAnim = null;
   endInfo = null;
   overTimer = 0;
@@ -167,6 +169,11 @@ function applyFx(ev) {
     if (sp && G.save.dex.caught.indexOf(sp.speciesId) === -1) {
       G.save.dex.caught.push(sp.speciesId);
     }
+    const party = G.save.party;
+    if (party.length < 6) {
+      party.push({ speciesId: sp.speciesId, level: (sp.level || wildLevel || 1), xp: 0, hp: null, nature: 'hardy' });
+      caughtJoinedParty = true;
+    }
   }
 }
 
@@ -224,7 +231,10 @@ function finishBattle() {
   if (me && !me.caught) mon.hp = Math.max(0, me.hp);
   if (mon.hp <= 0) { mon.hp = null; resultMsg += ' It was rushed to rest and revived.'; }
   let outcome;
-  if (caughtFlag) outcome = SPECIES[wildId].name + ' joined your dex!';
+  if (caughtFlag) {
+    if (caughtJoinedParty) outcome = SPECIES[wildId].name + ' was caught and joined your party!';
+    else outcome = SPECIES[wildId].name + ' was caught!';
+  }
   else if (endInfo && endInfo.winnerSide === 0) outcome = 'You won the battle!';
   else if (endInfo && endInfo.winnerSide === 1) outcome = 'You were defeated...';
   else outcome = 'You got away safely.';
