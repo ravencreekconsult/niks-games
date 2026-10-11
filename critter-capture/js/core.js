@@ -312,7 +312,7 @@ function frame(ts) {
     const inAge = performance.now() - input.lastInputAt;
     const inLabel = (input.lastInputAt > 0 && inAge < 2000) ? input.lastInput : 'none';
     hudEl.textContent = scene + ' | ' + i.map + ' | ' + i.x + ',' + i.y +
-      ' | party Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length +
+      ' | party ' + Game.save.party.length + ' Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length +
       ' | in: ' + inLabel;
   }
   requestAnimationFrame(frame);

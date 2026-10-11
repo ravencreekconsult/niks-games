@@ -170,7 +170,7 @@ function applyFx(ev) {
       G.save.dex.caught.push(sp.speciesId);
     }
     const party = G.save.party;
-    if (party.length < 6) {
+    if (sp && party.length < 6) {
       party.push({ speciesId: sp.speciesId, level: (sp.level || wildLevel || 1), xp: 0, hp: null, nature: 'hardy' });
       caughtJoinedParty = true;
     }
