@@ -193,7 +193,8 @@ function newGame(){
   S={ gold:startGold(), lives:25, score:0, wave:0, running:false, over:false, won:false,
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[],
       queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
-      freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0} };
+      freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
+      tw:0, tn:0, bgPhase:0 };
   selTower=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
   autoTimer=0; go.disabled=false; buildShop(); hud();
 }
@@ -319,6 +320,7 @@ iS2.onclick=()=>pickSpec(1);
 function startWave(){
   if(S.running||S.over) return;
   S.wave++; const spec=waveSpec(S.wave);
+  if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
   if(spec.boss) say("BOSS WAVE "+S.wave,2200); else say("Wave "+S.wave+" incoming",1400);
@@ -506,20 +508,41 @@ function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.
   t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
 
 const bg=document.createElement("canvas"); let bgCtx=null;
+/* day -> night: phase 0 bright morning, 1 warm afternoon, 2 dusk, 3 night */
+function lightPhase(w){ return w>=23?3 : w>=15?2 : w>=7?1 : 0; }
+const WAVE_LIGHT=[[0,0],[0,0.08],[0.05,0.2],[0.1,0.42]]; /* [warm, night] per-phase overlay strengths */
 function renderBG(){
   try{ bg.width=cv.width; bg.height=cv.height; bgCtx=bg.getContext("2d");
     const g=bgCtx; g.setTransform(dpr,0,0,dpr,0,0);
     const W=cv.width/dpr, H=cv.height/dpr;
     const rnd=mulberry32(1337);
-    /* backdrop */
+    const ph=(typeof S!=="undefined"&&S)?lightPhase(S.wave):0;
+    /* backdrop below the horizon */
     g.fillStyle="#0b120c"; g.fillRect(0,0,W,H);
-    /* board base grass */
-    const bx=ox, by=oy, bw=COLS*cell, bh=ROWS*cell;
+    /* sky strip + distant hills above the board */
+    const shy=Math.max(2,oy), bw=COLS*cell, bh=ROWS*cell, bx=ox, by=oy;
+    const skyCols=[["#7ec8f7","#d8f0ff"],["#8fb7e8","#ffd9a8"],["#544a86","#d3825e"],["#131b38","#2a3558"]][ph];
+    const hillA= ph>=3? "#101a30" : "#24402a", hillB= ph>=3? "#0a1122" : "#1a3020";
+    if(shy>2){
+      const sky=g.createLinearGradient(0,0,0,shy);
+      sky.addColorStop(0,skyCols[0]); sky.addColorStop(1,skyCols[1]);
+      g.fillStyle=sky; g.fillRect(0,0,W,shy);
+      g.fillStyle=hillA;
+      g.beginPath(); g.ellipse(W*0.2,shy,W*0.2,cell*1.3,0,Math.PI,Math.PI*2); g.fill();
+      g.beginPath(); g.ellipse(W*0.82,shy,W*0.26,cell*0.9,0,Math.PI,Math.PI*2); g.fill();
+      g.fillStyle=hillB;
+      g.beginPath(); g.ellipse(W*0.5,shy,W*0.5,cell*0.55,0,Math.PI,Math.PI*2); g.fill();
+    }
     g.fillStyle="#31502b"; g.fillRect(bx,by,bw,bh);
     /* soft mottling patches */
     for(let i=0;i<130;i++){ const px=bx+rnd()*bw, py=by+rnd()*bh, rr=cell*(0.4+rnd()*1.3);
       g.fillStyle= rnd()<0.5? "rgba(58,92,48,0.35)":"rgba(38,66,34,0.35)";
       g.beginPath(); g.ellipse(px,py,rr,rr*(0.6+rnd()*0.5),rnd()*Math.PI,0,7); g.fill(); }
+    /* raised-ground lighting: lit north edge, dark south edge */
+    const eg=g.createLinearGradient(0,by,0,by+bh);
+    eg.addColorStop(0,"rgba(255,255,220,0.10)"); eg.addColorStop(0.14,"rgba(255,255,220,0)");
+    eg.addColorStop(0.8,"rgba(0,0,25,0)"); eg.addColorStop(1,"rgba(0,0,25,0.2)");
+    g.fillStyle=eg; g.fillRect(bx,by,bw,bh);
     /* faint checker hint for build readability */
     for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){ if((x+y)%2===0) continue;
       g.fillStyle="rgba(0,0,0,0.05)"; g.fillRect(bx+x*cell,by+y*cell,cell,cell); }
@@ -552,6 +575,10 @@ function renderBG(){
     drawRoad(g);
     drawScatterBorders(g,rnd);
     drawGateAndBase(g);
+    /* per-phase light on the static board (rebuilt only when the wave phase changes) */
+    if(ph===1){ g.fillStyle="rgba(255,150,60,0.09)"; g.fillRect(bx,by,bw,bh); }
+    else if(ph===2){ g.fillStyle="rgba(110,80,140,0.15)"; g.fillRect(bx,by,bw,bh); }
+    else if(ph===3){ g.fillStyle="rgba(16,28,66,0.36)"; g.fillRect(bx,by,bw,bh); }
     /* vignette */
     const vg=g.createRadialGradient(bx+bw/2,by+bh/2,Math.min(bw,bh)*0.42,bx+bw/2,by+bh/2,Math.max(bw,bh)*0.72);
     vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,0.34)");
@@ -568,8 +595,9 @@ function pathPoly(g,off){ g.beginPath();
   for(let i=0;i<P.length;i++){ const px=ox+(P[i][0]+0.5)*cell, py=oy+(P[i][1]+0.5)*cell; i?g.lineTo(px,py):g.moveTo(px,py); } }
 function drawRoad(g){
   g.lineJoin="round"; g.lineCap="round";
-  /* soft dark blend into grass */
-  g.globalAlpha=0.5; pathPoly(g); g.strokeStyle="#22301d"; g.lineWidth=cell*1.0; g.stroke(); g.globalAlpha=1;
+  /* road cut into the terrain: lit shoulder bank, dark cut wall, then the surface */
+  pathPoly(g); g.strokeStyle="rgba(140,170,105,0.55)"; g.lineWidth=cell*1.14; g.stroke();
+  pathPoly(g); g.strokeStyle="rgba(24,16,8,0.5)"; g.lineWidth=cell*1.02; g.stroke();
   /* road bands: dark edges -> mid -> light centre */
   pathPoly(g); g.strokeStyle="#4a3a28"; g.lineWidth=cell*0.86; g.stroke();
   pathPoly(g); g.strokeStyle="#6b543b"; g.lineWidth=cell*0.68; g.stroke();
@@ -666,10 +694,21 @@ function draw(){
   ctx.save();
   if(S.shake>0 && !RM) ctx.translate((Math.random()-0.5)*S.shake,(Math.random()-0.5)*S.shake);
   ctx.fillStyle="#0b120c"; ctx.fillRect(-20,-20,W+40,H+40);
+  /* day -> night light fade toward the current phase */
+  const ph=lightPhase(S.wave), wl=WAVE_LIGHT[ph];
+  S.tw+=(wl[0]-S.tw)*0.02; S.tn+=(wl[1]-S.tn)*0.02;
   if(bgCtx){ try{ ctx.drawImage(bg,0,0,W,H); }catch(err){} }
   else safe(()=>{ /* fallback flat board */
     for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
       ctx.fillStyle=(x+y)%2?"#0c1119":"#0a0e15"; ctx.fillRect(ox+x*cell,oy+y*cell,cell,cell); } });
+  safe(()=>{ /* matching per-frame light tint (flat fills, no gradients) */
+    if(S.tw>0.004){ ctx.fillStyle=`rgba(255,140,60,${S.tw})`; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); }
+    if(S.tn>0.004){ ctx.fillStyle=`rgba(14,22,52,${S.tn})`; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); }
+    if(S.tn>0.25 && !RM){ /* base beacon glows on night waves */
+      const bxx=ox+COLS*cell-cell*0.34, byy=CY(7), a=(S.tn-0.25)/0.75*(0.4+0.18*Math.sin(S.time*3));
+      const gl=ctx.createRadialGradient(bxx,byy,0,bxx,byy,cell*1.2);
+      gl.addColorStop(0,`rgba(61,220,132,${a})`); gl.addColorStop(1,"rgba(61,220,132,0)");
+      ctx.fillStyle=gl; ctx.fillRect(bxx-cell*1.2,byy-cell*1.2,cell*2.4,cell*2.4); } });
   safe(drawChevrons);
   safe(drawDecals);
   safe(drawBaseFlash);
