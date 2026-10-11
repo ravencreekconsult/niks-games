@@ -1330,7 +1330,16 @@ function drawMotes(){ if(RM) return;
     ctx.beginPath(); ctx.arc(x,y,Math.max(0.6,rr),0,7); ctx.fill(); } }
 function drawTower(tw){
   const px=CX(tw.gx),py=CY(tw.gy),s=cell,id=tw.type.id,col=tw.type.color;
+  castShadow(px,py,cell*0.46,cell*0.3);
   const r=drawPad(px,py,s,tw,tw.type.color);
+  const lvR=tw.rngLv||0, lvF=tw.rateLv||0, lvD=tw.dmgLv||0, kick=tw.kick||0;
+  /* small shared helpers for volume shading: a lit plate and a glowing core */
+  function plate(x,y,w,h,c){ ctx.fillStyle=c||"#1a2029"; roundRect(ctx,x,y,w,h,Math.min(w,h)*0.35); ctx.fill();
+    ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle="rgba(255,255,255,.14)"; ctx.fillRect(x+1.5,y+1.5,Math.max(1,w-3),Math.max(1,h*0.32)); }
+  function core(x,y,rr,c,a){ ctx.fillStyle=c; ctx.globalAlpha=(a==null?0.55:a)*(0.6+0.4*Math.sin(S.time*3));
+    ctx.beginPath(); ctx.arc(x,y,rr,0,7); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle="rgba(255,255,255,.65)"; ctx.beginPath(); ctx.arc(x-rr*0.3,y-rr*0.3,rr*0.35,0,7); ctx.fill(); }
   ctx.save();
   switch(id){
     case "blaster":{ /* round dome turret: twin barrels + chevron emblem */
