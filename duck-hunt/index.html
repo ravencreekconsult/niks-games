@@ -143,7 +143,7 @@ function loadSave(){
 function writeSave(){ try{ if(typeof localStorage!=='undefined'&&localStorage) localStorage.setItem(SAVE_KEY,JSON.stringify(save)); }catch(e){} }
 
 /* ---------------- audio (ON by default, unlocked on first tap) ---------------- */
-var AC=null, master=null, muted=false, audioReady=false;
+var AC=null, master=null, muted=false, audioReady=false, haptics=true;
 function initAudio(){
   try{
     var C=(typeof AudioContext!=='undefined')?AudioContext:(typeof webkitAudioContext!=='undefined'?webkitAudioContext:null);
@@ -178,7 +178,17 @@ function noise(dur,vol,fLo){
     s.connect(flt); flt.connect(g); g.connect(master); s.start();
   }catch(e){}
 }
-function sndShot(){ noise(0.14,0.09,1400); tone(160,40,0.16,'sawtooth',0.08); tone(70,30,0.24,'square',0.05); }
+function sndShot(){
+  var p=0.92+Math.random()*0.16;              // no two shots sound the same
+  noise(0.14,0.09,1400*p);                    // transient
+  tone(160*p,40*p,0.16,'sawtooth',0.08);      // body
+  tone(70*p,30*p,0.24,'square',0.05);         // low weight
+  tone(2400*p,1200*p,0.05,'square',0.025);    // sweetener
+}
+function buzz(ms){
+  if(!haptics) return;
+  try{ if(typeof navigator!=='undefined'&&navigator.vibrate) navigator.vibrate(ms); }catch(e){}
+}
 function sndClick(){ tone(1400,900,0.03,'square',0.03); }
 function sndQuack(){ tone(440,190,0.09,'sawtooth',0.05); tone(380,160,0.08,'sawtooth',0.04,0.07); }
 function sndReloadStart(){ tone(240,180,0.05,'square',0.04); }
@@ -238,7 +248,7 @@ var shots=0, hits=0, escapes=0;
 var dog={ state:'idle', t:0, duck:null, misses:0 };
 var cross={ x:VW/2, y:VH/2-40, pulse:0 };
 var hitMark=null, missMark=null;
-var tG=0, lastNow=0;
+var tG=0, lastNow=0, hitStop=0, clutchShown=false;
 var scaleS=1, offX=0, offY=0;
 var bgLayer=null, fgLayer=null;
 
@@ -255,11 +265,16 @@ function resize(){
   if(h!==cv.height) cv.height=h;
   scaleS=Math.min(w/VW,h/VH);
   offX=(w-VW*scaleS)/2; offY=(h-VH*scaleS)/2;
+  cvRect=r||null;
 }
 /* pointer mapping (CSS px -> logical view, uniform scale + letterbox) */
+var cvRect=null;
+function measureRect(){
+  try{ if(cv.getBoundingClientRect) cvRect=cv.getBoundingClientRect(); else cvRect=null; }catch(e){ cvRect=null; }
+  return cvRect;
+}
 function toLocal2(cx,cy){
-  var r=null;
-  try{ if(cv.getBoundingClientRect) r=cv.getBoundingClientRect(); }catch(e){}
+  var r=cvRect||measureRect();
   var l=(r&&isFinite(r.left))?r.left:0, t=(r&&isFinite(r.top))?r.top:0;
   var w=(r&&isFinite(r.width)&&r.width>0)?r.width:VW;
   var h=(r&&isFinite(r.height)&&r.height>0)?r.height:VH;
@@ -565,6 +580,7 @@ function fire(lx,ly){
     }
   }
   if(!hitAny){
+    buzz(12);
     combo=0; comboTimer=0; dog.misses++;
     missMark={ x:lx, y:ly, t:0 };
     dustPuff(lx,ly);
@@ -584,6 +600,8 @@ function fire(lx,ly){
   updateHud();
 }
 function onDuckHit(dk){
+  hitStop=dk.sp.gold?130:80;   // frozen beat, same frame as the flash + sound + feathers
+  buzz(dk.sp.gold?60:25);      // a golden duck gets a longer rumble
   combo++; comboTimer=2800; if(combo>bestCombo) bestCombo=combo;
   var mult=1+Math.floor(combo/3); if(mult>5) mult=5;
   var base=dk.sp.pts;
@@ -745,7 +763,11 @@ function update(dt){
   if(missMark){ missMark.t+=dt; if(missMark.t>500) missMark=null; }
   if(introT>0) introT-=dt;
 
-  var slow=slowT>0?0.42:1;
+  // Duck Time: the final duck of an area is slowed for one tense beat
+  var clutch=(state==='playing'&&attempts>=ROUND_TARGET&&ducks.length===1&&!ducks[0].esc);
+  var slow=slowT>0?0.42:(clutch?(hitStop>0?0.75:0.62):1);
+  if(clutch&&!clutchShown){ clutchShown=true; popText(VW/2,120,'LAST DUCK!','#ff9ad4'); }
+  if(!clutch) clutchShown=false;
   updateWeather(dt);
 
   if(state==='playing'&&introT<=0){
@@ -826,6 +848,14 @@ function render(){
   drawReloadUI();
   drawPopups();
   drawIntroCard();
+  if(state==='playing'&&attempts>=ROUND_TARGET&&ducks.length===1&&!ducks[0].esc){
+    ctx.save();
+    ctx.globalAlpha=0.22+0.08*Math.sin(tG*0.008);
+    var vg=ctx.createRadialGradient(VW/2,VH/2,110,VW/2,VH/2,380);
+    vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(255,60,140,0.85)');
+    ctx.fillStyle=vg; ctx.fillRect(0,0,VW,VH);
+    ctx.restore();
+  }
   if(hitFlash>0){ ctx.globalAlpha=hitFlash*0.5; ctx.fillStyle='#fff'; ctx.fillRect(0,0,VW,VH); ctx.globalAlpha=1; }
 }
 function drawPowerups(){
@@ -1101,6 +1131,8 @@ function loop(ts){
   var dt=now-lastNow; lastNow=now;
   if(!isFinite(dt)||dt<0) dt=0;
   if(dt>60) dt=60;
+  // hit-stop: freeze the whole world for a beat so an impact actually registers
+  if(hitStop>0){ hitStop=Math.max(0,hitStop-dt); dt=0; }
   if(state!=='paused') update(dt);
   render();
   requestAnimationFrame(loop);
@@ -1110,6 +1142,7 @@ function loop(ts){
 function boot(){
   loadSave(); best=save.best||0;
   try{ if(typeof localStorage!=='undefined'&&localStorage&&localStorage.getItem('duckhunt_muted')==='1') muted=true; }catch(e){}
+  try{ if(typeof localStorage!=='undefined'&&localStorage&&localStorage.getItem('duckhunt_haptics')==='0') haptics=false; }catch(e){}
   resize();
   if(window.addEventListener){
     window.addEventListener('resize',resize);
@@ -1119,6 +1152,9 @@ function boot(){
     cv.addEventListener('pointerdown',onPointerDown);
     cv.addEventListener('pointermove',onPointerMove);
   }
+  try{
+    if(typeof ResizeObserver!=='undefined'&&E('stage')){ new ResizeObserver(function(){ resize(); }).observe(E('stage')); }
+  }catch(e){}
   if(bStart) bStart.onclick=function(){ unlockAudio(); newGame(); };
   if(bGun) bGun.onclick=function(){ cycleGun(); };
   if(bDiff) bDiff.onclick=function(){ cycleDiff(); };
