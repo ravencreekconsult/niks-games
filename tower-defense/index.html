@@ -1872,19 +1872,28 @@ banner.style.display="none";
 let last=performance.now();
 function loop(now){
   let dt=(now-last)/1000; last=now; if(dt>0.1) dt=0.1;
-  if(S.slowmo>0){ S.slowmo=Math.max(0,S.slowmo-dt); dt*=0.25; } /* boss-death slow-motion hold */
-  if(!paused && !S.over){ for(let i=0;i<speed;i++) step(dt); }
-  safe(camStep); applyCam();
-  draw();
-  banner.style.display = (S.time<S.banner.until)?"block":"none";
-  safe(updateAbil); safe(updateBoss);
-  nudgeEl.style.display=(S.wave===0 && !S.over && intro.style.display==="none")?"block":"none";
-  goTick-=dt; if(goTick<=0){ goTick=0.25; if(!S.running&&!S.over) updateGoLabel(); }
+  try{
+    if(!S){ requestAnimationFrame(loop); return; } /* newGame failed: keep the loop alive */
+    if(S.slowmo>0){ S.slowmo=Math.max(0,S.slowmo-dt); dt*=0.25; } /* boss-death slow-motion hold */
+    if(!paused && !S.over){ for(let i=0;i<speed;i++) step(dt); }
+    safe(camStep); applyCam();
+    draw();
+    banner.style.display = (S.time<S.banner.until)?"block":"none";
+    safe(updateAbil); safe(updateBoss);
+    nudgeEl.style.display=(S.wave===0 && !S.over && intro.style.display==="none")?"block":"none";
+    goTick-=dt; if(goTick<=0){ goTick=0.25; if(!S.running&&!S.over) updateGoLabel(); }
+  }catch(e){} /* one bad frame must never stop the loop or the intro dismiss */
   requestAnimationFrame(loop);
 }
 try{ const b=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0;
   if(b>0) $id("hint").innerHTML += " &bull; 🏆 Best endless run: wave "+b; }catch(e){}
-resize(); newGame(); applyCam(); draw(); requestAnimationFrame(loop);
+/* boot: every step individually guarded — one failure can never leave the game
+   unenterable (the intro dismiss is wired independently near the top) */
+try{ resize(); }catch(e){}
+try{ newGame(); }catch(e){}
+try{ applyCam(); }catch(e){}
+try{ draw(); }catch(e){}
+try{ requestAnimationFrame(loop); }catch(e){}
 })();
 </script>
 </body>
