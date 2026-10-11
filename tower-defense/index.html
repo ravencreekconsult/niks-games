@@ -454,12 +454,18 @@ iS2.onclick=()=>pickSpec(1);
 /* ---------- waves ---------- */
 function startWave(){
   if(S.running||S.over) return;
-  S.wave++; const spec=waveSpec(S.wave);
+  const eb=earlyBonus(); if(eb>0){ S.gold+=eb; }
+  S.wave++;
+  /* CONSUME the stored spec — the wave that runs IS the wave the preview showed */
+  const spec=S.nextSpec||waveSpec(S.wave);
+  genNextSpec(); /* pre-generate wave+1 so the preview stays truthful */
+  S.leaks=0;
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
   const z=zoomForWave(S.wave);
   let msg = spec.boss? "BOSS WAVE "+S.wave : "Wave "+S.wave+" incoming";
   if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
     msg = spec.boss? "BOSS WAVE "+S.wave+" — the valley opens up!" : "The valley opens up — view zooms out!"; }
+  if(eb>0) msg += "  ·  early call +"+eb+"g";
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
   say(msg, spec.boss?2600:1800);
@@ -603,7 +609,7 @@ function step(dt){
     if(e.shielded) slowed=Math.min(slowed,0.55);
     if(!e.blocked) e.dist += e.spd*slowed*dt;   /* soldiers NEVER block each other — only a soldier holds an enemy */
     const p=pathAt(e.dist); e.x=p.x; e.y=p.y;
-    if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.baseFlash=now+0.4;
+    if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.leaks++; S.baseFlash=now+0.4;
       hud(); S.shake=Math.max(S.shake,5); } }
     if(e.boss){
       if(e.shielded && e.shieldHp<=0){ e.shielded=false; e.shieldHp=0;
@@ -664,9 +670,17 @@ function step(dt){
   S.fx=S.fx.filter(f=>f.life>0);
   S.enemies=S.enemies.filter(e=>!e.dead);
   if(S.running && S.queue.length===0 && S.enemies.length===0){
-    S.running=false; const bonus=40+S.wave*8; S.gold+=bonus; say("Wave "+S.wave+" cleared  +"+bonus+"g",1600);
+    S.running=false; S.clearAt=S.time;
+    const bonus=40+S.wave*8;
+    let extra="";
+    if(S.leaks===0){ const nb=20+S.wave*4; S.gold+=nb; extra="  ·  NO LEAK +"+nb+"g"; }
+    const interest=Math.min(200,Math.round(S.gold*0.02));
+    if(interest>0){ S.gold+=interest; extra+="  ·  interest +"+interest+"g"; }
+    S.gold+=bonus; say("Wave "+S.wave+" cleared  +"+bonus+"g"+extra,2600);
+    if(S.endless){ try{ const b=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0;
+      if(S.wave>b) localStorage.setItem("td_best_endless",String(S.wave)); }catch(e){} }
     go.disabled=false; hud(); refreshShopAff(); if(autoOn) autoTimer=1.6;
-    if(S.wave>=30){ S.won=true; endGame(); }
+    if(S.wave>=30 && !S.endless){ S.won=true; endGame(); }
   }
   if(S.lives<=0 && !S.over){ S.over=true; endGame(); }
   if(!S.running && autoOn && !S.over && !S.won){ autoTimer-=dt; if(autoTimer<=0) startWave(); }
