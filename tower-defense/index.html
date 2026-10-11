@@ -285,8 +285,38 @@ abRep.onclick=()=>{ if(paused||S.over||S.time<S.cd.rep||S.repairUses<=0) return;
 abOvr.onclick=()=>{ if(paused||S.over||S.time<S.cd.ovr) return; S.cd.ovr=S.time+ABIL.ovr.cd; S.ocUntil=S.time+6; say("Overcharge! Towers fire faster",1400); };
 
 /* ---------- building ---------- */
+/* project a cell centre onto the path polyline -> path distance in cell units (frozen at deploy) */
+function pathDistOf(gx,gy){ const px=gx+0.5,py=gy+0.5; let best=1e18,bd=0;
+  for(const s of SEG){ const ax=s.a[0]+0.5,ay=s.a[1]+0.5,bx2=s.b[0]+0.5,by2=s.b[1]+0.5;
+    const dx=bx2-ax,dy=by2-ay,L2=dx*dx+dy*dy||1; let t=((px-ax)*dx+(py-ay)*dy)/L2; t=Math.max(0,Math.min(1,t));
+    const qx=ax+dx*t,qy=ay+dy*t,d2=(px-qx)*(px-qx)+(py-qy)*(py-qy);
+    if(d2<best){ best=d2; bd=s.start+s.len*t; } }
+  return bd; }
+function armDeploy(k){ if(!S||S.over) return; S.armed=false;
+  if(S.deploy===k){ S.deploy=null; say("Cancelled",900); return; }
+  S.deploy=k; selSold=null; selTower=null; info.style.display="none"; resize();
+  say(k==="soldier"?"Tap a ROAD cell to deploy a soldier 🛡":"Tap a ROAD cell to place it",1300); }
 function tap(gx,gy){
   if(S.over) return;
+  /* deploy mode (soldier / trap) takes the tap before any tower logic */
+  if(S.deploy){
+    if(!pathCells.has(gx+","+gy)){ say("Only on the road!",1100); return; }
+    const r=RD.find(x=>x.k===S.deploy);
+    if(S.gold<r.cost){ say("Need "+r.cost+"g"); return; }
+    if(S.deploy==="soldier"){
+      if(S.soldiers.find(s=>s.gx===gx&&s.gy===gy)){ say("A soldier is already here",1000); return; }
+      if(S.soldiers.filter(s=>!s.dead).length>=SOLMAX){ say("Max "+SOLMAX+" soldiers on the field",1200); return; }
+      const L=SOL_LV[0];
+      S.soldiers.push({gx,gy,d:pathDistOf(gx,gy),lvl:1,max:L.hp,hp:L.hp,dmg:L.dmg,atkT:0,swing:0,tgt:null,dead:false,deathT:0});
+    } else {
+      if(S.traps.find(t=>t.gx===gx&&t.gy===gy)){ say("Something is already here",1000); return; }
+      if(S.traps.length>=TRAPMAX){ say("Max "+TRAPMAX+" traps",1100); return; }
+      S.traps.push({gx,gy,kind:S.deploy,d:pathDistOf(gx,gy),cd:0,pulse:0,dead:false});
+    }
+    S.gold-=r.cost; hud(); refreshShopAff(); return; }
+  const sl=S.soldiers.find(s=>s.gx===gx&&s.gy===gy&&!s.dead);
+  if(sl){ selSold=sl; selTower=null; showInfo(); return; }
+  selSold=null;
   const ex = S.towers.find(t=>t.gx===gx&&t.gy===gy);
   if(ex){ selTower=ex; showInfo(); return; }
   if(pathCells.has(gx+","+gy)) return;
@@ -296,11 +326,20 @@ function tap(gx,gy){
   hud(); refreshShopAff();
 }
 function showInfo(){
+  if(selSold){ /* soldier info reuses the same panel; targeting hidden */
+    const s=selSold, c=SOL_UP[s.lvl-1];
+    info.style.display="flex"; resize();
+    iTxt.innerHTML=`<b>🛡 Soldier</b> Lv${s.lvl} · hp ${Math.max(0,Math.ceil(s.hp))}/${s.max} · dmg ${s.dmg}`
+      + (s.lvl<3? ` · <span style="color:var(--gold)">upgrade ${c.cost}g</span>` : " · max level");
+    iUp.style.display = s.lvl<3? "" : "none";
+    iS1.style.display="none"; iS2.style.display="none"; iTgt.style.display="none";
+    iSell.textContent="Sell +"+(30*s.lvl)+"g"; return; }
   if(!selTower){ info.style.display="none"; resize(); return; }
   const tw=selTower, st=effStats(tw);
   const canSpec = tw.lvl>=MAXLV && !tw.spec && !!SPECS[tw.type.id];
   const c=upCost(tw.type,tw.lvl);
   info.style.display="flex"; resize();
+  iTgt.style.display="";
   iTxt.innerHTML=`<b>${tw.type.name}</b> Lv${tw.lvl}`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
     + ` · dmg ${st.dmg|0} · rng ${st.range.toFixed(1)}`
     + (tw.lvl<MAXLV? ` · <span style="color:var(--gold)">upgrade ${c}g</span>` : (canSpec? " · pick a special:" : ""));
@@ -317,10 +356,17 @@ iTgt.onclick=()=>{ if(!selTower) return;
   const cur=selTower.mode||"first";
   selTower.mode=TGT_ORDER[(TGT_ORDER.indexOf(cur)+1)%TGT_ORDER.length];
   iTgt.textContent="🎯 "+TGT_NAME[selTower.mode]; };
-iUp.onclick=()=>{ if(!selTower) return; const c=upCost(selTower.type,selTower.lvl);
+iUp.onclick=()=>{ if(selSold){ const s=selSold;
+    if(s.lvl>=3) return; const c=SOL_UP[s.lvl-1];
+    if(S.gold<c.cost){ say("Need "+c.cost+"g"); return; }
+    S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
+    say("Soldier Lv"+s.lvl+"!",1100); hud(); showInfo(); return; }
+  if(!selTower) return; const c=upCost(selTower.type,selTower.lvl);
   if(selTower.lvl>=MAXLV) return; if(S.gold<c){ say("Need "+c+"g"); return; }
   S.gold-=c; selTower.lvl++; hud(); showInfo(); };
-iSell.onclick=()=>{ if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
+iSell.onclick=()=>{ if(selSold){ S.gold+=30*selSold.lvl;
+    S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
+  if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
 /* ---------- level-6 specializations ---------- */
 const SPECS={
@@ -365,6 +411,7 @@ function spawn(kind,dist){
   S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying, lane:(Math.random()*2-1)*0.16,
     boss:!!b.boss, slowUntil:0, slowPow:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0,
+    blocked:false, atk:(b.atk||0),
     name: b.boss? bossName(S.wave):"", shielded:false, shieldHp:0, shieldMax:0,
     nextShield: b.boss?0.66:0, sumT: b.boss?3:0 });
 }
