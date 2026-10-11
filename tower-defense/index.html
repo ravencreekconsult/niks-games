@@ -168,21 +168,24 @@ function pathAt(d){ if(d<=0){const s=SEG[0];return{x:s.a[0]+0.5,y:s.a[1]+0.5};}
 
 /* ---------- towers ---------- */
 const TOWERS = [
- {id:"blaster", name:"Blaster", cost:60,  range:2.6, dmg:9,   rate:3.0, color:"#00e5ff", desc:"fast single"},
- {id:"cannon",  name:"Cannon",  cost:120, range:2.4, dmg:30,  rate:1.0, color:"#ff8a3d", splash:1.4, desc:"splash"},
- {id:"frost",   name:"Frost",   cost:90,  range:2.6, dmg:5,   rate:2.0, color:"#a5f3fc", slow:0.45, desc:"slows"},
- {id:"sniper",  name:"Sniper",  cost:180, range:5.5, dmg:90,  rate:0.6, color:"#c084fc", pierce:true, desc:"long range"},
- {id:"tesla",   name:"Tesla",   cost:200, range:2.8, dmg:16,  rate:1.6, color:"#7ef2ff", chain:3, desc:"chains"},
- {id:"venom",   name:"Venom",   cost:140, range:2.6, dmg:6,   rate:1.8, color:"#7CFC00", poison:14, desc:"poison"},
- {id:"missile", name:"Missile", cost:260, range:4.4, dmg:70,  rate:0.7, color:"#ff4d6d", splash:2.0, desc:"big booms"},
- {id:"coil",    name:"Booster", cost:320, range:2.6, dmg:0,   rate:1.0, color:"#ffd166", boost:true, desc:"buffs neighbours"}
+ {id:"blaster", name:"Blaster", cost:60,  range:1.87, dmg:10,  rate:3.2, color:"#00e5ff", desc:"fast single"},
+ {id:"cannon",  name:"Cannon",  cost:120, range:1.73, dmg:30,  rate:1.0, color:"#ff8a3d", splash:1.4, desc:"splash"},
+ {id:"frost",   name:"Frost",   cost:90,  range:1.87, dmg:5,   rate:2.0, color:"#a5f3fc", slow:0.45, desc:"slows"},
+ {id:"sniper",  name:"Sniper",  cost:180, range:3.96, dmg:90,  rate:0.6, color:"#c084fc", pierce:true, desc:"long range"},
+ {id:"tesla",   name:"Tesla",   cost:200, range:2.02, dmg:16,  rate:1.6, color:"#7ef2ff", chain:3, desc:"chains"},
+ {id:"venom",   name:"Venom",   cost:140, range:1.87, dmg:6,   rate:1.8, color:"#7CFC00", poison:14, desc:"poison"},
+ {id:"missile", name:"Missile", cost:260, range:3.17, dmg:70,  rate:0.7, color:"#ff4d6d", splash:2.0, desc:"big booms"},
+ {id:"coil",    name:"Booster", cost:320, range:1.87, dmg:0,   rate:1.0, color:"#ffd166", boost:true, desc:"buffs neighbours"}
 ];
-const MAXLV = 6;
-function lvlStat(t,l){ const gd = 1 + (l-1)*0.42, gr = 1 + (l-1)*0.10;
-  return { dmg:t.dmg*gd, range:t.range*gr, rate:t.rate*(1+(l-1)*0.09),
-           splash:t.splash?(t.splash*(1+(l-1)*0.08)):0, slow:t.slow?(t.slow+(l-1)*0.03):0,
-           poison:t.poison?(t.poison*(1+(l-1)*0.3)):0, chain:t.chain?(t.chain+(l-1)):0 }; }
-function upCost(t,l){ return Math.round(t.cost*(0.75*l)); }
+/* three independent upgrade tracks per tower, 3 levels each */
+const TRACK_MUL={range:0.8, rate:1.0, dmg:1.1};
+const TRACK_RNG_ADD=0.38, TRACK_RATE=1.13, TRACK_DMG=1.24;
+function trackCost(t,k,lv){ return Math.round(t.cost*TRACK_MUL[k]*(0.30+0.22*lv)); } /* lv = level being bought (1..3) */
+function trackMax(k){ return 3; }
+function trackLabel(k){ return k==="range"?"RNG":k==="rate"?"RATE":"DMG"; }
+/* unlock table: tower id -> wave it becomes buyable (applies in Testing AND Real) */
+const UNLOCK_WAVE={blaster:1,cannon:1,frost:1,sniper:4,venom:6,tesla:8,missile:11,coil:14};
+function towerUnlocked(id){ return S.wave >= (UNLOCK_WAVE[id]||1)-1; }
 
 /* ---------- enemies ---------- */
 const ETYPES = {
@@ -307,11 +310,16 @@ function buildShop(){
 function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ c.classList.toggle("nope",S.gold<TOWERS[i].cost);
   c.classList.toggle("sel", i===sel && !selTower); }); }
 
-function effStats(tw){ const base=lvlStat(tw.type,tw.lvl);
-  let dmg=base.dmg, range=base.range, rate=base.rate, splash=base.splash;
-  for(const o of S.towers){ if(o.type.boost && o!==tw){ const d=Math.hypot(o.gx-tw.gx,o.gy-tw.gy);
-    if(d<=lvlStat(o.type,o.lvl).range){ const sp=o.spec;
-      const b=(0.22+(o.lvl-1)*0.06)*(sp==="oc"?1.8:1);
+function trRange(tw){ return tw.type.range + TRACK_RNG_ADD*(tw.rngLv||0); }
+function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
+  let dmg=tw.type.dmg*Math.pow(TRACK_DMG,d), range=trRange(tw),
+      rate=tw.type.rate*Math.pow(TRACK_RATE,f), splash=tw.type.splash||0,
+      slow=tw.type.slow||0, poison=tw.type.poison||0, chain=tw.type.chain||0;
+  if(d>0){ if(tw.type.poison) poison*=Math.pow(1.2,d);
+    if(tw.type.chain) chain+=d; if(tw.type.slow) slow+=0.03*d; }
+  for(const o of S.towers){ if(o.type.boost && o!==tw){ const dd=Math.hypot(o.gx-tw.gx,o.gy-tw.gy);
+    if(dd<=trRange(o)){ const sp=o.spec, tot=(o.rngLv||0)+(o.rateLv||0)+(o.dmgLv||0);
+      const b=(0.22+tot*0.045)*(sp==="oc"?1.8:1);
       const rb=b*(sp==="amp"?1.6:0.5);
       dmg*=1+b; range*=1+rb; if(sp==="amp") rate*=1+b*0.6; } } }
   if(tw.spec==="minigun"){ rate*=2.4; dmg*=0.55; }
@@ -319,7 +327,7 @@ function effStats(tw){ const base=lvlStat(tw.type,tw.lvl);
   else if(tw.spec==="flak"){ rate*=1.3; }
   else if(tw.spec==="cruise"){ range*=2.0; dmg*=1.25; }
   else if(tw.spec==="deep"){ dmg*=1.3; }
-  return {...base,dmg,range,rate,splash}; }
+  return {dmg,range,rate,splash,slow,poison,chain}; }
 
 /* ---------- abilities ---------- */
 const ABIL={ air:{cd:35,label:"💥 Airstrike"}, frz:{cd:40,label:"❄️ Freeze"}, rep:{cd:60,label:"🔧 Repair"}, ovr:{cd:45,label:"⚡ Overcharge"} };
