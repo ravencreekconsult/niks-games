@@ -296,7 +296,7 @@ export const MAPS = {
         ],
         winLine: 'Argh! You beat me again... One day, one day! Take the money.',
         loseLine: 'Ha! See what training does? Better luck next time, rival!' },
-      { x: 18, y: 17, dir: 'up', sight: 3, sprite: 'npcLeader', name: 'Halvar', flag: 'badgeFrost',
+      { x: 18, y: 17, dir: 'left', sight: 3, sprite: 'npcLeader', name: 'Halvar', flag: 'badgeFrost',
         party: [{ speciesId: 'glacierine', level: 22 }, { speciesId: 'abyssfrost', level: 23 }, { speciesId: 'aurorwing', level: 24 }], reward: 1000,
         lines: [
           'Cold winds greet you, young catcher. I am Halvar.',
