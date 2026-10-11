@@ -293,6 +293,7 @@ function showDlgStep() {
   }
 }
 function answerDlg(step, yes) {
+  if (!dlgOpen || !dlgSteps) return; // box closed while the choice was pending
   setMenu(null); // close the choice before the follow-up line
   dlgChoice = false;
   flagsOf()[yes ? step.flagYes : step.flagNo] = true;
@@ -308,6 +309,7 @@ function advanceDialog() {
 }
 function closeDialog() {
   dlgOpen = false;
+  if (dlgChoice) setMenu(null); // never leave a stranded YES/NO behind
   dlgChoice = false;
   // the NPC remembers you: set its visit flag so it says `again` next time
   if (dlgTarget && dlgTarget.npc && dlgTarget.npc.flag) {
@@ -527,7 +529,9 @@ function frame(ts) {
       battle.draw(ctx);
     } else {
       // dialogue first: while the box is open it owns A and B, and walking is paused
-      if (dlgOpen) {
+      if (dlgOpen && (menuItems && menuItems.length)) {
+        // a yes/no choice is pending: the menu below owns A (and taps)
+      } else if (dlgOpen) {
         if (input.consumeB()) closeDialog();
         else {
           while (dlgOpen && input.aQueued > 0) {
