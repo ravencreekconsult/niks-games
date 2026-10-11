@@ -168,6 +168,12 @@ function stepPlayback(dtMs) {
   const step = queue.shift();
   const ev = step.ev;
   if (ev.t === 'message') msg = ev.text; // keep the last message otherwise
+  else if (ev.t === 'heal') {
+    const c = combatant(ev.targetId);
+    if (c) msg = c.name + ' recovered ' + ev.amount + ' HP!';
+  } else if (ev.t === 'run' && !ev.success) {
+    msg = "Couldn't get away!";
+  }
   applyFx(ev);
   timer = step.dur;
 }
@@ -257,6 +263,16 @@ export function update(dt) {
     if (f.flash > 0) f.flash -= dt * 1000;
     if (f.shake > 0) f.shake -= dt * 1000;
   }
+  // ease the displayed HP toward the real HP so the bar drains smoothly
+  if (state) {
+    for (const c of state.combatants) {
+      const target = c.hp;
+      const cur = (dispHp[c.id] === undefined) ? target : dispHp[c.id];
+      dispHp[c.id] = (Math.abs(target - cur) < 0.5)
+        ? target
+        : cur + (target - cur) * Math.min(1, dt * 8);
+    }
+  }
 }
 
 export function isOver() { return phase === 'over' || phase === 'idle'; }
@@ -277,6 +293,7 @@ function wrap(ctx, text, maxW) {
 }
 
 function hpBar(ctx, x, y, w, ratio) {
+  // colour tiers: >1/2 green, >1/5 amber, otherwise red
   ctx.fillStyle = PAL.dark;
   ctx.fillRect(x, y, w, 5);
   const rw = Math.max(0, Math.round((w - 2) * Math.max(0, Math.min(1, ratio))));
@@ -284,20 +301,30 @@ function hpBar(ctx, x, y, w, ratio) {
   ctx.fillRect(x + 1, y + 1, rw, 3);
 }
 
+function roundBox(ctx, x, y, w, h) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x + 0.5, y + 0.5, w - 1, h - 1, 4);
+  else ctx.rect(x + 0.5, y + 0.5, w - 1, h - 1);
+  ctx.stroke();
+}
+
 function statBox(ctx, c, x, y, w, isFoe) {
   const sp = SPECIES[c.speciesId] || { name: c.name };
+  const shown = (dispHp[c.id] !== undefined) ? dispHp[c.id] : c.hp;
   ctx.fillStyle = PAL.white;
   ctx.fillRect(x, y, w, 30);
-  ctx.strokeStyle = PAL.dark;
-  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 29);
+  ctx.strokeStyle = PAL.dark;      // thin rounded outer border
+  roundBox(ctx, x, y, w, 30);
+  ctx.strokeStyle = PAL.slate;     // subtle inner line so the box reads as UI
+  roundBox(ctx, x + 2, y + 2, w - 4, 26);
   ctx.fillStyle = PAL.ink;
   ctx.font = 'bold 8px monospace';
   ctx.textBaseline = 'top';
-  ctx.fillText(sp.name, x + 4, y + 3);
-  ctx.fillText('Lv' + c.level, x + w - 30, y + 3);
-  hpBar(ctx, x + 4, y + 15, w - 8, c.hp / c.maxHp);
+  ctx.fillText(sp.name, x + 5, y + 4);
+  ctx.fillText('Lv' + c.level, x + w - 30, y + 4);
+  hpBar(ctx, x + 5, y + 15, w - 10, shown / c.maxHp);
   ctx.fillStyle = PAL.slate;
-  ctx.fillText(c.hp + '/' + c.maxHp, x + 4, y + 21);
+  ctx.fillText(Math.max(0, Math.round(shown)) + '/' + c.maxHp, x + 5, y + 22);
 }
 
 export function draw(ctx) {
