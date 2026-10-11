@@ -1342,23 +1342,50 @@ function drawTower(tw){
     ctx.fillStyle="rgba(255,255,255,.65)"; ctx.beginPath(); ctx.arc(x-rr*0.3,y-rr*0.3,rr*0.35,0,7); ctx.fill(); }
   ctx.save();
   switch(id){
-    case "blaster":{ /* round dome turret: twin barrels + chevron emblem */
-      ctx.fillStyle="#2b323e"; ctx.beginPath(); ctx.arc(px,py+r*0.06,r*0.72,0,7); ctx.fill();
+    case "blaster":{ /* squat dome turret: housing + rotating barrel cluster.
+       rate barrels grow with RATE, sensor mast with RNG, core + plates with DMG.
+       minigun = spinning 6-barrel cluster; gatling = twin barrels + heat rings. */
+      ctx.fillStyle="#232a34"; roundRect(ctx,px-r*0.78,py-r*0.12,r*1.56,r*0.52,r*0.14); ctx.fill();
       ctx.strokeStyle="#0d1117"; ctx.lineWidth=3; ctx.stroke();
-      ctx.save(); ctx.translate(px,py); ctx.rotate(tw.ang);
-      const rec=(tw.kick||0)*s*0.04;
-      for(const off of [-s*0.11,s*0.11]){
-        ctx.fillStyle="#151b23"; ctx.fillRect(-rec,-off-s*0.055,r+s*0.22,s*0.11);
-        ctx.fillStyle="rgba(255,255,255,0.16)"; ctx.fillRect(-rec,-off-s*0.055,r+s*0.22,s*0.03);
-        ctx.fillStyle=col; ctx.fillRect(r*0.72-rec,-off-s*0.055,s*0.12,s*0.11); }
-      ctx.fillStyle="#232a34"; ctx.beginPath(); ctx.arc(0,0,r*0.56,0,7); ctx.fill();
-      ctx.strokeStyle="#0d1117"; ctx.lineWidth=2.5; ctx.stroke();
-      ctx.fillStyle="rgba(255,255,255,0.16)"; ctx.beginPath(); ctx.arc(-r*0.14,-r*0.14,r*0.36,0,7); ctx.fill();
-      /* chevron emblem */
-      ctx.fillStyle=col; ctx.beginPath();
-      ctx.moveTo(r*0.3,0); ctx.lineTo(-r*0.12,-r*0.2); ctx.lineTo(-r*0.02,0); ctx.lineTo(-r*0.12,r*0.2);
-      ctx.closePath(); ctx.fill();
+      ctx.fillStyle="rgba(255,255,255,0.12)"; roundRect(ctx,px-r*0.78,py-r*0.12,r*1.56,r*0.16,r*0.1); ctx.fill();
+      if(lvD>0) for(let i=0;i<lvD;i++) plate(px-r*0.62+i*r*0.46,py+r*0.06,r*0.4,r*0.26,"#151b23");
+      /* range track: sensor mast with a blinking tip */
+      if(lvR>0){ const mh=r*0.34+lvR*r*0.2;
+        ctx.strokeStyle="#151b23"; ctx.lineWidth=s*0.05; ctx.lineCap="round";
+        ctx.beginPath(); ctx.moveTo(px-r*0.5,py); ctx.lineTo(px-r*0.5,py-mh); ctx.stroke();
+        ctx.fillStyle="#7ee7ff"; ctx.beginPath(); ctx.arc(px-r*0.5,py-mh,s*0.035+lvR*s*0.006,0,7); ctx.fill(); }
+      ctx.save(); ctx.translate(px,py-r*0.1); ctx.rotate(tw.ang);
+      const rec=kick*s*0.05;
+      if(tw.spec==="minigun"){ /* silhouette: six parallel barrels spinning */
+        const spin=S.time*9;
+        for(let i=0;i<6;i++){ const a=spin+i*Math.PI/3, oy2=Math.sin(a)*s*0.1;
+          ctx.fillStyle=i%2?"#151b23":"#2b323e"; ctx.fillRect(-rec-s*0.02,oy2-s*0.026,r*0.92,s*0.052); }
+        ctx.fillStyle="#232a34"; ctx.beginPath(); ctx.arc(0,0,r*0.4,0,7); ctx.fill();
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=2.5; ctx.stroke();
+        if(lvD>=2) core(0,0,r*0.16,col,0.5);
+      } else {
+        const offs=[-s*0.11,s*0.11]; if(lvF>=2) offs.unshift(0); if(lvF>=3) offs.push(0,0);
+        for(let bi=0;bi<offs.length;bi++){ const off=offs[bi];
+          ctx.fillStyle="#151b23"; ctx.fillRect(-rec,-off-s*0.055,r+s*0.22,s*0.11);
+          ctx.fillStyle="rgba(255,255,255,0.16)"; ctx.fillRect(-rec,-off-s*0.055,r+s*0.22,s*0.03);
+          ctx.fillStyle=col; ctx.fillRect(r*0.72-rec,-off-s*0.055,s*0.12,s*0.11); }
+        if(tw.spec==="gatling"&&!RM){ ctx.strokeStyle=`rgba(255,170,80,${0.25+0.5*Math.min(1,(tw.heat||0)/2)})`;
+          ctx.lineWidth=2; ctx.beginPath(); ctx.arc(r*0.5,0,s*0.09,0,7); ctx.stroke(); }
+        /* dome: dark underside, mid body, lit top-left highlight */
+        ctx.fillStyle="#1d242e"; ctx.beginPath(); ctx.arc(0,r*0.08,r*0.56,0,7); ctx.fill();
+        ctx.fillStyle="#2b3442"; ctx.beginPath(); ctx.arc(0,0,r*0.56,0,7); ctx.fill();
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.fillStyle="rgba(255,255,255,0.16)"; ctx.beginPath(); ctx.arc(-r*0.14,-r*0.16,r*0.32,0,7); ctx.fill();
+        if(lvD>0) core(0,0,r*(0.1+lvD*0.045),col,0.5);
+        /* chevron emblem */
+        ctx.fillStyle=col; ctx.beginPath();
+        ctx.moveTo(r*0.3,0); ctx.lineTo(-r*0.12,-r*0.2); ctx.lineTo(-r*0.02,0); ctx.lineTo(-r*0.12,r*0.2);
+        ctx.closePath(); ctx.fill();
+      }
       ctx.restore();
+      if(!RM && lvD>=3){ /* cooling vents pulse between shots */
+        ctx.fillStyle=`rgba(255,80,80,${0.25+0.25*Math.sin(S.time*4)})`;
+        ctx.beginPath(); ctx.arc(px-r*0.3,py-r*0.2,s*0.03,0,7); ctx.fill(); }
       if(tw.flash>0) muzzle(px+Math.cos(tw.ang)*r*1.1,py+Math.sin(tw.ang)*r*1.1,s,tw.ang,col);
       break; }
     case "cannon":{ /* squat fat siege carriage + fat bore + shell emblem */
