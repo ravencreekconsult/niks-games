@@ -879,33 +879,48 @@ function drawTower(tw){
       ctx.restore();
       if(tw.flash>0) muzzle(px+Math.cos(tw.ang)*(r*0.92+r*1.45),py+Math.sin(tw.ang)*(r*0.92+r*1.45),s,tw.ang,col);
       break; }
-    case "tesla":{ /* coil with crackle + electric halo */
-      const gl=ctx.createRadialGradient(px,py,0,px,py,r*1.15);
+    case "tesla":{ /* tall stacked coil tower + bolt emblem */
+      const gl=ctx.createRadialGradient(px,py-r*0.4,0,px,py-r*0.4,r*1.25);
       gl.addColorStop(0,"rgba(126,242,255,.25)"); gl.addColorStop(1,"rgba(126,242,255,0)");
-      ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(px,py,r*1.15,0,7); ctx.fill();
-      for(let i=0;i<3;i++){ const yy=py+r*0.35-i*r*0.3;
-        ctx.fillStyle=i%2?"#8a5a2e":"#c78d45"; ctx.beginPath(); ctx.ellipse(px,yy,r*0.5,r*0.16,0,0,7); ctx.fill();
-        ctx.strokeStyle="rgba(0,0,0,.35)"; ctx.lineWidth=1; ctx.stroke(); }
-      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(px,py-r*0.5,r*0.24,0,7); ctx.fill();
-      ctx.fillStyle="rgba(255,255,255,.6)"; ctx.beginPath(); ctx.arc(px-r*0.07,py-r*0.57,r*0.08,0,7); ctx.fill();
+      ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(px,py-r*0.4,r*1.25,0,7); ctx.fill();
+      ctx.fillStyle="#151b23"; ctx.beginPath(); ctx.ellipse(px,py,r*0.52,r*0.2,0,0,7); ctx.fill();
+      ctx.strokeStyle="#0d1117"; ctx.lineWidth=2.5; ctx.stroke();
+      for(let i=0;i<4;i++){ const yy=py-r*0.04-i*r*0.26;
+        ctx.fillStyle=i%2?"#8a5a2e":"#c78d45"; ctx.beginPath(); ctx.ellipse(px,yy,r*0.48-i*r*0.04,r*0.15,0,0,7); ctx.fill();
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.stroke(); }
+      ctx.fillStyle=col; ctx.beginPath(); ctx.arc(px,py-r*1.14,r*0.26,0,7); ctx.fill();
+      ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.stroke();
+      ctx.fillStyle="rgba(255,255,255,.6)"; ctx.beginPath(); ctx.arc(px-r*0.08,py-r*1.22,r*0.09,0,7); ctx.fill();
+      /* bolt emblem */
+      ctx.fillStyle="#e9fdff"; ctx.beginPath();
+      ctx.moveTo(px+r*0.05,py-r*1.02); ctx.lineTo(px-r*0.11,py-r*0.86); ctx.lineTo(px-r*0.03,py-r*0.86);
+      ctx.lineTo(px-r*0.13,py-r*0.68); ctx.lineTo(px+r*0.09,py-r*0.9); ctx.lineTo(px+r*0.01,py-r*0.9);
+      ctx.lineTo(px+r*0.13,py-r*1.02); ctx.closePath(); ctx.fill();
       if(!RM){ ctx.strokeStyle=col; ctx.lineWidth=1.5;
         for(let k=0;k<2;k++){ const a=Math.random()*Math.PI*2;
-          ctx.beginPath(); ctx.moveTo(px,py-r*0.5);
-          ctx.lineTo(px+Math.cos(a)*r*0.45,py-r*0.5+Math.sin(a)*r*0.45); ctx.stroke(); } }
+          ctx.beginPath(); ctx.moveTo(px,py-r*1.14);
+          ctx.lineTo(px+Math.cos(a)*r*0.5,py-r*1.14+Math.sin(a)*r*0.5); ctx.stroke(); } }
       break; }
-    case "venom":{ /* bubbling vat with dripping nozzle */
-      ctx.fillStyle="rgba(124,252,0,.16)"; ctx.beginPath(); ctx.arc(px,py,r*0.9,0,7); ctx.fill();
-      ctx.fillStyle="#2c3a24"; roundRect(ctx,px-r*0.55,py-r*0.55,r*1.1,r*1.05,s*0.08); ctx.fill();
-      ctx.strokeStyle="#4a5c38"; ctx.lineWidth=2; ctx.stroke();
-      ctx.fillStyle="#5fdd2e"; roundRect(ctx,px-r*0.42,py-r*0.4,r*0.84,r*0.4,s*0.05); ctx.fill();
+    case "venom":{ /* squat bubbling vat + droplet emblem + dripping nozzle */
+      ctx.fillStyle="rgba(124,252,0,.16)"; ctx.beginPath(); ctx.arc(px,py,r*0.95,0,7); ctx.fill();
+      ctx.fillStyle="#2c3a24"; roundRect(ctx,px-r*0.64,py-r*0.55,r*1.28,r*1.1,s*0.1); ctx.fill();
+      ctx.strokeStyle="#0d1117"; ctx.lineWidth=3; ctx.stroke();
+      ctx.strokeStyle="rgba(255,255,255,0.12)"; ctx.lineWidth=1.2;
+      roundRect(ctx,px-r*0.55,py-r*0.47,r*1.1,r*0.2,s*0.06); ctx.stroke();
+      ctx.fillStyle="#5fdd2e"; roundRect(ctx,px-r*0.48,py-r*0.34,r*0.96,r*0.44,s*0.05); ctx.fill();
+      /* droplet emblem */
+      ctx.fillStyle="#c9ff8f"; ctx.beginPath();
+      ctx.moveTo(px,py+r*0.04); ctx.quadraticCurveTo(px-r*0.17,py-r*0.16,px,py-r*0.32);
+      ctx.quadraticCurveTo(px+r*0.17,py-r*0.16,px,py+r*0.04); ctx.fill();
       if(!RM){ ctx.fillStyle="rgba(180,255,120,.85)";
         for(let i=0;i<3;i++){ const ph=(S.time*0.9+i*0.37)%1;
-          ctx.beginPath(); ctx.arc(px-r*0.25+i*r*0.25,py-r*0.32-ph*r*0.3,s*0.03*(1-ph),0,7); ctx.fill(); } }
+          ctx.beginPath(); ctx.arc(px-r*0.28+i*r*0.28,py-r*0.3-ph*r*0.28,s*0.03*(1-ph),0,7); ctx.fill(); } }
       ctx.save(); ctx.translate(px,py); ctx.rotate(tw.ang);
-      ctx.fillStyle="#3a4a2c"; ctx.fillRect(r*0.3,-s*0.05,r*0.55,s*0.1);
-      ctx.fillStyle=col; ctx.fillRect(r*0.72,-s*0.05,s*0.08,s*0.1);
+      ctx.fillStyle="#3a4a2c"; ctx.fillRect(r*0.36,-s*0.06,r*0.62,s*0.12);
+      ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.strokeRect(r*0.36,-s*0.06,r*0.62,s*0.12);
+      ctx.fillStyle=col; ctx.fillRect(r*0.84,-s*0.06,s*0.1,s*0.12);
       ctx.restore();
-      if(tw.flash>0) muzzle(px+Math.cos(tw.ang)*r*0.95,py+Math.sin(tw.ang)*r*0.95,s*0.8,tw.ang,col);
+      if(tw.flash>0) muzzle(px+Math.cos(tw.ang)*r*1.02,py+Math.sin(tw.ang)*r*1.02,s*0.85,tw.ang,col);
       break; }
     case "missile":{ /* box launcher, four tubes, lifting hatches */
       ctx.save(); ctx.translate(px,py); ctx.rotate(tw.ang);
