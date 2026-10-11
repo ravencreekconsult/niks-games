@@ -337,6 +337,7 @@ export function draw(ctx) {
   ctx.beginPath(); ctx.ellipse(172, 56, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
 
   const me = activeOf(0), foe = activeOf(1);
+  const SPR_W = 16; // critter grids are 8 cells wide at scale 2
   const drawMon = (c, x, y, flip) => {
     if (!c) return;
     const f = fx[c.id] || {};
@@ -344,8 +345,8 @@ export function draw(ctx) {
     const gx = x + shk, gy = y;
     if (c.fainted) return;
     ctx.save();
-    if (flip) { ctx.translate(gx + 32, gy); ctx.scale(-1, 1); drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, 0, 0, 2); }
-    else drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, gx, gy, 2);
+    if (flip) { ctx.translate(gx + 24, gy); ctx.scale(-1, 1); drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, 0, 0, 2); }
+    else drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, gx + (32 - SPR_W) / 2, gy, 2);
     ctx.restore();
     if (f.flash > 0) {
       ctx.globalAlpha = 0.55;
