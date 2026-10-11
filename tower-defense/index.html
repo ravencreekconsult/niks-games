@@ -242,7 +242,7 @@ const TOWERS = [
 ];
 /* three independent upgrade tracks per tower, 3 levels each */
 const TRACK_MUL={range:0.8, rate:1.0, dmg:1.1};
-const TRACK_RNG_ADD=0.38, TRACK_RATE=1.13, TRACK_DMG=1.24;
+const TRACK_RNG_ADD=0.55, TRACK_RATE=1.13, TRACK_DMG=1.24;
 function trackCost(t,k,lv){ return Math.round(t.cost*TRACK_MUL[k]*(0.30+0.22*lv)); } /* lv = level being bought (1..3) */
 function trackLabel(k){ return k==="range"?"RNG":k==="rate"?"RATE":"DMG"; }
 /* unlock ladder: each tower has a wave gate AND a one-off gold price paid in-run.
@@ -659,7 +659,7 @@ function showInfo(){
 }
 /* refund: 70% of everything actually invested (tower + track levels) — never more than paid */
 function sellValue(tw){ let inv=tw.type.cost;
-  for(const k of ["range","rate","dmg"]){ const lv=tw[k+"Lv"]||0;
+  for(const k of ["range","rate","dmg"]){ const lv=tw[(k==="range"?"rng":k)+"Lv"]||0;
     for(let l=1;l<=lv;l++) inv+=trackCost(tw.type,k,l); }
   return Math.round(inv*0.7); }
 const TGT_ORDER=["first","last","strong","close"];
@@ -668,10 +668,10 @@ iTgt.onclick=()=>{ if(!selTower) return;
   const cur=selTower.mode||"first";
   selTower.mode=TGT_ORDER[(TGT_ORDER.indexOf(cur)+1)%TGT_ORDER.length];
   iTgt.textContent="🎯 "+TGT_NAME[selTower.mode]; };
-function buyTrack(k){ if(!selTower) return; const tw=selTower, lv=tw[k+"Lv"]||0;
+function buyTrack(k){ if(!selTower) return; const tw=selTower, fk=(k==="range"?"rng":k)+"Lv", lv=tw[fk]||0;
   if(lv>=3) return; const c=trackCost(tw.type,k,lv+1);
   if(S.gold<c){ say("Need "+c+"g"); return; }
-  SFX.up(); S.gold-=c; tw[k+"Lv"]=lv+1;
+  SFX.up(); S.gold-=c; tw[fk]=lv+1;
   say(trackLabel(k)+" upgrade "+(lv+1)+"/3!",1000); hud(); showInfo(); }
 iRng.onclick=()=>buyTrack("range");
 iRate.onclick=()=>buyTrack("rate");
