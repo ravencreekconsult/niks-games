@@ -303,12 +303,20 @@ const GLYPHS={blaster:"»",cannon:"◉",frost:"❄",sniper:"⊕",tesla:"⚡",ven
 function buildShop(){
   shop.innerHTML="";
   TOWERS.forEach((t,i)=>{ const d=document.createElement("div");
-    d.className="tcard"+(i===sel?" sel":"")+(S.gold<t.cost?" nope":"");
-    d.innerHTML=`<span class="gl" style="color:${t.color}">${GLYPHS[t.id]||"◆"}</span><b style="color:${t.color}">${t.name}</b><span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`;
-    d.onclick=()=>{ sel=i; selTower=null; selSold=null; S.deploy=null; info.style.display="none"; resize(); buildShop(); }; shop.appendChild(d); });
+    const locked=!towerUnlocked(t.id);
+    d.className="tcard"+(locked?" locked":"")+(!locked&&i===sel?" sel":"")+(S.gold<t.cost&&!locked?" nope":"");
+    const fresh=S.fresh && S.fresh.ids && S.fresh.until>S.time && S.fresh.ids.indexOf(t.id)>=0;
+    if(fresh) d.className+=" glow";
+    d.innerHTML=`<span class="gl" style="color:${t.color}">${GLYPHS[t.id]||"◆"}</span><b style="color:${t.color}">${t.name}</b>`
+      +(locked? `<span class="locktxt">🔒 LOCKED · wave ${UNLOCK_WAVE[t.id]}</span>`
+              : `<span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`);
+    d.onclick=()=>{ if(locked){ say("🔒 "+t.name+" unlocks at wave "+UNLOCK_WAVE[t.id]+" — keep going!",1600); return; }
+      sel=i; selTower=null; selSold=null; S.deploy=null; info.style.display="none"; resize(); buildShop(); };
+    shop.appendChild(d); });
 }
-function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ c.classList.toggle("nope",S.gold<TOWERS[i].cost);
-  c.classList.toggle("sel", i===sel && !selTower); }); }
+function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ const locked=!towerUnlocked(TOWERS[i].id);
+  c.classList.toggle("nope",!locked && S.gold<TOWERS[i].cost);
+  c.classList.toggle("sel", !locked && i===sel && !selTower); }); }
 
 function trRange(tw){ return tw.type.range + TRACK_RNG_ADD*(tw.rngLv||0); }
 function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
