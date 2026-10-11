@@ -471,7 +471,15 @@ export function draw(ctx) {
   if (!inBall) drawMon(foe, 156, 24, false, !!cp);
   drawMon(me, 30, 62, true);
   drawCatch(ctx, cp);
-  if (foe) statBox(ctx, foe, 8, 6, 96, true);
+  // once the critter is inside the ball its HP box must not sit there as if it were still out:
+  // fade it out over the first ~100ms of the wobble, and fade it straight back in on a broken catch
+  if (foe) {
+    let a = 1;
+    if (inBall) a = (cp.stage === 'shake' && cp.i === 0) ? 1 - 0.8 * Math.min(1, cp.p * 3) : 0.2;
+    ctx.globalAlpha = a;
+    statBox(ctx, foe, 8, 6, 96, true);
+    ctx.globalAlpha = 1;
+  }
   if (me) statBox(ctx, me, 136, 78, 96, false);
 
   // message box
