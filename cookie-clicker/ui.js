@@ -467,8 +467,13 @@ function spawnGolden(x, y, secs) {
   g.type = "button";
   g.setAttribute("aria-label", "Golden cookie! Tap it!");
   g.textContent = "🌟";
-  g.style.left = x + "%";
-  g.style.top = y + "%";
+  // place the WHOLE 72px cookie inside the stage so it is never clipped at an edge
+  var gs = 72;
+  var sw = stage.clientWidth || 320, sh = stage.clientHeight || 240;
+  var px = Math.round(Math.min(Math.max(x / 100 * sw - gs / 2, 4), Math.max(4, sw - gs - 4)));
+  var py = Math.round(Math.min(Math.max(y / 100 * sh - gs / 2, 4), Math.max(4, sh - gs - 4)));
+  g.style.left = px + "px";
+  g.style.top = py + "px";
   g.style.setProperty("--life", secs + "s");
   g.addEventListener("pointerdown", function (ev) {
     ev.stopPropagation();
@@ -528,8 +533,16 @@ NK.on("buff", function (d) {
 NK.on("golden:spawn", function (d) { spawnGolden(d.x, d.y, d.seconds); });
 NK.on("golden:collected", showGoldenResult);
 
+var achBatch = 0, achTimer = 0;
 NK.on("achievement", function (d) {
-  toast("Feat earned: " + d.ach.name + "!", d.ach.desc, d.ach.ico, 4500);
+  // a burst of unlocks (e.g. coming back after a break) becomes ONE toast
+  achBatch++;
+  clearTimeout(achTimer);
+  achTimer = setTimeout(function () {
+    if (achBatch <= 1) toast("Feat earned: " + d.ach.name + "!", d.ach.desc, d.ach.ico, 4500);
+    else toast(achBatch + " new feats earned!", "Every feat gives +1% to everything you bake.", "🏆", 4500);
+    achBatch = 0;
+  }, 400);
   sfx.ach();
   setBadge("badge-feats", (function () { var n = 0; for (var k in NK.state.achievements) if (NK.state.achievements[k]) n++; return n; })());
   if (currentTab === "feats") updateFeats();
