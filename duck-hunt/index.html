@@ -313,10 +313,11 @@ function resize(){
   if(h!==cv.height) cv.height=h;
   /* adaptive field: the logical view follows the screen shape so wide phones/Quest get a wide
      field and portrait phones get a tall one, instead of a small letterboxed 640x400 box */
-  var asp=cw/ch, nVW=clamp(Math.round(400*asp),520,1200), nVH=clamp(Math.round(nVW/asp),400,700);
+  var asp=cw/ch, nVW=clamp(Math.round(400*asp),asp<1?660:520,1200), nVH=clamp(Math.round(nVW/asp),400,asp<1?1100:700);
   if(!isFinite(nVW)||!isFinite(nVH)){ nVW=640; nVH=400; }
-  var changed=(nVW!==VW||nVH!==VH);
-  VW=nVW; VH=nVH;
+  var nH=(nVH>720)?clamp(Math.round(nVH*0.5),240,520):240;
+  var changed=(nVW!==VW||nVH!==VH||nH!==HORIZON);
+  VW=nVW; VH=nVH; HORIZON=nH;
   scaleS=Math.min(w/VW,h/VH);
   offX=(w-VW*scaleS)/2; offY=(h-VH*scaleS)/2;
   cvRect=r||null;
