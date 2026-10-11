@@ -114,6 +114,7 @@
     <button id="auto">Auto</button>
     <span class="gtog"><span>Gold:</span><button id="gT" class="on">Testing</button><button id="gR">Real</button></span>
     <button id="fitBtn">🎯 Follow</button>
+    <button id="hintBtn" title="How to play">❓</button>
     <button id="go">Start Wave</button>
   </div>
   <div id="preview"><span class="plab">Next:</span><span id="pbody">—</span></div>
@@ -122,16 +123,27 @@
     <button id="abFrz">❄️ Freeze</button>
     <button id="abRep">🔧 Repair</button>
     <button id="abOvr">⚡ Overcharge</button>
-    <button id="abSol">🛡 Soldier</button>
-    <button id="abSpike">🔻 Spikes</button>
-    <button id="abTar">🕳 Tar</button>
-    <button id="abBomb">💣 Bomb</button>
+    <span class="asep" aria-hidden="true"></span>
+    <button id="abSol" class="dep">🛡 Soldier</button>
+    <button id="abSpike" class="dep">🔻 Spikes</button>
+    <button id="abTar" class="dep">🕳 Tar</button>
+    <button id="abBomb" class="dep">💣 Bomb</button>
   </div>
   <div id="stage">
     <canvas id="cv"></canvas>
     <div id="banner"></div>
     <div id="bossbar"><span id="bname"></span><div id="btrack"><div id="bfill"></div><div id="bsh"></div></div></div>
+    <div id="nudge" style="display:none">Build a tower on the GRASS first, then press Start Wave!</div>
     <div id="over"><div class="card"><h1 id="oT"></h1><p id="oX"></p><button id="oE" style="display:none">Keep going — Endless</button><button id="oB">Play again</button></div></div>
+    <div id="intro"><div class="card">
+      <h1>Tower Defense! 🏰</h1>
+      <p>🛡 Keep your base safe — stop every monster before it reaches the fort on the right!</p>
+      <p>🏗 Pick a tower from the bottom shelf and tap the <b>grass</b> (never the road) to build it. Tap a tower to upgrade or sell it.</p>
+      <p>🛡 Soldiers and traps go <b>ON the road</b> — tap a green button, then tap the road.</p>
+      <p>👀 Watch the <b>Next:</b> strip so you know who's coming, then press <b>Start Wave</b> — press it early for bonus gold!</p>
+      <p>🪙 You earn gold for every kill and for keeping your base leak-free. Lose hearts if a monster gets through!</p>
+      <button id="introGo">Build! 🏗</button>
+    </div></div>
   </div>
   <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
@@ -221,7 +233,8 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   eleft=$id("eleft"),
   gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn"),
   abSol=$id("abSol"),abSpike=$id("abSpike"),abTar=$id("abTar"),abBomb=$id("abBomb"),
-  pbody=$id("pbody"),wmaxEl=$id("wmax"),oE=$id("oE");
+  pbody=$id("pbody"),wmaxEl=$id("wmax"),oE=$id("oE"),
+  hintBtn=$id("hintBtn"),hintEl=$id("hint"),nudgeEl=$id("nudge"),intro=$id("intro");
 RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
@@ -237,7 +250,8 @@ function newGame(){
       freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
       soldiers:[], traps:[], deploy:null,
       tw:0, tn:0, bgPhase:0,
-      nextSpec:null, leaks:0, clearAt:0, endless:false,
+      nextSpec:null, leaks:0, leaksTotal:0, kills:0, clearAt:0, endless:false,
+      slowmo:0, leakPulse:0, curMult:1,
       cam:{zoom:1.75,tz:1.75,fx:COLS/2,fy:ROWS/2,tx:COLS/2,ty:ROWS/2,follow:true,manual:false,fit:false} };
   selTower=null; selSold=null; info.style.display="none"; over.style.display="none"; oE.style.display="none"; banner.style.display="none";
   autoTimer=0; go.disabled=false; buildShop(); genNextSpec(); hud(); applyCam();
@@ -403,6 +417,7 @@ function tap(gx,gy){
   hud(); refreshShopAff();
 }
 function showInfo(){
+  if(selSold && selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
   if(selSold){ /* soldier info reuses the same panel; targeting hidden */
     const s=selSold, c=SOL_UP[s.lvl-1];
     info.style.display="flex"; resize();
@@ -437,6 +452,7 @@ iTgt.onclick=()=>{ if(!selTower) return;
   selTower.mode=TGT_ORDER[(TGT_ORDER.indexOf(cur)+1)%TGT_ORDER.length];
   iTgt.textContent="🎯 "+TGT_NAME[selTower.mode]; };
 iUp.onclick=()=>{ if(selSold){ const s=selSold;
+    if(s.dead) return;
     if(s.lvl>=3) return; const c=SOL_UP[s.lvl-1];
     if(S.gold<c.cost){ say("Need "+c.cost+"g"); return; }
     S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
@@ -444,7 +460,8 @@ iUp.onclick=()=>{ if(selSold){ const s=selSold;
   if(!selTower) return; const c=upCost(selTower.type,selTower.lvl);
   if(selTower.lvl>=MAXLV) return; if(S.gold<c){ say("Need "+c+"g"); return; }
   S.gold-=c; selTower.lvl++; hud(); showInfo(); };
-iSell.onclick=()=>{ if(selSold){ S.gold+=30*selSold.lvl;
+iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
+    S.gold+=30*selSold.lvl;
     S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
   if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
@@ -510,14 +527,19 @@ function hurt(e,dmg,ignoreArmor){
     return; }
   const d = ignoreArmor? dmg : Math.max(dmg*0.15, dmg - e.armor);
   e.hp-=d; e.hit=S.time+0.12;
-  if(e.hp<=0 && !e.dead){ e.dead=true; S.gold+=e.reward; S.score+=e.reward; hud(); refreshShopAff(); boom(e); }
+  if(e.hp<=0 && !e.dead){ e.dead=true; S.kills++; S.gold+=e.reward; S.score+=e.reward; hud(); refreshShopAff(); boom(e); }
 }
 function boom(e){ for(let i=0;i<(e.boss?36:10);i++){ const a=Math.random()*Math.PI*2,s=1+Math.random()*2.5;
   S.parts.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.5+Math.random()*0.5,color:e.color,size:e.boss?3:2}); }
   S.fx.push({x:e.x,y:e.y,r0:e.r*0.4,r1:e.r*2.6+0.35,life:0.4,ml:0.4,color:e.color,w:e.boss?4:2});
   addDecal(e.x,e.y,e.r*1.6+0.25,"goo",e.color);
-  if(e.boss) S.shake=Math.max(S.shake,10); }
-function floatTxt(x,y,dmg,color){ S.nums.push({x,y,txt:Math.round(dmg),color,life:0.7}); }
+  if(e.boss){ /* boss-death beat: bigger shockwave, banner, and a short slow-motion hold */
+    S.shake=Math.max(S.shake,14);
+    S.fx.push({x:e.x,y:e.y,r0:e.r,r1:e.r*8,life:0.9,ml:0.9,color:"#ffffff",w:6});
+    say("BOSS DOWN! "+(e.name||"")+" 💥",2400);
+    if(!RM) S.slowmo=0.55; } }
+function floatTxt(x,y,dmg,color){ if(S.nums.length>60) S.nums.shift();
+  S.nums.push({x,y,txt:Math.round(dmg),color,life:0.7}); }
 function addDecal(x,y,r,kind,color){ S.decals.push({x,y,r,kind,color,life:9,ml:9});
   if(S.decals.length>40) S.decals.shift(); }
 
@@ -603,7 +625,8 @@ function step(dt){
     if(best){ best.blocked=true; s.tgt=best;
       if(s.atkT<=0){ s.atkT=0.8; s.swing=0.25; hurt(best,s.dmg,false); floatTxt(best.x,best.y-0.35,s.dmg,"#9ad0ff"); }
       s.hp-=best.atk*dt;
-      if(s.hp<=0){ s.hp=0; s.dead=true; s.deathT=0.7; s.tgt=null; } }
+      if(s.hp<=0){ s.hp=0; s.dead=true; s.deathT=0.7; s.tgt=null;
+        if(selSold===s){ selSold=null; info.style.display="none"; resize(); } } }
   }
   S.soldiers=S.soldiers.filter(s=>!s.dead||s.deathT>0);
   for(const tp of S.traps){
@@ -628,8 +651,8 @@ function step(dt){
     if(e.shielded) slowed=Math.min(slowed,0.55);
     if(!e.blocked) e.dist += e.spd*slowed*dt;   /* soldiers NEVER block each other — only a soldier holds an enemy */
     const p=pathAt(e.dist); e.x=p.x; e.y=p.y;
-    if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.leaks++; S.baseFlash=now+0.4;
-      hud(); S.shake=Math.max(S.shake,5); } }
+    if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.leaks++; S.leaksTotal++;
+      S.baseFlash=now+0.4; S.leakPulse=now+0.9; hud(); S.shake=Math.max(S.shake,5); } }
     if(e.boss){
       if(e.shielded && e.shieldHp<=0){ e.shielded=false; e.shieldHp=0;
         S.fx.push({x:e.x,y:e.y,r0:0.2,r1:e.r*3,life:0.5,ml:0.5,color:"#00e5ff",w:4});
