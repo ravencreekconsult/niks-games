@@ -109,10 +109,10 @@ export const MAPS = {
     ],
     trainers: [
       { x: 20, y: 14, dir: 'left', sight: 3, sprite: 'npcKid', name: 'Rook', flag: 'beatRook',
-        party: [{ speciesId: 'cinderpup', level: 4 }], reward: 120,
+        party: [{ speciesId: 'sproutle', level: 3 }], reward: 120,
         lines: [
           'Hey! I\'m Rook — best young catcher in town!',
-          'My cinderpup and I have been training ALL morning.',
+          'My sproutle and I have been training ALL morning.',
           'Let\'s see what you\'ve got!',
         ],
         winLine: 'Wow, you\'re strong! Great battle — take this, you earned it.',
@@ -140,7 +140,7 @@ export const MAPS = {
     signs: [],
     trainers: [
       { x: 13, y: 14, dir: 'left', sight: 3, sprite: 'npcScout', name: 'Fenn', flag: 'beatFenn',
-        party: [{ speciesId: 'sproutle', level: 5 }, { speciesId: 'voltling', level: 6 }], reward: 200,
+        party: [{ speciesId: 'sproutle', level: 3 }, { speciesId: 'gloamkitty', level: 4 }], reward: 200,
         lines: [
           'Hold it right there! You walked right into my lookout.',
           'I\'m Fenn, and my two partners never lose on this road.',
