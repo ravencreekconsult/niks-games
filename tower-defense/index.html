@@ -187,7 +187,6 @@ const TOWERS = [
 const TRACK_MUL={range:0.8, rate:1.0, dmg:1.1};
 const TRACK_RNG_ADD=0.38, TRACK_RATE=1.13, TRACK_DMG=1.24;
 function trackCost(t,k,lv){ return Math.round(t.cost*TRACK_MUL[k]*(0.30+0.22*lv)); } /* lv = level being bought (1..3) */
-function trackMax(k){ return 3; }
 function trackLabel(k){ return k==="range"?"RNG":k==="rate"?"RATE":"DMG"; }
 /* unlock table: tower id -> wave it becomes buyable (applies in Testing AND Real) */
 const UNLOCK_WAVE={blaster:1,cannon:1,frost:1,sniper:4,venom:6,tesla:8,missile:11,coil:14};
@@ -449,13 +448,14 @@ function showInfo(){
       + (s.lvl<3? ` · <span style="color:var(--gold)">upgrade ${c.cost}g</span>` : " · max level");
     iUp.style.display = s.lvl<3? "" : "none";
     iS1.style.display="none"; iS2.style.display="none"; iTgt.style.display="none";
+    iRng.style.display="none"; iRate.style.display="none"; iDmg.style.display="none";
     iSell.textContent="Sell +"+(30*s.lvl)+"g"; return; }
   if(!selTower){ info.style.display="none"; resize(); return; }
   const tw=selTower, st=effStats(tw);
   const allMax=(tw.rngLv||0)>=3 && (tw.rateLv||0)>=3 && (tw.dmgLv||0)>=3;
   const canSpec = allMax && !tw.spec && !!SPECS[tw.type.id];
   info.style.display="flex"; resize();
-  iTgt.style.display="";
+  iTgt.style.display=""; iRng.style.display=""; iRate.style.display=""; iDmg.style.display="";
   iTxt.innerHTML=`<b>${tw.type.name}</b>`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
     + ` · dmg ${st.dmg|0} · rate ${st.rate.toFixed(1)}/s · rng ${st.range.toFixed(1)}`
     + ` · <span style="color:var(--dim)">RNG ${tw.rngLv||0}/3 · RATE ${tw.rateLv||0}/3 · DMG ${tw.dmgLv||0}/3</span>`
@@ -504,7 +504,7 @@ iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.disp
     S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
   if(!selTower) return; S.gold+=sellValue(selTower);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
-/* ---------- level-6 specializations ---------- */
+/* ---------- specializations (gate: all three tracks at max) ---------- */
 const SPECS={
  blaster:[{id:"minigun",name:"Minigun",hint:"much faster, less punch"},{id:"gatling",name:"Gatling",hint:"spins up while firing"}],
  cannon:[{id:"mortar",name:"Mortar",hint:"huge splash, slower"},{id:"flak",name:"Flak",hint:"shreds flyers"}],
