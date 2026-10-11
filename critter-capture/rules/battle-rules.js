@@ -455,27 +455,33 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
       return Math.max(1, Math.floor(v));
     };
 
+    /* Every ability hook gets the FULL documented ctx contract (see the
+       ABILITIES comment): { s, self, ev, msg, roll, applyStatus,
+       raiseStages, heal, setWeather, clearWeather } + per-hook extras. */
+    const ctxFor = (extra) => Object.assign({
+      s, ev, msg, roll, applyStatus, raiseStages, heal, setWeather, clearWeather,
+    }, extra || {});
     const fireEntry = (c) => {
       const ab = ABILITIES[c.ability];
-      if (ab && ab.hooks && ab.hooks.onEntry) ab.hooks.onEntry({ s, self:c, ev, msg, roll });
+      if (ab && ab.hooks && ab.hooks.onEntry) ab.hooks.onEntry(ctxFor({ self:c }));
     };
     const fireOnHit = (target, attacker, mv, dealt) => {
       const ab = ABILITIES[target.ability];
-      if (ab && ab.hooks && ab.hooks.onHit) ab.hooks.onHit({ s, self:target, attacker, move:mv, damage:dealt, ev, msg, roll });
+      if (ab && ab.hooks && ab.hooks.onHit) ab.hooks.onHit(ctxFor({ self:target, attacker, move:mv, damage:dealt }));
     };
     const fireOnDealDamage = (attacker, target, dealt) => {
       const ab = ABILITIES[attacker.ability];
-      if (ab && ab.hooks && ab.hooks.onDealDamage) ab.hooks.onDealDamage({ s, self:attacker, target, damage:dealt, ev, msg, roll });
+      if (ab && ab.hooks && ab.hooks.onDealDamage) ab.hooks.onDealDamage(ctxFor({ self:attacker, target, damage:dealt }));
     };
     const fireOnTurnEnd = (c) => {
       const ab = ABILITIES[c.ability];
-      if (ab && ab.hooks && ab.hooks.onTurnEnd) ab.hooks.onTurnEnd({ s, self:c, ev, msg, roll });
+      if (ab && ab.hooks && ab.hooks.onTurnEnd) ab.hooks.onTurnEnd(ctxFor({ self:c }));
     };
     const fireOnLowHp = (c) => {
       const ab = ABILITIES[c.ability];
       if (ab && ab.hooks && ab.hooks.onLowHp && !c.volatile.lowFired && c.hp > 0 && c.hp * 3 <= c.maxHp) {
         c.volatile.lowFired = true;
-        ab.hooks.onLowHp({ s, self:c, ev, msg, roll });
+        ab.hooks.onLowHp(ctxFor({ self:c }));
       }
     };
 
@@ -508,11 +514,18 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
       }
     };
 
+    /** Returns the ACTUAL hp gained (integer, clamped to maxHp); 0 on a
+        fainted target or a non-positive request. Emits a 'heal' event with
+        hpAfter so clients never recompute HP. */
     const heal = (target, amount) => {
-      if (!target || target.fainted || !(amount > 0)) return;
+      if (!target || target.fainted) return 0;
+      amount = Math.floor(Number(amount) || 0);
+      if (!(amount > 0)) return 0;
       const before = target.hp;
-      target.hp = Math.min(target.maxHp, target.hp + Math.floor(amount));
-      if (target.hp !== before) ev.push({ t:'heal', targetId:target.id, amount: target.hp - before, hpAfter: target.hp });
+      target.hp = Math.min(target.maxHp, before + amount);
+      const gained = target.hp - before;
+      if (gained > 0) ev.push({ t:'heal', targetId:target.id, amount: gained, hpAfter: target.hp });
+      return gained;
     };
 
     const setWeather = (id, turns) => {
@@ -691,7 +704,7 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
       // onBeforeMove hook (may cancel)
       const ab = ABILITIES[actor.ability];
       if (ab && ab.hooks && ab.hooks.onBeforeMove) {
-        const r = ab.hooks.onBeforeMove({ s, self:actor, move:mv, ev, msg, roll });
+        const r = ab.hooks.onBeforeMove(ctxFor({ self:actor, move:mv }));
         if (r && r.cancel) { msg(actor.name + ' held back!'); return; }
       }
 
