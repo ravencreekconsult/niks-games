@@ -4,8 +4,8 @@
    the returned event array. */
 
 import {
-  MOVES, SPECIES, STRUGGLE_ID, getTypeEffect,
-  createBattle, defaultIntent, resolveTurn,
+  MOVES, SPECIES, STRUGGLE_ID, getTypeEffect, ABILITIES,
+  createBattle, beginBattle, defaultIntent, resolveTurn,
 } from '../rules/battle-rules.js';
 import { drawSprite, SPRITES, PAL } from './data/sprites.js';
 
@@ -78,7 +78,7 @@ export function start(game, speciesId, level) {
   addSeen(speciesId);
   fx = {};
   dispHp = {};
-  queue = [];
+  queue = buildQueue(beginBattle({ state }).events);
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
   caughtFlag = false;
@@ -428,19 +428,66 @@ function statBox(ctx, c, x, y, w, isFoe) {
   const sp = SPECIES[c.speciesId] || { name: c.name };
   const shown = (dispHp[c.id] !== undefined) ? dispHp[c.id] : c.hp;
   ctx.fillStyle = PAL.white;
-  ctx.fillRect(x, y, w, 30);
+  ctx.fillRect(x, y, w, 36);
   ctx.strokeStyle = PAL.dark;      // thin rounded outer border
-  roundBox(ctx, x, y, w, 30);
+  roundBox(ctx, x, y, w, 36);
   ctx.strokeStyle = PAL.slate;     // subtle inner line so the box reads as UI
-  roundBox(ctx, x + 2, y + 2, w - 4, 26);
-  ctx.fillStyle = PAL.ink;
-  ctx.font = 'bold 8px monospace';
+  roundBox(ctx, x + 2, y + 2, w - 4, 32);
   ctx.textBaseline = 'top';
-  ctx.fillText(sp.name, x + 5, y + 4);
-  ctx.fillText('Lv' + c.level, x + w - 30, y + 4);
-  hpBar(ctx, x + 5, y + 15, w - 10, shown / c.maxHp);
+  // row 1: species name + level
+  ctx.font = 'bold 8px monospace';
+  ctx.fillStyle = PAL.ink;
+  ctx.fillText(sp.name, x + 5, y + 3);
+  ctx.fillText('Lv' + c.level, x + w - 30, y + 3);
+  // row 2: hp bar (unchanged colours/tiers)
+  hpBar(ctx, x + 5, y + 14, w - 10, shown / c.maxHp);
+  // row 3: hp text left, ability name right (dropped first if row 4 overflows)
+  const ab = ABILITIES[c.ability] || null;
+  let abilityText = ab ? ab.name : '';
+  ctx.font = '8px monospace';
   ctx.fillStyle = PAL.slate;
-  ctx.fillText(Math.max(0, Math.round(shown)) + '/' + c.maxHp, x + 5, y + 22);
+  ctx.fillText(Math.max(0, Math.round(shown)) + '/' + c.maxHp, x + 5, y + 21);
+  // row 4: status chip + stat-stage marks, small enough to stay inside the box
+  ctx.font = '6px monospace';
+  const chipText = c.status ? String(c.status).toUpperCase() : '';
+  const chipW = chipText ? Math.ceil(ctx.measureText(chipText).width) + 4 : 0;
+  const marks = [];
+  for (const k of ['atk', 'def', 'spa', 'spd', 'spe']) {
+    const st = (c.stages && c.stages[k]) || 0;
+    if (st !== 0) marks.push({ k: k.toUpperCase(), up: st > 0 });
+  }
+  const markW = (m) => 5 + 2 + Math.ceil(ctx.measureText(m.k).width) + 2;
+  let rowW = chipW;
+  const keep = [];
+  for (const m of marks) {
+    if (rowW + markW(m) <= w - 8) { keep.push(m); rowW += markW(m); }
+  }
+  if (keep.length < marks.length) abilityText = ''; // overflow: drop the ability name first
+  if (abilityText) {
+    ctx.font = '8px monospace';
+    ctx.fillStyle = PAL.slate;
+    ctx.fillText(abilityText, x + w - 5 - Math.ceil(ctx.measureText(abilityText).width), y + 21);
+  }
+  if (chipText || keep.length) {
+    ctx.font = '6px monospace';
+    let cx = x + 4;
+    if (chipText) {
+      ctx.fillStyle = PAL.dark;
+      ctx.fillRect(cx, y + 29, chipW, 7);
+      ctx.fillStyle = PAL.white;
+      ctx.fillText(chipText, cx + 2, y + 30);
+      cx += chipW + 2;
+    }
+    for (const m of keep) {
+      ctx.fillStyle = m.up ? PAL.grn : PAL.red;
+      ctx.beginPath();
+      if (m.up) { ctx.moveTo(cx + 2.5, y + 29); ctx.lineTo(cx, y + 33); ctx.lineTo(cx + 5, y + 33); }
+      else { ctx.moveTo(cx, y + 29); ctx.lineTo(cx + 5, y + 29); ctx.lineTo(cx + 2.5, y + 33); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillText(m.k, cx + 7, y + 29);
+      cx += markW(m);
+    }
+  }
 }
 
 /* ---------------- the catch animation: throw, wobble, click or burst -------------- */
@@ -533,6 +580,22 @@ export function draw(ctx) {
   ctx.fillStyle = PAL.teal;
   ctx.beginPath(); ctx.ellipse(64, 98, 46, 13, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(172, 56, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
+
+  // weather banner: a small pill in the top-right, behind nothing important
+  const wthr = state.field && state.field.weather;
+  if (wthr) {
+    const label = wthr.id === 'heatshimmer' ? 'HEAT SHIMMER'
+      : (wthr.id === 'cloudburst' ? 'CLOUDBURST'
+        : String(wthr.id || '').toUpperCase().replace(/_/g, ' '));
+    ctx.font = '6px monospace';
+    const pw = Math.ceil(ctx.measureText(label).width) + 6;
+    const px = 234 - pw;
+    ctx.fillStyle = PAL.dark;
+    ctx.fillRect(px, 2, pw, 10);
+    ctx.fillStyle = PAL.white;
+    ctx.textBaseline = 'top';
+    ctx.fillText(label, px + 3, 4);
+  }
 
   const me = activeOf(0), foe = activeOf(1);
   const cp = catchProgress();
