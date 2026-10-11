@@ -66,6 +66,25 @@ export function enter(game, mapId, tx, ty, newDir) {
   moving = false;
 }
 
+/** Line-of-sight: the first trainer whose sight line reaches the player tile
+ *  and whose defeat flag is not yet set. Trainers take priority over wild
+ *  encounters (arrive() checks them first). */
+function spotted() {
+  const flags = (G && G.save && G.save.flags) ? G.save.flags : {};
+  for (const tr of (map.trainers || [])) {
+    if (flags[tr.flag]) continue;
+    const dx = tr.dir === 'left' ? -1 : tr.dir === 'right' ? 1 : 0;
+    const dy = tr.dir === 'up' ? -1 : tr.dir === 'down' ? 1 : 0;
+    for (let i = 1; i <= tr.sight; i++) {
+      const x = tr.x + dx * i, y = tr.y + dy * i;
+      if (x < 0 || y < 0 || x >= map.w || y >= map.h) break;
+      if (grid[y][x].solid) break;
+      if (x === ptx && y === pty) return tr;
+    }
+  }
+  return null;
+}
+
 function pickEncounter() {
   const enc = map.encounters;
   if (!enc || !enc.table || !enc.table.length) return null;
