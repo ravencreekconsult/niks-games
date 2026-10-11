@@ -876,8 +876,12 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
           applyDamage(actor, actor, r, { effectiveness:1, crit:false, move:null });
         }
         if (fx.heal) heal(actor, Math.floor(actor.maxHp * fx.heal));
-        if (!target.fainted && mv.target !== 'self') {
-          if (fx.status && roll() < fx.status.chance) applyStatus(target, fx.status.id);
+        if (!target.fainted) {
+          /* status is only ever inflicted on an OPPONENT; stage changes apply to
+             whoever the move targets, INCLUDING self (Focus Will / Sky Dance /
+             Iron Hide) — those three silently did nothing while the stage line
+             sat inside a `mv.target !== 'self'` guard. */
+          if (fx.status && mv.target !== 'self' && roll() < fx.status.chance) applyStatus(target, fx.status.id);
           if (fx.stages && roll() < (fx.chance !== undefined ? fx.chance : 1)) raiseStages(target, fx.stages);
         }
         if (dealt > 0) {
