@@ -125,6 +125,15 @@
     background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,rgba(255,255,255,.30) 50%,rgba(255,255,255,.14) 55%,transparent 70%);
     background-size:280% 100%;animation:shine 1.6s ease-in-out infinite;}
   @keyframes shine{from{background-position:130% 0}to{background-position:-130% 0}}
+  /* pull result = small non-blocking toast (keep pulling while it shows) */
+  #reveal{background:transparent;pointer-events:none;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 84px) 12px 0;z-index:40;}
+  #reveal .ocard{max-width:260px;padding:6px 12px;border-radius:14px;text-align:center;animation:revIn .22s cubic-bezier(.2,1.4,.4,1);background:rgba(14,19,28,.93);}
+  #reveal #revealName{font-size:17px;margin:1px 0 0;}
+  #reveal #revealMult{font-size:13px;}
+  #reveal #revealRarity{font-size:10px;}
+  #reveal #revealText,#reveal #revealOk{display:none;}
+  @keyframes revIn{from{transform:translateY(-14px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+  @media (orientation:landscape) and (max-height:520px){ #reveal{padding-top:64px;justify-content:flex-start;padding-left:calc(env(safe-area-inset-left,0px) + 10px);} }
   .ocard{position:relative;}
 
   /* egg hatch — pure CSS egg */

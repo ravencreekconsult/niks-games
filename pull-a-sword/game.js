@@ -416,6 +416,10 @@
     el.revealText.textContent = text;
     el.reveal.style.setProperty('--rc', col);
     el.reveal.style.display = 'flex';
+    var card = el.reveal.firstElementChild;
+    if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = ''; }
+    clearTimeout(revealTimer);
+    revealTimer = setTimeout(function () { el.reveal.style.display = 'none'; }, isNew ? 2400 : 1300);
     updateHUD();
     renderSwords();
     renderEggs();
@@ -425,6 +429,7 @@
 
   /* ---------- EGGS / HATCHING ---------- */
   var hatchWorld = 0;
+  var revealTimer = 0;
   var hatching = false;
 
   function renderEggs() {
