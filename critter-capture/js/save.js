@@ -2,7 +2,7 @@
    is unavailable; the game just runs without persisting. */
 
 const KEY = 'critter-capture-save';
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /* Deterministic per-critter identity: a tiny 32-bit string hash drives both
    the IV roll and the nature pick, so the same (speciesId, seed) always
@@ -48,6 +48,7 @@ export function newSave() {
     flags: {},
     money: 0,
     bag: {},
+    time: 480,
   };
 }
 
@@ -84,6 +85,15 @@ const MIGRATIONS = {
     if (!data || typeof data !== 'object') return data;
     if (!data.bag || typeof data.bag !== 'object' || Array.isArray(data.bag)) {
       data.bag = {};
+    }
+    return data;
+  },
+  // 4 -> 5: add the in-game clock (minutes since midnight, 0..1439).
+  // Touches ONLY time; party, dex, flags, money, bag and position pass through untouched.
+  4: function (data) {
+    if (!data || typeof data !== 'object') return data;
+    if (typeof data.time !== 'number' || !isFinite(data.time)) {
+      data.time = 480;
     }
     return data;
   },

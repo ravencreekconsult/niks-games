@@ -204,6 +204,17 @@ export const MAPS = {
         { speciesId: 'voltling', min: 3, max: 5, weight: 1 },
         { speciesId: 'gloamkitty', min: 4, max: 6, weight: 1 },
       ],
+      // Nocturnal shift: after dark the diurnal critters sleep and the
+      // night ones come out. Levels keep each species' daytime range.
+      night: {
+        rate: 0.16,
+        table: [
+          { speciesId: 'gloamkitty', min: 4, max: 6, weight: 3 },
+          { speciesId: 'voltling', min: 3, max: 5, weight: 3 },
+          { speciesId: 'cragmite', min: 3, max: 5, weight: 2 },
+          { speciesId: 'zephyrik', min: 2, max: 4, weight: 1 },
+        ],
+      },
     },
   },
   town2: {
