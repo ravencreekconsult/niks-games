@@ -262,8 +262,24 @@
 
 <div id="toast"></div>
 
+<script>
+/* Visible diagnostics: whoever maintains this page cannot open a console, so a script
+   error must be shown on screen instead of failing silently. */
+(function () {
+  function show(t) { var h = document.getElementById('hint'); if (h) { h.textContent = t; } }
+  window.addEventListener('error', function (e) {
+    var f = (e && e.filename) ? String(e.filename).split('/').pop() : '?';
+    show('JS ERROR: ' + ((e && e.message) || 'unknown') + '  (' + f + ':' + ((e && e.lineno) || 0) + ')');
+  });
+  window.addEventListener('load', function () {
+    if (!window.PAS_Data) { show('data.js did not load'); return; }
+    if (!window.PAS_Scene) { show('scene.js did not load'); return; }
+    if (!window.PAS_Scene.start) { show('scene.js loaded but has no start()'); }
+  });
+})();
+</script>
 <script src="data.js"></script>
-<script src="game.js"></script>
 <script src="scene.js"></script>
+<script src="game.js"></script>
 </body>
 </html>

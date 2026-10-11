@@ -258,6 +258,7 @@
     return out;
   }
   function renderSwords() {
+    el.worldName2.textContent = D.WORLDS[S.world].name;
     var world = curWorld();
     if (!world) { return; }
     var pw = pullWeights();

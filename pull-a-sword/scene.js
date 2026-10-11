@@ -237,6 +237,7 @@
   var get = null;
   var safeSnap = { strength: 0, world: 0, worldName: '', sword: null, pets: [], pullT: 1 };
   var raf = 0, lastT = 0, tSec = 0;
+  var started = false, listenersOn = false;
   var shakeMag = 0, shakeT0 = -10;
   var flashCol = '#ffffff', flashT0 = -10, flashDur = 0.3;
   var parts = [];
@@ -766,18 +767,27 @@
   /* ---------- start ---------- */
   function start(cfg) {
     if (cfg && typeof cfg.get === 'function') { get = cfg.get; }
+    started = true;
     resize();
     if (raf) { cancelAnimationFrame(raf); }
     lastT = 0;
     raf = requestAnimationFrame(frame);
-    try {
-      window.addEventListener('resize', resize);
-      if (typeof ResizeObserver === 'function' && wrap) {
-        var ro = new ResizeObserver(function () { resize(); });
-        ro.observe(wrap);
-      }
-    } catch (e) { /* observers optional */ }
+    if (!listenersOn) {
+      listenersOn = true;
+      try {
+        window.addEventListener('resize', resize);
+        if (typeof ResizeObserver === 'function' && wrap) {
+          var ro = new ResizeObserver(function () { resize(); });
+          ro.observe(wrap);
+        }
+      } catch (e) { /* observers optional */ }
+    }
   }
+
+  /* Safety net: if this file is ever loaded after a caller that already tried to start
+     us (or if nobody calls start at all), boot the renderer anyway so the canvas is
+     never blank. A later start(cfg) simply attaches the real snapshot getter. */
+  if (!started) { start(null); }
 
   /* ---------- exports ---------- */
   window.PAS_Scene = {
