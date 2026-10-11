@@ -16,6 +16,7 @@ let fx = 0, fy = 0;       // player pixel position (tweened)
 let dir = 'down';
 let moving = false, mFromX = 0, mFromY = 0, mT = 0;
 let persistTimer = 0;     // debounced position save (see persistSoon)
+let npcTiles = null;      // Set of "x,y" for NPC tiles (solid + interactable)
 
 /* Position changes are worth saving, but a save per tile would fire ~6x a second
    while walking. Coalesce them: one save shortly after the player stops moving. */
@@ -37,6 +38,10 @@ function prerender() {
       c.drawImage(getTileCanvas(grid[y][x].tile), x * TILE, y * TILE);
     }
   }
+  // NPCs live on the static layer too — they never move.
+  for (const n of (map.npcs || [])) {
+    drawSprite(c, SPRITES[n.sprite] || SPRITES.npcKid, PAL, n.x * TILE, n.y * TILE - 2, 1);
+  }
 }
 
 /** Enter (or re-enter) a map at a tile position. */
@@ -45,6 +50,7 @@ export function enter(game, mapId, tx, ty, newDir) {
   map = MAPS[mapId];
   if (!map) throw new Error('Unknown map: ' + mapId);
   grid = parseMap(map);
+  npcTiles = new Set((map.npcs || []).map(n => n.x + ',' + n.y));
   prerender();
   ptx = Math.max(0, Math.min(map.w - 1, tx));
   pty = Math.max(0, Math.min(map.h - 1, ty));
@@ -115,6 +121,7 @@ export function update(dt) {
   const warp = map.warps.find(w => w.x === tx && w.y === ty);
   const blocked = (x, y) => {
     if (x < 0 || y < 0 || x >= map.w || y >= map.h) return true;
+    if (npcTiles && npcTiles.has(x + ',' + y)) return true; // NPCs are solid
     return !!grid[y][x].solid;
   };
   if (!blocked(tx, ty) || warp) {
@@ -149,6 +156,25 @@ export function draw(ctx) {
   } else {
     drawSprite(ctx, playerSprite(), PAL, sx, sy, 1);
   }
+}
+
+/** What the player is facing (NPC or sign), or null. Only meaningful when
+ *  the player is standing still — the dialogue layer in core.js asks for it. */
+function findAhead() {
+  const dx = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
+  const dy = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
+  const x = ptx + dx, y = pty + dy;
+  for (const n of (map.npcs || [])) {
+    if (n.x === x && n.y === y) return { kind: 'npc', name: n.name, lines: n.lines };
+  }
+  for (const s of (map.signs || [])) {
+    if (s.x === x && s.y === y) return { kind: 'sign', name: 'SIGN', lines: s.lines };
+  }
+  return null;
+}
+export function facingTarget() {
+  if (!map || moving) return null;
+  return findAhead();
 }
 
 export function info() {
