@@ -472,9 +472,8 @@ function spawnGolden(x, y, secs) {
   g.style.setProperty("--life", secs + "s");
   g.addEventListener("pointerdown", function (ev) {
     ev.stopPropagation();
-    var res = NK.collectGolden();
+    NK.collectGolden(); // 'golden:collected' event shows the result toast + sound
     removeGolden(true);
-    if (res) showGoldenResult(res);
   });
   stage.appendChild(g);
   goldenEl = g;
