@@ -18,9 +18,14 @@
   #hud { position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
     color: #94b0c2; font: 10px monospace; background: rgba(26,28,44,0.7);
     padding: 2px 6px; border-radius: 4px; pointer-events: none; z-index: 10; }
+  /* The menu is anchored to the bottom, so a tall menu (the critter detail card)
+     would run off the TOP of the play area and become untappable. Cap it and let
+     it scroll instead. */
   #menu { position: absolute; right: 8px; bottom: 8px; display: none;
-    flex-direction: column; gap: 6px; z-index: 15; }
-  .mbtn { min-width: 120px; min-height: 44px; padding: 8px 14px; font: bold 14px monospace;
+    flex-direction: column; gap: 6px; z-index: 15;
+    max-height: calc(100% - 12px); overflow-y: auto; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch; padding-right: 2px; }
+  .mbtn { flex: 0 0 auto; min-width: 120px; min-height: 44px; padding: 8px 14px; font: bold 14px monospace;
     color: #f4f4f4; background: #29366f; border: 2px solid #73eff7; border-radius: 6px; }
   .mbtn.sel { background: #3b5dc9; outline: 2px solid #ffcd75; }
   .mbtn:disabled { opacity: 0.45; }
