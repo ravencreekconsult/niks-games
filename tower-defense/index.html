@@ -113,7 +113,7 @@
   </div>
   <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
-  <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game) &bull; Ability buttons are one-tap powers with cooldowns</div>
+  <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; 🛡 Soldier / 🔻 / 🕳 / 💣 deploy on the ROAD &bull; tap a soldier to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game)</div>
 </div>
 <script>
 (() => {
@@ -231,7 +231,7 @@ function buildShop(){
   TOWERS.forEach((t,i)=>{ const d=document.createElement("div");
     d.className="tcard"+(i===sel?" sel":"")+(S.gold<t.cost?" nope":"");
     d.innerHTML=`<span class="gl" style="color:${t.color}">${GLYPHS[t.id]||"◆"}</span><b style="color:${t.color}">${t.name}</b><span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`;
-    d.onclick=()=>{ sel=i; selTower=null; info.style.display="none"; resize(); buildShop(); }; shop.appendChild(d); });
+    d.onclick=()=>{ sel=i; selTower=null; selSold=null; S.deploy=null; info.style.display="none"; resize(); buildShop(); }; shop.appendChild(d); });
 }
 function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ c.classList.toggle("nope",S.gold<TOWERS[i].cost);
   c.classList.toggle("sel", i===sel && !selTower); }); }
