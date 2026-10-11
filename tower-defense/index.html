@@ -282,6 +282,14 @@ function hud(){ elGold.textContent=S.gold; elLives.textContent=S.lives; elWave.t
   updateGoLabel(); updatePreview(); }
 /* ---------- next-wave preview + economy helpers ---------- */
 function genNextSpec(){ S.nextSpec=waveSpec(S.wave+1); }
+/* BTD6-style telegraph: when a wave becomes NEXT, any enemy kind that has never
+   appeared this run is announced one wave ahead. Never repeats for the same kind. */
+function nextNewKinds(){
+  const counts={};
+  for(const e of S.nextSpec.list) counts[e.t]=(counts[e.t]||0)+1;
+  const news=[];
+  for(const k in counts){ if(!S.seen[k]){ S.seen[k]=true; news.push((ETAG[k]||k)+(counts[k]>1?"s":"")); } }
+  return news; }
 const ETAG={grunt:"Grunt",runner:"Runner",tank:"Tank",swarm:"Swarm",healer:"Healer",flyer:"Flyer",boss:"BOSS"};
 function updatePreview(){
   if(!S||!S.nextSpec||!pbody) return;
@@ -357,21 +365,46 @@ function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
   else if(tw.spec==="deep"){ dmg*=1.3; }
   return {dmg,range,rate,splash,slow,poison,chain}; }
 
-/* ---------- abilities ---------- */
-const AIR_COST=120; /* gold charged when the airstrike lands */
-const ABIL={ air:{cd:90,label:"💥 Airstrike"}, frz:{cd:40,label:"❄️ Freeze"}, rep:{cd:60,label:"🔧 Repair"}, ovr:{cd:45,label:"⚡ Overcharge"} };
+/* ---------- abilities (one-off PURCHASED unlocks, then cooldown-only) ---------- */
+const ABIL={ air:{cd:60, cost:400, wave:3,  label:"💥 Airstrike"},
+             frz:{cd:90, cost:500, wave:5,  label:"❄️ Freeze"},
+             rep:{cd:120,cost:600, wave:9,  label:"🔧 Repair"},
+             ovr:{cd:150,cost:800, wave:12, label:"⚡ Overcharge"} };
 ABIL.air.btn=abAir; ABIL.frz.btn=abFrz; ABIL.rep.btn=abRep; ABIL.ovr.btn=abOvr;
+function abilTap(k){
+  if(paused||S.over) return;
+  const a=ABIL[k];
+  if(!S.abUnlocked[k]){ /* locked: the tap BUYS the unlock (wave gate + price) */
+    if(S.wave<a.wave){ say(a.label+" unlocks at wave "+a.wave+"!",1400); return; }
+    if(S.gold<a.cost){ say("Need "+a.cost+"g to unlock!",1400); return; }
+    S.gold-=a.cost; S.abUnlocked[k]=true;
+    say("🔓 "+a.label+" UNLOCKED!",1700); hud(); return; }
+  if(S.time<S.cd[k]) return;
+  if(k==="air"){ S.armed=!S.armed; if(S.armed) S.deploy=null;
+    say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1400); return; }
+  if(k==="frz"){ S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); }
+  else if(k==="rep"){ S.cd.rep=S.time+ABIL.rep.cd; S.lives=Math.min(25,S.lives+3); hud(); say("Repaired +3 lives",1300); }
+  else if(k==="ovr"){ S.cd.ovr=S.time+ABIL.ovr.cd; S.ocUntil=S.time+6; say("Overcharge! Towers fire faster",1400); }
+}
+abAir.onclick=()=>abilTap("air"); abFrz.onclick=()=>abilTap("frz");
+abRep.onclick=()=>abilTap("rep"); abOvr.onclick=()=>abilTap("ovr");
+const ABIL_TXT={};
 function updateAbil(){
   const dis = paused||S.over;
   for(const k in ABIL){ const a=ABIL[k], b=a.btn;
-    const left=Math.max(0,S.cd[k]-S.time);
-    const none=(k==="rep"&&S.repairUses<=0)||(k==="air"&&!S.armed&&S.gold<AIR_COST);
-    const p=left>0?Math.round(100*(1-left/a.cd)):100;
-    b.style.background=`linear-gradient(0deg,rgba(0,229,255,.30) ${p}%,rgba(6,10,16,.6) ${p}%)`;
-    b.style.opacity=(dis||none)?"0.4":"1";
-    b.classList.toggle("armed", k==="air"&&S.armed);
-    const tag= left>0.06? " "+Math.ceil(left)+"s" : (k==="rep"? " ×"+S.repairUses : (k==="air"? (S.armed?" ✖cancel":" "+AIR_COST+"g") : " ✔"));
-    b.textContent=a.label+tag; }
+    let txt, bg="", op=dis?"0.4":"1";
+    if(!S.abUnlocked[k]){ /* LOCKED state: dimmed, shows wave gate or price */
+      txt=a.label+(S.wave<a.wave? " 🔒w"+a.wave : " 🔓 "+a.cost+"g"); }
+    else { /* READY / COOLING states */
+      const left=Math.max(0,S.cd[k]-S.time);
+      const p=left>0?Math.round(100*(1-left/a.cd)):100;
+      bg=`linear-gradient(0deg,rgba(0,229,255,.30) ${p}%,rgba(6,10,16,.6) ${p}%)`;
+      txt=a.label+(left>0.06? " "+Math.ceil(left)+"s" : (k==="air"&&S.armed?" ✖cancel":" ✔")); }
+    /* DOM writes only when something actually changed — never per-frame churn */
+    if(ABIL_TXT[k]!==txt){ b.textContent=txt; ABIL_TXT[k]=txt; }
+    if(ABIL_TXT[k+"bg"]!==bg){ b.style.background=bg; ABIL_TXT[k+"bg"]=bg; }
+    if(ABIL_TXT[k+"op"]!==op){ b.style.opacity=op; ABIL_TXT[k+"op"]=op; }
+    b.classList.toggle("armed", k==="air"&&S.armed); }
   for(const r of RD){ const on=S.deploy===r.k;
     r.btn.classList.toggle("armed",on);
     let txt=r.gl+" "+r.cost+"g";
@@ -385,7 +418,6 @@ abTar.onclick=()=>armDeploy("wire");
 abBomb.onclick=()=>armDeploy("sticky");
 function doAirstrike(gx,gy){
   const x=gx+0.5, y=gy+0.5, R=1.9;
-  S.gold=Math.max(0,S.gold-AIR_COST); /* paid when the strike LANDS, not when armed */
   S.shake=Math.max(S.shake,14);
   for(let i=0;i<3;i++) S.fx.push({x,y,r0:0.2+i*0.3,r1:R*(0.8+i*0.15),life:0.45+i*0.1,ml:0.45+i*0.1,color:i?"#ffd166":"#ffffff",w:4});
   for(let i=0;i<50;i++){ const a=Math.random()*Math.PI*2,sp=2+Math.random()*4;
@@ -414,13 +446,6 @@ function detonateMine(tp,tscale){ const p=pathAt(tp.d), x=p.x, y=p.y, R=1.2;
 function hurtTrap(e,dmg){ const floor=e.max*0.15;
   const d=Math.max(0,Math.min(e.hp-floor, dmg));
   if(d>0) hurt(e,d,false); }
-abAir.onclick=()=>{ if(paused||S.over||S.time<S.cd.air) return;
-  if(!S.armed && S.gold<AIR_COST){ say("Airstrike costs "+AIR_COST+"g — not enough gold!",1400); return; }
-  S.armed=!S.armed; if(S.armed) S.deploy=null; say(S.armed?"Airstrike armed — tap the map! ("+AIR_COST+"g on impact)":"Airstrike cancelled",1400); };
-abFrz.onclick=()=>{ if(paused||S.over||S.time<S.cd.frz) return; S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); };
-abRep.onclick=()=>{ if(paused||S.over||S.time<S.cd.rep||S.repairUses<=0) return; S.cd.rep=S.time+ABIL.rep.cd; S.repairUses--;
-  S.lives=Math.min(25,S.lives+3); hud(); say("Repaired +3 lives",1300); };
-abOvr.onclick=()=>{ if(paused||S.over||S.time<S.cd.ovr) return; S.cd.ovr=S.time+ABIL.ovr.cd; S.ocUntil=S.time+6; say("Overcharge! Towers fire faster",1400); };
 
 /* ---------- building ---------- */
 /* project a cell centre onto the path polyline -> path distance in cell units (frozen at deploy) */
