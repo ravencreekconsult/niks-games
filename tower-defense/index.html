@@ -729,13 +729,18 @@ function step(dt){
 }
 function endGame(){ over.style.display="flex";
   let best=0; try{ best=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0; }catch(e){}
-  if(S.won){ oT.textContent="You win! 🎉"; oX.textContent="All 30 waves held. Final score "+S.score+"."
-      +(best>0? " Best endless run: wave "+best+"." : "");
+  const stats="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
+    +(best>0? " · Best endless run: wave "+best : "");
+  if(S.won){ oT.textContent="You win! 🎉"; oX.textContent="All 30 waves held — final score "+S.score
+      +" with "+S.kills+" kills and "+S.leaksTotal+" leaks."
+      +(best>0? " Best endless run: wave "+best+"." : "")
+      +"\nWave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal;
     oE.style.display=""; oE.textContent="Keep going — Endless (next: wave 31)"; }
   else{ oT.textContent="Base overrun";
     if(S.endless && S.wave>best){ try{ localStorage.setItem("td_best_endless",String(S.wave)); best=S.wave; }catch(e){} }
     oX.textContent="The swarm got through at wave "+S.wave+" — score "+S.score+"."
-      +(best>0? " Best endless run: wave "+best+"." : " Try more towers on the early bends."); oE.style.display="none"; } }
+      +(best>0? " Best endless run: wave "+best+"." : " Try more towers on the early bends.")
+      +"\nWave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal; } }
 oE.onclick=()=>{ if(!S.won) return;
   S.endless=true; S.won=false; S.over=false;
   over.style.display="none"; go.disabled=false;
@@ -997,6 +1002,7 @@ function draw(){
   safe(drawDecals);
   safe(drawTraps);
   safe(drawBaseFlash);
+  safe(drawLeakVignette);
   safe(drawRanges);
   safe(drawHoverCell);
   safe(drawDeployHover);
@@ -1050,6 +1056,15 @@ function drawBaseFlash(){
   const gl=ctx.createRadialGradient(bxx,byy,0,bxx,byy,cell*1.4);
   gl.addColorStop(0,`rgba(255,59,92,${a})`); gl.addColorStop(1,"rgba(255,59,92,0)");
   ctx.fillStyle=gl; ctx.fillRect(bxx-cell*1.4,byy-cell*1.4,cell*2.8,cell*2.8);
+}
+/* brief red screen-edge pulse when the base leaks (one soft pulse, never strobing) */
+function drawLeakVignette(){
+  if(RM || S.time>=S.leakPulse) return;
+  const a=0.45*(S.leakPulse-S.time)/0.9;
+  const W=cv.width/dpr, H=cv.height/dpr;
+  const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.34,W/2,H/2,Math.max(W,H)*0.72);
+  vg.addColorStop(0,"rgba(255,59,92,0)"); vg.addColorStop(1,`rgba(255,59,92,${a.toFixed(3)})`);
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 }
 function drawRanges(){
   ctx.lineWidth=2;
@@ -1705,11 +1720,13 @@ banner.style.display="none";
 let last=performance.now();
 function loop(now){
   let dt=(now-last)/1000; last=now; if(dt>0.1) dt=0.1;
+  if(S.slowmo>0){ S.slowmo=Math.max(0,S.slowmo-dt); dt*=0.25; } /* boss-death slow-motion hold */
   if(!paused && !S.over){ for(let i=0;i<speed;i++) step(dt); }
   safe(camStep); applyCam();
   draw();
   banner.style.display = (S.time<S.banner.until)?"block":"none";
   safe(updateAbil); safe(updateBoss);
+  nudgeEl.style.display=(S.wave===0 && !S.over && intro.style.display==="none")?"block":"none";
   goTick-=dt; if(goTick<=0){ goTick=0.25; if(!S.running&&!S.over) updateGoLabel(); }
   requestAnimationFrame(loop);
 }
