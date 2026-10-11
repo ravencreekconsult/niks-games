@@ -217,7 +217,7 @@ export const MAPS = {
         ],
         winLine: 'Splendid! Patience and kindness — that\'s a real catcher. Your prize.',
         loseLine: 'The old trick still works! Come find me again, young catcher.' },
-      { x: 4, y: 17, dir: 'up', sight: 3, sprite: 'npcScout', name: 'Kade', flag: 'rivalRoute1',
+      { x: 4, y: 17, dir: 'left', sight: 3, sprite: 'npcScout', name: 'Kade', flag: 'rivalRoute1',
         party: [{ speciesId: 'cinderpup', level: 12 }, { speciesId: 'cragmite', level: 13 }], reward: 300,
         lines: [
           'There you are! I\'ve been waiting on this road all morning.',
