@@ -261,7 +261,7 @@ function tap(gx,gy){
   if(pathCells.has(gx+","+gy)) return;
   const t=TOWERS[sel];
   if(S.gold<t.cost){ say("Not enough gold"); return; }
-  S.gold-=t.cost; S.towers.push({gx,gy,type:t,lvl:1,cool:0,ang:-Math.PI/2,flash:0,kick:0});
+  S.gold-=t.cost; S.towers.push({gx,gy,type:t,lvl:1,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0});
   hud(); refreshShopAff();
 }
 function showInfo(){
@@ -284,6 +284,27 @@ iUp.onclick=()=>{ if(!selTower) return; const c=upCost(selTower.type,selTower.lv
   S.gold-=c; selTower.lvl++; hud(); showInfo(); };
 iSell.onclick=()=>{ if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; hud(); refreshShopAff(); };
+/* ---------- level-6 specializations ---------- */
+const SPECS={
+ blaster:[{id:"minigun",name:"Minigun"},{id:"gatling",name:"Gatling"}],
+ cannon:[{id:"mortar",name:"Mortar"},{id:"flak",name:"Flak"}],
+ frost:[{id:"deep",name:"Deep Freeze"},{id:"shatter",name:"Shatter"}],
+ sniper:[{id:"rail",name:"Railgun"},{id:"marks",name:"Marksman"}],
+ tesla:[{id:"chain",name:"Chain Lightning"},{id:"overload",name:"Overload"}],
+ venom:[{id:"plague",name:"Plague"},{id:"corr",name:"Corrosive"}],
+ missile:[{id:"cluster",name:"Cluster"},{id:"cruise",name:"Cruise"}],
+ coil:[{id:"oc",name:"Overclock"},{id:"amp",name:"Amplifier"}]
+};
+const SPEC_COL={minigun:"#ff6b6b",gatling:"#ffa94d",mortar:"#d98e3f",flak:"#9be7ff",deep:"#7dd3fc",
+ shatter:"#c7f0ff",rail:"#e879f9",marks:"#fbbf24",chain:"#a5f3fc",overload:"#f472b6",
+ plague:"#84cc16",corr:"#a3e635",cluster:"#fb7185",cruise:"#f43f5e",oc:"#ffd166",amp:"#fde68a"};
+function specName(tw){ const arr=SPECS[tw.type.id]; if(!arr) return "";
+  const f=arr.find(s=>s.id===tw.spec); return f?f.name:""; }
+function pickSpec(i){ const tw=selTower; if(!tw||tw.lvl<MAXLV||tw.spec) return;
+  const arr=SPECS[tw.type.id]; if(!arr||!arr[i]) return;
+  tw.spec=arr[i].id; tw.heat=0; say(arr[i].name+" chosen!",1600); showInfo(); }
+iS1.onclick=()=>pickSpec(0);
+iS2.onclick=()=>pickSpec(1);
 
 /* ---------- waves ---------- */
 function startWave(){
@@ -645,6 +666,8 @@ function draw(){
   safe(drawBaseFlash);
   safe(drawRanges);
   safe(drawHoverCell);
+  safe(drawReticle);
+  safe(()=>{ if(S.time<S.freezeUntil){ ctx.fillStyle="rgba(140,220,255,0.09)"; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); } });
   for(const tw of S.towers){ safe(()=>drawTower(tw)); }
   safe(drawEnemies);
   safe(drawShots);
