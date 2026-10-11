@@ -451,42 +451,57 @@ function showInfo(){
     iSell.textContent="Sell +"+(30*s.lvl)+"g"; return; }
   if(!selTower){ info.style.display="none"; resize(); return; }
   const tw=selTower, st=effStats(tw);
-  const canSpec = tw.lvl>=MAXLV && !tw.spec && !!SPECS[tw.type.id];
-  const c=upCost(tw.type,tw.lvl);
+  const allMax=(tw.rngLv||0)>=3 && (tw.rateLv||0)>=3 && (tw.dmgLv||0)>=3;
+  const canSpec = allMax && !tw.spec && !!SPECS[tw.type.id];
   info.style.display="flex"; resize();
   iTgt.style.display="";
-  iTxt.innerHTML=`<b>${tw.type.name}</b> Lv${tw.lvl}`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
-    + ` · dmg ${st.dmg|0} · rng ${st.range.toFixed(1)}`
-    + (tw.lvl<MAXLV? ` · <span style="color:var(--gold)">upgrade ${c}g</span>`
-      : (canSpec? " · <span style=\"color:#ff8fa3;font-weight:700\">pick a special — this choice is PERMANENT, the other path locks</span>" : ""));
-  iUp.style.display = tw.lvl<MAXLV? "" : "none";
+  iTxt.innerHTML=`<b>${tw.type.name}</b>`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
+    + ` · dmg ${st.dmg|0} · rate ${st.rate.toFixed(1)}/s · rng ${st.range.toFixed(1)}`
+    + ` · <span style="color:var(--dim)">RNG ${tw.rngLv||0}/3 · RATE ${tw.rateLv||0}/3 · DMG ${tw.dmgLv||0}/3</span>`
+    + (allMax? (canSpec? " · <span style=\"color:#ff8fa3;font-weight:700\">pick a special — this choice is PERMANENT, the other path locks</span>" : "")
+      : " · <span style='color:var(--gold)'>buy a track below 👇</span>");
+  const trk=(btn,k,lv)=>{ if(lv>=3){ btn.classList.add("full"); btn.textContent=trackLabel(k)+" ✓full"; btn.style.opacity=""; return; }
+    btn.classList.remove("full"); btn.textContent=trackLabel(k)+" "+trackCost(tw.type,k,lv+1)+"g"; };
+  trk(iRng,"range",tw.rngLv||0); trk(iRate,"rate",tw.rateLv||0); trk(iDmg,"dmg",tw.dmgLv||0);
+  iUp.style.display="none";
   iS1.style.display = canSpec? "" : "none";
   iS2.style.display = canSpec? "" : "none";
   if(canSpec){ const A=SPECS[tw.type.id];
     iS1.innerHTML="<b>"+A[0].name+"</b><br><span style='font-size:10px;font-weight:400;opacity:.85'>"+A[0].hint+"</span>";
     iS2.innerHTML="<b>"+A[1].name+"</b><br><span style='font-size:10px;font-weight:400;opacity:.85'>"+A[1].hint+"</span>"; }
-  iSell.textContent = "Sell +"+Math.round(selTower.type.cost*0.75*selTower.lvl)+"g";
+  iSell.textContent = "Sell +"+sellValue(tw)+"g";
   iTgt.textContent = "🎯 "+(TGT_NAME[tw.mode||"first"]||"First");
 }
+/* refund: 70% of everything actually invested (tower + track levels) — never more than paid */
+function sellValue(tw){ let inv=tw.type.cost;
+  for(const k of ["range","rate","dmg"]){ const lv=tw[k+"Lv"]||0;
+    for(let l=1;l<=lv;l++) inv+=trackCost(tw.type,k,l); }
+  return Math.round(inv*0.7); }
 const TGT_ORDER=["first","last","strong","close"];
 const TGT_NAME={first:"First",last:"Last",strong:"Strongest",close:"Closest"};
 iTgt.onclick=()=>{ if(!selTower) return;
   const cur=selTower.mode||"first";
   selTower.mode=TGT_ORDER[(TGT_ORDER.indexOf(cur)+1)%TGT_ORDER.length];
   iTgt.textContent="🎯 "+TGT_NAME[selTower.mode]; };
+function buyTrack(k){ if(!selTower) return; const tw=selTower, lv=tw[k+"Lv"]||0;
+  if(lv>=3) return; const c=trackCost(tw.type,k,lv+1);
+  if(S.gold<c){ say("Need "+c+"g"); return; }
+  S.gold-=c; tw[k+"Lv"]=lv+1;
+  say(trackLabel(k)+" upgrade "+(lv+1)+"/3!",1000); hud(); showInfo(); }
+iRng.onclick=()=>buyTrack("range");
+iRate.onclick=()=>buyTrack("rate");
+iDmg.onclick=()=>buyTrack("dmg");
 iUp.onclick=()=>{ if(selSold){ const s=selSold;
     if(s.dead) return;
     if(s.lvl>=3) return; const c=SOL_UP[s.lvl-1];
     if(S.gold<c.cost){ say("Need "+c.cost+"g"); return; }
     S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
     say("Soldier Lv"+s.lvl+"!",1100); hud(); showInfo(); return; }
-  if(!selTower) return; const c=upCost(selTower.type,selTower.lvl);
-  if(selTower.lvl>=MAXLV) return; if(S.gold<c){ say("Need "+c+"g"); return; }
-  S.gold-=c; selTower.lvl++; hud(); showInfo(); };
+  if(selTower) buyTrack("range"); };
 iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
     S.gold+=30*selSold.lvl;
     S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
-  if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
+  if(!selTower) return; S.gold+=sellValue(selTower);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
 /* ---------- level-6 specializations ---------- */
 const SPECS={
@@ -504,7 +519,8 @@ const SPEC_COL={minigun:"#ff6b6b",gatling:"#ffa94d",mortar:"#d98e3f",flak:"#9be7
  plague:"#84cc16",corr:"#a3e635",cluster:"#fb7185",cruise:"#f43f5e",oc:"#ffd166",amp:"#fde68a"};
 function specName(tw){ const arr=SPECS[tw.type.id]; if(!arr) return "";
   const f=arr.find(s=>s.id===tw.spec); return f?f.name:""; }
-function pickSpec(i){ const tw=selTower; if(!tw||tw.lvl<MAXLV||tw.spec) return;
+function pickSpec(i){ const tw=selTower; if(!tw||tw.spec) return;
+  if(!((tw.rngLv||0)>=3&&(tw.rateLv||0)>=3&&(tw.dmgLv||0)>=3)){ say("Max all three tracks first (RNG/RATE/DMG)!",1400); return; }
   const arr=SPECS[tw.type.id]; if(!arr||!arr[i]) return;
   tw.spec=arr[i].id; tw.heat=0; say(arr[i].name+" chosen!",1600); showInfo(); }
 iS1.onclick=()=>pickSpec(0);
