@@ -296,7 +296,7 @@
   /* ---------- PULL ANIMATION ---------- */
   function pull(colorHex, swordName, onReveal) {
     try {
-      pull = {
+      pullState = {
         t0: Date.now(),
         col: colorHex || '#7c5cff',
         name: swordName || '',
@@ -312,10 +312,10 @@
     }
   }
   function revealOnce() {
-    if (!pull || pull.fired) { return; }
-    pull.fired = true;
-    var cb = pull.cb;
-    pull.cb = null;
+    if (!pullState || pullState.fired) { return; }
+    pullState.fired = true;
+    var cb = pullState.cb;
+    pullState.cb = null;
     try { if (cb) { cb(); } } catch (e) { /* game.js guards too, but never propagate */ }
   }
 
@@ -522,23 +522,23 @@
 
     /* pull progress: local animation clock wins; snapshot pullT fills gaps */
     var pLocal = 1;
-    if (pull) {
-      pLocal = Math.min(1, (Date.now() - pull.t0) / 850);
+    if (pullState) {
+      pLocal = Math.min(1, (Date.now() - pullState.t0) / 850);
       if (pLocal >= 0.999) {
         revealOnce(); /* guaranteed at/after 850ms — guarded by fired flag */
       }
-      if (pLocal >= 1 && swordUp <= 0.001 && !pull.settling) {
-        pull.settling = true;
+      if (pLocal >= 1 && swordUp <= 0.001 && !pullState.settling) {
+        pullState.settling = true;
       }
       /* keep the pull alive until the settle-back finishes */
-      if (pull.fired && swordUp <= 0.001) { pull = null; }
+      if (pullState.fired && swordUp <= 0.001) { pullState = null; }
     } else {
       var snapT = typeof snap.pullT === 'number' ? snap.pullT : 1;
       pLocal = 1 - Math.max(0, Math.min(1, 1 - snapT)); /* 1 = idle */
     }
     swordUp += (swordUpTarget - swordUp) * Math.min(1, dt * 8);
     if (swordUpTarget === 1 && swordUp > 0.98) { swordUpTarget = 0; }
-    var pullingNow = !!pull && !pull.settling;
+    var pullingNow = !!pullState && !pullState.settling;
 
     /* ---- transform ---- */
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -597,7 +597,7 @@
     }
     if (pullingNow && pLocal < 0.353) {
       /* motes drawn inward toward the blade socket */
-      ctx.fillStyle = pull ? pull.col : '#ffffff';
+      ctx.fillStyle = pullState ? pullState.col : '#ffffff';
       for (var iw = 0; iw < 6; iw++) {
         var ia = (iw / 6) * 6.2832 + tSec * 3;
         var ir = 60 * (1 - pLocal / 0.353);
@@ -640,7 +640,7 @@
     if (pullingNow && pLocal >= 0.353 && pLocal < 0.8) {
       var b2 = (pLocal - 0.353) / 0.447;
       ctx.globalAlpha = 0.35 * b2;
-      var gcol = pull ? pull.col : '#ffffff';
+      var gcol = pullState ? pullState.col : '#ffffff';
       ctx.fillStyle = gcol;
       var bw = 16 + 10 * b2;
       ctx.beginPath();
@@ -658,7 +658,7 @@
     /* ---- beat 3: radial flash + ring of particles ---- */
     if (pullingNow && pLocal >= 0.8 && pLocal < 1) {
       var b3 = (pLocal - 0.8) / 0.2;
-      var rcol = pull ? pull.col : '#ffffff';
+      var rcol = pullState ? pullState.col : '#ffffff';
       ctx.globalAlpha = (1 - b3) * 0.55;
       ctx.drawImage(glowL, bladeX - 160, 150 - 160, 320, 320);
       ctx.globalAlpha = 1;
@@ -670,8 +670,8 @@
       ctx.stroke();
       ctx.globalAlpha = 1;
       /* spawn ring particles once at the start of beat 3 */
-      if (pull && !pull.ringDone) {
-        pull.ringDone = true;
+      if (pullState && !pullState.ringDone) {
+        pullState.ringDone = true;
         for (var ri = 0; ri < 16; ri++) {
           var ra = (ri / 16) * 6.2832;
           parts.push({ x: bladeX, y: 155, vx: Math.cos(ra) * 110, vy: Math.sin(ra) * 70 - 20, life: 0.7, age: 0, r: 2, col: rcol });
