@@ -1,8 +1,8 @@
 /* Critter Capture — day/night helpers: pure functions, no imports, no DOM.
    Time is minutes since midnight (0..1439) living in the save as `time`.
-   Two real seconds = one in-game minute, so a full day is 12 real minutes. */
+   One real minute = one game hour, so a full day is 24 real minutes. */
 
-export const MINUTES_PER_SECOND = 2;
+export const MINUTES_PER_SECOND = 1;
 export const DAY_START = 480; // 08:00
 export const PHASES = ['dawn', 'day', 'dusk', 'night'];
 
@@ -10,10 +10,10 @@ export const PHASES = ['dawn', 'day', 'dusk', 'night'];
    values wrap cleanly into the 0..1439 day. */
 export function phaseOf(minutes) {
   const m = ((Math.floor(minutes) % 1440) + 1440) % 1440;
-  if (m >= 300 && m <= 419) return 'dawn';     // 05:00-06:59
-  if (m >= 420 && m <= 1079) return 'day';     // 07:00-17:59
-  if (m >= 1080 && m <= 1199) return 'dusk';   // 18:00-19:59
-  return 'night';                              // 20:00-04:59
+  if (m >= 300 && m < 480) return 'dawn';      // 05:00-07:59
+  if (m >= 480 && m < 1080) return 'day';      // 08:00-17:59
+  if (m >= 1080 && m < 1260) return 'dusk';    // 18:00-20:59
+  return 'night';                              // 21:00-04:59
 }
 
 /* Zero-padded clock string, e.g. formatClock(480) === '08:00'. */
