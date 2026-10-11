@@ -75,6 +75,7 @@
   .gtog>span{font-size:11px;color:var(--dim);font-weight:700}
   .gtog button{padding:8px 10px;font-size:12px}
   .gtog button.on{color:var(--accent2);border-color:var(--accent2)}
+  #hud button.on{color:var(--accent2);border-color:var(--accent2)}
   .hint{padding:6px 10px 8px;background:rgba(12,17,25,.94);color:#718093;font-size:11px}
   @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card{animation:none} }
 </style>
@@ -91,6 +92,7 @@
     <button id="pause">❚❚</button>
     <button id="auto">Auto</button>
     <span class="gtog"><span>Gold:</span><button id="gT" class="on">Testing</button><button id="gR">Real</button></span>
+    <button id="fitBtn">🎯 Follow</button>
     <button id="go">Start Wave</button>
   </div>
   <div id="abil">
@@ -184,9 +186,9 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   abAir=$id("abAir"),abFrz=$id("abFrz"),abRep=$id("abRep"),abOvr=$id("abOvr"),
   bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
   eleft=$id("eleft"),
-  gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2");
+  gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn");
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
-let cell=40,ox=0,oy=0,dpr=1;
+let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, autoTimer=0;
 let goldMode="test"; try{ goldMode=localStorage.getItem("td_gold")==="real"?"real":"test"; }catch(e){}
 function startGold(){ return goldMode==="real"?100:100000; }
@@ -196,13 +198,16 @@ function newGame(){
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[],
       queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
       freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
-      tw:0, tn:0, bgPhase:0 };
+      tw:0, tn:0, bgPhase:0,
+      cam:{zoom:1.75,tz:1.75,fx:COLS/2,fy:ROWS/2,tx:COLS/2,ty:ROWS/2,follow:true,manual:false,fit:false} };
   selTower=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
-  autoTimer=0; go.disabled=false; buildShop(); hud();
+  autoTimer=0; go.disabled=false; buildShop(); hud(); applyCam();
 }
 function hud(){ elGold.textContent=S.gold; elLives.textContent=S.lives; elWave.textContent=S.wave; elScore.textContent=S.score;
   spd.textContent=speed+"x"; pause.textContent=paused?"▶":"❚❚"; auto.style.borderColor=autoOn?"var(--accent2)":"var(--line)";
   gT.classList.toggle("on",goldMode==="test"); gR.classList.toggle("on",goldMode==="real");
+  if(fitBtn){ const f=!!(S.cam&&S.cam.fit); fitBtn.classList.toggle("on",f);
+    fitBtn.textContent=f?"🗺 Fit":"🎯 Follow"; }
   eleft.textContent=(S.queue.length||0)+(S.enemies?S.enemies.length:0); }
 function say(t,ms){ S.banner={until:S.time+(ms||1800)/1000}; banner.textContent=t; banner.style.display="block";
   banner.classList.remove("pop"); void banner.offsetWidth; banner.classList.add("pop"); }
@@ -331,9 +336,12 @@ function startWave(){
   if(S.running||S.over) return;
   S.wave++; const spec=waveSpec(S.wave);
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
+  const z=zoomForWave(S.wave);
+  if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
+    say("The valley opens up — view zooms out!",2600); }
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
-  if(spec.boss) say("BOSS WAVE "+S.wave,2200); else say("Wave "+S.wave+" incoming",1400);
+  if(spec.boss && !(S.cam && z<S.cam.tz)) say("BOSS WAVE "+S.wave,2200); else if(!(S.cam && z<S.cam.tz-0.001)) say("Wave "+S.wave+" incoming",1400);
   S.running=true; S.qTimer=0; go.disabled=true; hud();
 }
 const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Storm Titan","Chaos Overlord","Night Emperor","Void Sovereign"];
@@ -518,7 +526,9 @@ function endGame(){ over.style.display="flex";
    ================================================================ */
 function resize(){ const st=document.getElementById("stage").getBoundingClientRect();
   dpr=Math.min(window.devicePixelRatio||1,2); cv.width=Math.max(1,(st.width*dpr)|0); cv.height=Math.max(1,(st.height*dpr)|0);
-  cell=Math.min(st.width/COLS,st.height/ROWS); ox=(st.width-cell*COLS)/2; oy=(st.height-cell*ROWS)/2;
+  baseCell=Math.min(st.width/COLS,st.height/ROWS);
+  if(S&&S.cam) applyCam();
+  else { cell=baseCell; ox=(st.width-cell*COLS)/2; oy=(st.height-cell*ROWS)/2; }
   renderBG(); }
 window.addEventListener("resize",resize);
 if(typeof ResizeObserver!=="undefined"){ try{ new ResizeObserver(()=>resize()).observe(document.getElementById("stage")); }catch(e){} }
