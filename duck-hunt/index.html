@@ -742,7 +742,7 @@ function startRound(){
   ducks=[]; falling=[]; powerups=[];
   dog.state='pop'; dog.t=1400; dog.duck=null; dog.misses=0;
   cross.x=VW/2; cross.y=VH/2-40;
-  state='playing';
+  state='playing'; hidePanel();
   updateHud();
 }
 function newGame(m){
