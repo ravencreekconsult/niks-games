@@ -98,7 +98,7 @@
   #intro p{margin:6px 0;color:#c7d2e0;font-size:13px;line-height:1.55;text-align:left}
   #intro button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06110f;border:0;font-weight:800;
     padding:12px 24px;border-radius:13px;font-size:16px;box-shadow:0 0 18px rgba(124,92,255,.4)}
-  @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card{animation:none} }
+  @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card,#intro .card{animation:none} }
 </style>
 </head>
 <body>
@@ -730,17 +730,15 @@ function step(dt){
 function endGame(){ over.style.display="flex";
   let best=0; try{ best=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0; }catch(e){}
   const stats="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
-    +(best>0? " · Best endless run: wave "+best : "");
-  if(S.won){ oT.textContent="You win! 🎉"; oX.textContent="All 30 waves held — final score "+S.score
-      +" with "+S.kills+" kills and "+S.leaksTotal+" leaks."
-      +(best>0? " Best endless run: wave "+best+"." : "")
-      +"\nWave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal;
+    +(best>0? " · Best endless: wave "+best : "");
+  if(S.won){ oT.textContent="You win! 🎉";
+    oX.textContent="All 30 waves held! "+stats;
     oE.style.display=""; oE.textContent="Keep going — Endless (next: wave 31)"; }
   else{ oT.textContent="Base overrun";
     if(S.endless && S.wave>best){ try{ localStorage.setItem("td_best_endless",String(S.wave)); best=S.wave; }catch(e){} }
-    oX.textContent="The swarm got through at wave "+S.wave+" — score "+S.score+"."
-      +(best>0? " Best endless run: wave "+best+"." : " Try more towers on the early bends.")
-      +"\nWave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal; } }
+    const stats2="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
+      +(S.endless? " · Best endless: wave "+best : "");
+    oX.textContent="The swarm got through — "+stats2+". Try more towers on the early bends!"; } }
 oE.onclick=()=>{ if(!S.won) return;
   S.endless=true; S.won=false; S.over=false;
   over.style.display="none"; go.disabled=false;
@@ -1633,7 +1631,7 @@ function drawParts(){
     ctx.beginPath(); ctx.arc(ox+f.x*cell,oy+f.y*cell,rr,0,7); ctx.stroke(); ctx.globalAlpha=1; }
 }
 function drawNums(){
-  ctx.textAlign="center"; ctx.font="bold 13px system-ui";
+  ctx.textAlign="center"; ctx.font="bold "+Math.max(13,cell*0.24)+"px system-ui";
   for(const n of S.nums){ const a=Math.min(1,n.life*1.6);
     const px=ox+n.x*cell, py=oy+n.y*cell - (1-n.life/0.7)*8;
     ctx.globalAlpha=a; ctx.lineWidth=3; ctx.strokeStyle="rgba(0,0,0,.8)";
@@ -1713,6 +1711,8 @@ spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
 pause.onclick=()=>{ paused=!paused; hud(); };
 auto.onclick=()=>{ autoOn=!autoOn; if(autoOn && !S.running) autoTimer=0.4; hud(); };
 oB.onclick=()=>{ newGame(); };
+hintBtn.onclick=()=>{ hintEl.classList.toggle("open"); hintBtn.classList.toggle("on",hintEl.classList.contains("open")); };
+$id("introGo").onclick=()=>{ intro.style.display="none"; };
 gT.onclick=()=>{ goldMode="test"; try{ localStorage.setItem("td_gold","test"); }catch(e){} hud(); };
 gR.onclick=()=>{ goldMode="real"; try{ localStorage.setItem("td_gold","real"); }catch(e){} hud(); say("Real gold next game: 100",1500); };
 banner.style.display="none";
