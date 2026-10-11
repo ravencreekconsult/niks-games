@@ -33,7 +33,7 @@ function freshState() {
     achievements: {},
     ascensions: 0, crumbs: 0, crumbsTotal: 0, heavenly: {},
     buffs: [],
-    goldenClicked: 0,
+    goldenClicked: 0, quests: null,
     last: Date.now(), playSeconds: 0, startedAt: Date.now()
   };
 }
