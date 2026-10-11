@@ -689,10 +689,18 @@ function frame(ts) {
   if (!last) last = ts;
   const dt = Math.min(0.05, (ts - last) / 1000);
   last = ts;
+  clockSaveTick += dt;
+  if (clockSaveTick > 30) {
+    clockSaveTick = 0;
+    // periodic write so a player who never warps or battles keeps their clock
+    const mins = minutesNow() % 1440;
+    Game.save.time = mins;
+  }
   try {
     if (scene === 'battle') {
       battle.update(dt);
       battle.draw(ctx);
+      applyTint(0.5);
     } else {
       // dialogue first: while the box is open it owns A and B, and walking is paused
       if (dlgOpen && (menuItems && menuItems.length)) {
@@ -711,6 +719,7 @@ function frame(ts) {
       }
       if (!(menuItems && menuItems.length) && !dlgOpen) ow.update(dt); // menu OR dialogue pauses walking
       ow.draw(ctx);
+      applyTint(1);
     }
   } catch (err) {
     showError(err.message + ' (' + (err.stack || '').split('\n')[1] + ')');
@@ -737,7 +746,10 @@ function frame(ts) {
     const inLabel = (input.lastInputAt > 0 && inAge < 2000) ? input.lastInput : 'none';
     hudEl.textContent = scene + ' | ' + i.map + ' | ' + i.x + ',' + i.y +
       ' | party ' + Game.save.party.length + ' Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length +
-      ' | $' + (Game.save.money || 0) + ' | in: ' + inLabel;
+      ' | $' + (Game.save.money || 0);
+    const mins = minutesNow();
+    hudEl.textContent += ' | ' + daynight.formatClock(mins) + ' ' + daynight.phaseOf(mins) +
+      ' | in: ' + inLabel;
   }
   requestAnimationFrame(frame);
 }
@@ -748,6 +760,10 @@ try {
   window.__CC_OK = false;
   if (!selfCheck()) throw new Error('self-check failed');
   Game.save = loadSave() || newSave();
+  clockLoadedAt = Date.now(); // minutesNow() compares against Date.now()
+  if (typeof Game.save.time !== 'number' || !isFinite(Game.save.time)) {
+    Game.save.time = daynight.DAY_START;
+  }
   if (typeof Game.save.money !== 'number') Game.save.money = 0;
   saveGame(Game.save);
   ow.enter(Game, Game.save.map, Game.save.x, Game.save.y, Game.save.dir);
@@ -758,3 +774,13 @@ try {
 } catch (err) {
   showError('Could not start: ' + err.message);
 }
+
+/* Debug hook (never affects normal play): set the clock or read the phase. */
+window.__CC = window.__CC || {};
+window.__CC.setTime = function (mins) {
+  Game.save.time = ((mins % 1440) + 1440) % 1440;
+  clockLoadedAt = Date.now();
+  Game.persist();
+};
+window.__CC.minutes = minutesNow;
+window.__CC.phase = function () { return daynight.phaseOf(minutesNow()); };
