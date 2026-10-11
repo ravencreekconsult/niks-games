@@ -20,7 +20,8 @@
   #statbar{ flex:0 0 auto; display:flex; flex-wrap:wrap; gap:4px 8px; padding:5px 8px;
     background:linear-gradient(180deg,#10151f,#0a0e15); border-bottom:2px solid var(--edge);
     font-size:clamp(9px,2.4vw,12px); font-weight:700; text-transform:uppercase;
-    letter-spacing:.05em; line-height:1.4; max-height:64px; overflow:hidden; }
+    letter-spacing:.05em; line-height:1.4; max-height:none; }
+  @media (max-width:520px){ #statbar{ gap:3px 4px; padding:4px 5px; } .chip{ padding:0 5px; border-width:1px; } }
   .chip{ background:linear-gradient(180deg,var(--chrome1),var(--chrome2));
     border:2px solid var(--edge); border-radius:6px; padding:1px 7px;
     box-shadow:0 2px 0 #000, inset 0 1px 0 rgba(255,255,255,.07); color:var(--dim); white-space:nowrap; }
