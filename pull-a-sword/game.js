@@ -238,7 +238,7 @@
   /* ---------- sword list with LIVE odds ---------- */
   function pullWeights() {
     var world = curWorld();
-    if (!world) { return []; }
+    if (!world) { return { list: [], w: [] }; }
     var eligible = [], weights = [];
     var lb = 1 + luckBonus();
     for (var i = 0; i < world.swords.length; i++) {
