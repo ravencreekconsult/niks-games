@@ -262,9 +262,19 @@ function updateAbil(){
     b.style.background=`linear-gradient(0deg,rgba(0,229,255,.30) ${p}%,rgba(6,10,16,.6) ${p}%)`;
     b.style.opacity=(dis||none)?".4":"1";
     b.classList.toggle("armed", k==="air"&&S.armed);
-    const tag= left>0? " "+Math.ceil(left)+"s" : (k==="rep"? " ×"+S.repairUses : (k==="air"? (S.armed?" ✖cancel":"") : " ✔"));
+    const tag= left>0.06? " "+Math.ceil(left)+"s" : (k==="rep"? " ×"+S.repairUses : (k==="air"? (S.armed?" ✖cancel":"") : " ✔"));
     b.textContent=a.label+tag; }
+  for(const r of RD){ const on=S.deploy===r.k;
+    r.btn.classList.toggle("armed",on);
+    let txt=r.gl+" "+r.cost+"g";
+    if(r.k==="soldier") txt+=" ("+S.soldiers.filter(s=>!s.dead).length+"/"+SOLMAX+")";
+    if(on) txt="✖ "+txt;
+    r.btn.textContent=txt; r.btn.style.opacity=S.over?".4":"1"; }
 }
+abSol.onclick=()=>armDeploy("soldier");
+abSpike.onclick=()=>armDeploy("spike");
+abTar.onclick=()=>armDeploy("tar");
+abBomb.onclick=()=>armDeploy("bomb");
 function doAirstrike(gx,gy){
   const x=gx+0.5, y=gy+0.5, R=2.3;
   S.shake=Math.max(S.shake,14);
@@ -278,7 +288,17 @@ function doAirstrike(gx,gy){
       if(S.nums.length<30) floatTxt(e.x,e.y,320*(0.35+0.65*f),"#ffb347"); } }
   hud();
 }
-abAir.onclick=()=>{ if(paused||S.over||S.time<S.cd.air) return; S.armed=!S.armed; say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1200); };
+function detonate(tp){ const p=pathAt(tp.d), x=p.x, y=p.y, R=1.6;
+  S.shake=Math.max(S.shake,12);
+  for(let i=0;i<2;i++) S.fx.push({x,y,r0:0.2+i*0.25,r1:R*(0.85+i*0.12),life:0.45+i*0.1,ml:0.45+i*0.1,color:i?"#ffd166":"#ffffff",w:4});
+  for(let i=0;i<36;i++){ const a=Math.random()*Math.PI*2,sp=2+Math.random()*3.5;
+    S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.4+Math.random()*.4,color:i%3?"#ffb347":"#ff5a3c",size:2.5}); }
+  addDecal(x,y,R*0.6,"scorch","#150e08");
+  for(const e of S.enemies){ if(e.dead) continue; const d=Math.hypot(e.x-x,e.y-y);
+    if(d<=R){ const f=1-d/R; hurt(e,260*(0.35+0.65*f),true); floatTxt(e.x,e.y,260*(0.35+0.65*f),"#ffb347"); } }
+  hud();
+}
+abAir.onclick=()=>{ if(paused||S.over||S.time<S.cd.air) return; S.armed=!S.armed; if(S.armed) S.deploy=null; say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1200); };
 abFrz.onclick=()=>{ if(paused||S.over||S.time<S.cd.frz) return; S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); };
 abRep.onclick=()=>{ if(paused||S.over||S.time<S.cd.rep||S.repairUses<=0) return; S.cd.rep=S.time+ABIL.rep.cd; S.repairUses--;
   S.lives=Math.min(25,S.lives+3); hud(); say("Repaired +3 lives",1300); };
@@ -504,11 +524,43 @@ function step(dt){
          one appears, whatever its speed */
       const sp = ETYPES[e.t]&&ETYPES[e.t].spd||1.3;
       S.qTimer = Math.max(e.gap||0.55, 1.4/sp); } }
+  /* --- soldiers & traps run before enemies so a blocked enemy skips its advance --- */
+  for(const e of S.enemies) e.blocked=false;
+  for(const s of S.soldiers){
+    if(s.dead){ s.deathT-=dt; continue; }
+    if(s.atkT>0) s.atkT-=dt;
+    if(s.swing>0) s.swing-=dt;
+    s.tgt=null; let best=null,bd=-Infinity;
+    for(const e of S.enemies){ if(e.dead||e.flying) continue;
+      const gap=s.d-e.dist;                     /* enemy is BEHIND the soldier on the path */
+      if(gap>=-0.05 && gap<=0.6 && e.dist>bd){ bd=e.dist; best=e; } }
+    if(best){ best.blocked=true; s.tgt=best;
+      if(s.atkT<=0){ s.atkT=0.8; s.swing=0.25; hurt(best,s.dmg,false); floatTxt(best.x,best.y-0.35,s.dmg,"#9ad0ff"); }
+      s.hp-=best.atk*dt;
+      if(s.hp<=0){ s.hp=0; s.dead=true; s.deathT=0.7; s.tgt=null; } }
+  }
+  S.soldiers=S.soldiers.filter(s=>!s.dead||s.deathT>0);
+  for(const tp of S.traps){
+    if(tp.kind==="spike"){
+      if(tp.cd>0) tp.cd-=dt;
+      else { let hitAny=false;
+        for(const e of S.enemies){ if(e.dead||e.flying) continue;
+          if(Math.abs(e.dist-tp.d)<0.5){ hurt(e,12,false); floatTxt(e.x,e.y,12,"#ffb3c0"); hitAny=true; } }
+        if(hitAny){ tp.cd=2.5; tp.pulse=0.3; } }
+      if(tp.pulse>0) tp.pulse-=dt; }
+    else if(tp.kind==="tar"){
+      for(const e of S.enemies){ if(e.dead||e.flying) continue;
+        if(Math.abs(e.dist-tp.d)<0.55){ e.slowUntil=S.time+0.25; e.slowPow=0.3; } } }
+    else if(tp.kind==="bomb"){
+      for(const e of S.enemies){ if(e.dead||e.flying) continue;
+        if(Math.abs(e.dist-tp.d)<0.5){ detonate(tp); tp.dead=true; break; } } }
+  }
+  S.traps=S.traps.filter(t=>!t.dead);
   for(const e of S.enemies){
     let slowed = now<e.slowUntil ? (e.slowPow||0.45) : 1;
     if(now<S.freezeUntil) slowed=Math.min(slowed,0.08);
     if(e.shielded) slowed=Math.min(slowed,0.55);
-    e.dist += e.spd*slowed*dt;
+    if(!e.blocked) e.dist += e.spd*slowed*dt;   /* soldiers NEVER block each other — only a soldier holds an enemy */
     const p=pathAt(e.dist); e.x=p.x; e.y=p.y;
     if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.baseFlash=now+0.4;
       hud(); S.shake=Math.max(S.shake,5); } }
