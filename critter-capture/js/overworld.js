@@ -3,6 +3,7 @@
    static layer per map (built once, blitted every frame). */
 
 import { MAPS, parseMap } from './data/areas.js';
+import { tableFor } from './daynight.js';
 import { getTileCanvas, drawSprite, SPRITES, PAL } from './data/sprites.js';
 
 export const TILE = 16;
@@ -86,7 +87,10 @@ function spotted() {
 }
 
 function pickEncounter() {
-  const enc = map.encounters;
+  // The effective set may be the night table (see tableFor); guard keeps the
+  // module alive if the core clock is not injected yet.
+  const enc = (G && typeof G.minutes === 'function')
+    ? tableFor(map.encounters, G.minutes()) : map.encounters;
   if (!enc || !enc.table || !enc.table.length) return null;
   let total = 0;
   for (const e of enc.table) total += e.weight;
@@ -126,7 +130,9 @@ function arrive() {
     return;
   }
   // encounter check: once per tile STEPPED ONTO, chance-based
-  if (def.encounter && map.encounters && Math.random() < map.encounters.rate) {
+  const eff = (G && typeof G.minutes === 'function')
+    ? tableFor(map.encounters, G.minutes()) : map.encounters;
+  if (def.encounter && eff && Math.random() < (eff.rate != null ? eff.rate : (map.encounters && map.encounters.rate) || 0)) {
     const wild = pickEncounter();
     if (wild) { G.onEncounter(wild.speciesId, wild.level); return; }
   }

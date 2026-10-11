@@ -9,6 +9,7 @@ import { loadSave, saveGame, newSave, SAVE_VERSION, rollIdentity } from './save.
 import * as ow from './overworld.js';
 import * as battle from './battle.js';
 import * as RULES from '../rules/battle-rules.js'; // imported to VERIFY it loads
+import * as daynight from './daynight.js';
 
 /* ---------------- on-screen error reporter ---------------- */
 
@@ -199,10 +200,41 @@ const hudEl = document.getElementById('hud');
 let scene = 'overworld';
 let menuItems = null, menuIndex = 0;
 
+/* Day/night clock: `time` in the save is minutes since midnight; it advances
+   with real wall-clock time (Date.now, so a backgrounded tab keeps ticking)
+   at 2 in-game minutes per real second. clockLoadedAt anchors the derive. */
+let clockLoadedAt = 0;
+let clockSaveTick = 0; // periodic write of the derived time (30s cadence)
+
+function minutesNow() {
+  return Game.save.time + ((Date.now() - clockLoadedAt) / 1000) * daynight.MINUTES_PER_SECOND;
+}
+
+/* Time-of-day colour wash over the rendered scene. Plain source-over fill;
+   alphaScale is 1 for the overworld, 0.5 in battle so text stays readable. */
+function applyTint(alphaScale) {
+  const t = daynight.tintFor(minutesNow());
+  if (!t.color || t.alpha <= 0) return;
+  ctx.save();
+  ctx.fillStyle = t.color;
+  ctx.globalAlpha = t.alpha * alphaScale;
+  ctx.fillRect(0, 0, 240, 160);
+  ctx.restore();
+}
+
 const Game = {
   input,
   save: null,
-  persist() { saveGame(this.save); },
+  persist() {
+    // Capture the derived time BEFORE assigning: minutesNow() reads save.time.
+    if (Game.save && typeof Game.save.time === 'number') {
+      const mins = minutesNow() % 1440;
+      Game.save.time = mins;
+    }
+    saveGame(this.save);
+  },
+  minutes: function () { return minutesNow(); },
+  phase: function () { return daynight.phaseOf(minutesNow()); },
   setMenu, // battle.js calls G.setMenu(...) — must be on the object, not just module scope
   onEncounter(speciesId, level) {
     scene = 'battle';
