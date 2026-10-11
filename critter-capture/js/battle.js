@@ -206,8 +206,6 @@ function finishBattle() {
   overTimer = 1600;
 }
 
-function queueWonByCatch() { return caughtFlag; }
-
 /* ---------------- menus (rendered by core as big touch buttons) ---------------- */
 
 function showRootMenu() {
