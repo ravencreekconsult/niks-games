@@ -20,19 +20,37 @@
   /* ---------- sizing / cache ---------- */
   var dpr = 1, cssW = 0, cssH = 0, scale = 1, ox = 0, oy = 0;
   var rect = { left: 0, top: 0, w: 0, h: 0 };
+  var EX = 8; /* extra logical width visible on each side of the 400-wide authored scene */
+  /* draw a full-scene layer centred, then mirrored copies to either side so there is never a bare edge */
+  function drawTiled(img, dx) {
+    var k, x;
+    for (k = -4; k <= 4; k++) {
+      x = k * LW + (dx || 0);
+      if (x > LW + EX || x + LW < -EX) { continue; }
+      if (k % 2 !== 0) { ctx.save(); ctx.translate(x + LW, 0); ctx.scale(-1, 1); ctx.drawImage(img, 0, 0, LW, LH); ctx.restore(); }
+      else { ctx.drawImage(img, x, 0, LW, LH); }
+    }
+  }
 
   function resize() {
     try {
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      cssH = Math.round(Math.max(140, Math.min(230, window.innerHeight * 0.24)));
-      cv.style.height = cssH + 'px';
+      var land = !!(window.matchMedia && window.matchMedia('(orientation:landscape) and (max-height:520px)').matches);
+      if (land && wrap && wrap.clientHeight > 80) {
+        cv.style.height = '100%'; cssH = wrap.clientHeight;
+      } else {
+        cssH = Math.round(Math.max(150, Math.min(340, window.innerHeight * 0.34)));
+        cv.style.height = cssH + 'px';
+      }
       cssW = wrap && wrap.clientWidth ? wrap.clientWidth : cv.clientWidth || 300;
       if (cssW < 50) { cssW = 300; }
       cv.width = Math.round(cssW * dpr);
       cv.height = Math.round(cssH * dpr);
+      /* fit the height, then extend the scenery sideways so wide screens are filled, not letterboxed */
       scale = Math.min(cv.width / LW, cv.height / LH);
       ox = Math.round((cv.width - LW * scale) / 2);
       oy = Math.round((cv.height - LH * scale) / 2);
+      EX = Math.max(0, Math.ceil((cv.width / scale - LW) / 2)) + 8;
       rect = cv.getBoundingClientRect();
       buildLayers();
     } catch (e) { /* keep looping even if sizing fails */ }
@@ -544,6 +562,7 @@
     /* ---- transform ---- */
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = "#0a0f1a"; ctx.fillRect(0, 0, cv.width, cv.height);
     var shakeA = 0;
     var st = tSec - shakeT0;
     if (st < 0.25 && shakeMag > 0) {
@@ -554,7 +573,7 @@
       oy + Math.cos(now * 0.11) * shakeA * 0.6 * scale);
 
     /* ---- 1-2. sky + stars (with a few cheap twinkles) ---- */
-    if (starL) { ctx.drawImage(starL, 0, 0, LW, LH); }
+    if (starL) { drawTiled(starL, 0); }
     if (!twinkles.length) {
       for (var tw = 0; tw < 5; tw++) { twinkles.push({ x: rnd(20, 380), y: rnd(10, 150), ph: rnd(0, 6.28) }); }
     }
@@ -569,9 +588,9 @@
     /* ---- 4. ridges with subtle parallax ---- */
     var par = Math.sin(tSec * 0.4) * 2;
     if (pullingNow) { par += (1 - pLocal) * 3; }
-    if (ridgeL) { ctx.drawImage(ridgeL, par, 0, LW, LH); }
+    if (ridgeL) { drawTiled(ridgeL, par); }
     /* ---- 5. ground ---- */
-    if (groundL) { ctx.drawImage(groundL, 0, 0, LW, LH); }
+    if (groundL) { drawTiled(groundL, 0); }
 
     /* ---- 6. ambient motes ---- */
     if (!motes.length) {
