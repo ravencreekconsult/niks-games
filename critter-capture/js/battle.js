@@ -436,7 +436,12 @@ function finishBattle() {
   });
   if (revived) resultMsg += ' It was rushed to rest and revived.';
   let outcome;
-  if (caughtFlag) {
+  if (trainerInfo) {
+    // a trainer battle has its own framing: no catch wording, no running away
+    if (endInfo && endInfo.winnerSide === 0) outcome = trainerInfo.winLine || 'You won the battle!';
+    else outcome = trainerInfo.loseLine || 'You were defeated...';
+  }
+  else if (caughtFlag) {
     if (caughtJoinedParty) outcome = SPECIES[wildId].name + ' was caught and joined your party!';
     else outcome = SPECIES[wildId].name + ' was caught!';
   }
@@ -446,6 +451,12 @@ function finishBattle() {
   resultMsg = (resultMsg ? resultMsg + ' ' : '') + outcome;
   msg = resultMsg;
   G.persist();
+  if (trainerInfo && !trainerResultFired) {
+    trainerResultFired = true;
+    const t = trainerInfo;
+    trainerInfo = null; // clear first: it can never fire twice
+    G.onTrainerResult(endInfo && endInfo.winnerSide === 0 ? 'win' : 'lose', t);
+  }
   catchAnim = null;
   phase = 'over';
   overTimer = 1600;
@@ -458,10 +469,13 @@ function showRootMenu() {
   msg = 'What will ' + (SPECIES[activeMon().speciesId] || {}).name + ' do?';
   const buttons = [
     { label: 'FIGHT', cb: showMoveMenu },
-    { label: 'CATCH', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'catch', targetId: activeOf(1).id }) },
   ];
+  // a trainer battle: no CATCH (their critter is not capturable) and no RUN
+  if (!trainerInfo) {
+    buttons.push({ label: 'CATCH', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'catch', targetId: activeOf(1).id }) });
+  }
   if (switchableMembers().length) buttons.push({ label: 'SWITCH', cb: showSwitchMenu });
-  buttons.push({ label: 'RUN', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'run' }) });
+  if (!trainerInfo) buttons.push({ label: 'RUN', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'run' }) });
   G.setMenu(buttons);
 }
 
