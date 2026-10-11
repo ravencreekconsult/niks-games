@@ -18,6 +18,7 @@ let moving = false, mFromX = 0, mFromY = 0, mT = 0;
 let persistTimer = 0;     // debounced position save (see persistSoon)
 let npcTiles = null;      // Set of "x,y" for NPC tiles (solid + interactable)
 let lastCX = 0, lastCY = 0; // last camera offset (for tap -> tile mapping)
+let spotCue = null;       // { x, y, t } — '!' badge over a trainer that just spotted you
 
 /* Position changes are worth saving, but a save per tile would fire ~6x a second
    while walking. Coalesce them: one save shortly after the player stops moving. */
@@ -43,6 +44,10 @@ function prerender() {
   for (const n of (map.npcs || [])) {
     drawSprite(c, SPRITES[n.sprite] || SPRITES.npcKid, PAL, n.x * TILE, n.y * TILE - 2, 1);
   }
+  // trainers likewise: solid, drawn characters (they share the npc sprite set)
+  for (const n of (map.trainers || [])) {
+    drawSprite(c, SPRITES[n.sprite] || SPRITES.npcKid, PAL, n.x * TILE, n.y * TILE - 2, 1);
+  }
 }
 
 /** Enter (or re-enter) a map at a tile position. */
@@ -52,6 +57,7 @@ export function enter(game, mapId, tx, ty, newDir) {
   if (!map) throw new Error('Unknown map: ' + mapId);
   grid = parseMap(map);
   npcTiles = new Set((map.npcs || []).map(n => n.x + ',' + n.y));
+  for (const tr of (map.trainers || [])) npcTiles.add(tr.x + ',' + tr.y); // trainers are solid
   prerender();
   ptx = Math.max(0, Math.min(map.w - 1, tx));
   pty = Math.max(0, Math.min(map.h - 1, ty));

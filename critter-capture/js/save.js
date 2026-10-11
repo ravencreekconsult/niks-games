@@ -46,6 +46,7 @@ export function newSave() {
     ],
     dex: { seen: [], caught: [] },
     flags: {},
+    money: 0,
   };
 }
 

@@ -138,6 +138,26 @@ export const MAPS = {
       ] },
     ],
     signs: [],
+    trainers: [
+      { x: 13, y: 14, dir: 'left', sight: 3, sprite: 'npcScout', name: 'Fenn', flag: 'beatFenn',
+        party: [{ speciesId: 'sproutle', level: 5 }, { speciesId: 'voltling', level: 6 }], reward: 200,
+        lines: [
+          'Hold it right there! You walked right into my lookout.',
+          'I\'m Fenn, and my two partners never lose on this road.',
+          'Ready? Let\'s have a friendly battle!',
+        ],
+        winLine: 'That was awesome! You beat BOTH of us — here\'s your prize.',
+        loseLine: 'My team pulled through! Rest up and try me again soon.' },
+      { x: 8, y: 10, dir: 'down', sight: 2, sprite: 'npcElder', name: 'Roz', flag: 'beatRoz',
+        party: [{ speciesId: 'cragmite', level: 7 }], reward: 150,
+        lines: [
+          'A keen eye! You spotted me before I spotted you... almost.',
+          'I\'m Roz. I raise one patient little cragmite.',
+          'Care to test your team against mine?',
+        ],
+        winLine: 'Splendid! Patience and kindness — that\'s a real catcher. Your prize.',
+        loseLine: 'The old trick still works! Come find me again, young catcher.' },
+    ],
     encounters: {
       rate: 0.13,
       table: [
