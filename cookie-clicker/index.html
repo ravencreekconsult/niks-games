@@ -39,10 +39,7 @@
   #stage { flex:1 1 auto; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
   #bigcookie {
     width:min(58vmin, 320px); height:min(58vmin, 320px); border-radius:50%;
-    font-size:min(29vmin, 160px); line-height:1;
-    background:radial-gradient(circle at 32% 28%, #d99b52, #a9672e 68%, #7c4a1d);
-    box-shadow:0 10px 30px #00000088, inset -8px -14px 30px #00000044, inset 6px 8px 20px #ffffff33;
-    border:4px solid #5d3a16; transition:transform .08s;
+    padding:0; background:none; border:0; filter:drop-shadow(0 10px 18px #000000aa); transition:transform .08s;
   }
   #bigcookie:active { transform:scale(.96); }
   #bigcookie.pop { animation:cookiepop .18s ease-out; }
@@ -190,7 +187,7 @@
   </header>
 
   <main id="stage">
-    <button id="bigcookie" aria-label="The big cookie. Tap it to bake cookies.">🍪</button>
+    <button id="bigcookie" aria-label="The big cookie. Tap it to bake cookies."><svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true" style="pointer-events:none;display:block"><defs><radialGradient id="ckg" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f0b868"/><stop offset=".6" stop-color="#cf8b3e"/><stop offset="1" stop-color="#9a5e26"/></radialGradient></defs><circle cx="100" cy="100" r="94" fill="url(#ckg)" stroke="#6b4018" stroke-width="5"/><path d="M30 70 Q60 20 120 18" fill="none" stroke="#ffe3a8" stroke-width="5" stroke-linecap="round" opacity=".55"/><g fill="#4a2a10"><ellipse cx="62" cy="62" rx="14" ry="11" transform="rotate(-20 62 62)"/><ellipse cx="132" cy="52" rx="12" ry="9" transform="rotate(25 132 52)"/><ellipse cx="150" cy="108" rx="15" ry="11" transform="rotate(-10 150 108)"/><ellipse cx="86" cy="112" rx="16" ry="12" transform="rotate(15 86 112)"/><ellipse cx="55" cy="140" rx="11" ry="8" transform="rotate(-30 55 140)"/><ellipse cx="116" cy="154" rx="14" ry="10" transform="rotate(10 116 154)"/><ellipse cx="170" cy="150" rx="8" ry="6"/></g><g fill="#7a4a22"><ellipse cx="59" cy="59" rx="5" ry="3"/><ellipse cx="147" cy="104" rx="5" ry="3"/><ellipse cx="82" cy="108" rx="6" ry="3"/><ellipse cx="113" cy="150" rx="5" ry="3"/></g><g fill="#a86a2e"><circle cx="100" cy="82" r="3"/><circle cx="38" cy="104" r="3"/><circle cx="104" cy="182" r="3"/><circle cx="160" cy="76" r="3"/><circle cx="72" cy="170" r="3"/></g></svg></button>
   </main>
 
   <nav id="tabs" aria-label="Game tabs">

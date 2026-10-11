@@ -89,7 +89,7 @@ function spawnParticles(x, y, n) {
     var p = el("span", "crumb");
     var a = Math.random() * Math.PI * 2, dist = 30 + Math.random() * 60;
     var dx = Math.cos(a) * dist, dy = Math.sin(a) * dist - 40;
-    p.textContent = "🍪";
+    p.style.cssText = "width:9px;height:9px;border-radius:50%;background:#c98a42;box-shadow:0 0 0 2px #6b4018;position:absolute";
     p.style.left = (x - rect.left) + "px";
     p.style.top = (y - rect.top) + "px";
     p.style.setProperty("--dx", dx + "px");
