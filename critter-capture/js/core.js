@@ -259,13 +259,15 @@ const dlgEl = document.getElementById('dialog');
 const dlgName = document.getElementById('dlgName');
 const dlgText = document.getElementById('dlgText');
 let dlgSteps = null, dlgIndex = 0, dlgOpen = false, dlgChoice = false, dlgTarget = null;
+let dlgOnClose = null; // optional one-shot callback fired when the box closes
 
 function flagsOf() {
   if (!Game.save.flags || typeof Game.save.flags !== 'object') Game.save.flags = {};
   return Game.save.flags;
 }
 
-function openDialog(t) {
+function openDialog(t, onClose) {
+  dlgOnClose = (typeof onClose === 'function') ? onClose : null;
   dlgOpen = true;
   dlgTarget = t || null;
   dlgSteps = (t && t.steps) || [];
@@ -321,6 +323,9 @@ function closeDialog() {
   if (dlgEl) dlgEl.style.display = 'none';
   input.aQueued = 0; // nothing may leak through when the box closes
   input.bQueued = 0;
+  const cb = dlgOnClose;
+  dlgOnClose = null; // clear BEFORE calling: it can never double-fire
+  if (typeof cb === 'function') cb();
 }
 
 /* Tap on the canvas: talk to an NPC you touch, or advance the open dialogue.

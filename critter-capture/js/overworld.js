@@ -118,6 +118,13 @@ function arrive() {
   }
   G.save.x = ptx; G.save.y = pty; G.save.dir = dir;
   persistSoon();
+  // trainer check FIRST: a spotted trainer outranks a wild encounter here
+  const tr = spotted();
+  if (tr) {
+    spotCue = { x: tr.x, y: tr.y, t: 1200 };
+    G.onTrainer(tr);
+    return;
+  }
   // encounter check: once per tile STEPPED ONTO, chance-based
   if (def.encounter && map.encounters && Math.random() < map.encounters.rate) {
     const wild = pickEncounter();
@@ -127,6 +134,10 @@ function arrive() {
 
 export function update(dt) {
   if (!map) return;
+  if (spotCue) {
+    spotCue.t -= dt * 1000;
+    if (spotCue.t <= 0) spotCue = null;
+  }
   if (moving) {
     mT += (dt * 1000) / MOVE_MS;
     if (mT >= 1) { mT = 1; }
@@ -182,6 +193,17 @@ export function draw(ctx) {
     ctx.restore();
   } else {
     drawSprite(ctx, playerSprite(), PAL, sx, sy, 1);
+  }
+  // spotted cue: a tiny bold '!' above the trainer's tile
+  if (spotCue) {
+    const vx = spotCue.x * TILE - cx + 6;
+    const vy = Math.max(2, spotCue.y * TILE - cy - 10);
+    ctx.fillStyle = PAL.dark;
+    ctx.fillRect(vx - 1, vy - 1, 6, 10);
+    ctx.fillStyle = PAL.yell;
+    ctx.font = 'bold 8px monospace';
+    ctx.textBaseline = 'top';
+    ctx.fillText('!', vx, vy);
   }
 }
 
