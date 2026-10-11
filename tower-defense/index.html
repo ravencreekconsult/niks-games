@@ -1034,25 +1034,31 @@ function pathPoly(g,off){ g.beginPath();
   for(let i=0;i<P.length;i++){ const px=ox+(P[i][0]+0.5)*cell, py=oy+(P[i][1]+0.5)*cell; i?g.lineTo(px,py):g.moveTo(px,py); } }
 function drawRoad(g){
   g.lineJoin="round"; g.lineCap="round";
+  /* road widens with the lane count: ~0.86 cells today -> 1.12 at 4 lanes.
+     rs scales the surface bands, ruts and gravel; the light shoulder bank grows
+     a little less so the widening never reaches a neighbouring tower pad.
+     Buildable cells (pathCells) are untouched — this is visual only. */
+  const ln=(typeof S!=="undefined"&&S)?laneCountFor(S.wave):1;
+  const rs=[1, 0.92/0.86, 1.02/0.86, 1.12/0.86][ln-1];
   /* road cut into the terrain: lit shoulder bank, dark cut wall, then the surface */
-  pathPoly(g); g.strokeStyle="rgba(140,170,105,0.55)"; g.lineWidth=cell*1.14; g.stroke();
-  pathPoly(g); g.strokeStyle="rgba(24,16,8,0.5)"; g.lineWidth=cell*1.02; g.stroke();
+  pathPoly(g); g.strokeStyle="rgba(140,170,105,0.55)"; g.lineWidth=cell*1.14*(1+(rs-1)*0.6); g.stroke();
+  pathPoly(g); g.strokeStyle="rgba(24,16,8,0.5)"; g.lineWidth=cell*1.02*rs; g.stroke();
   /* road bands: dark edges -> mid -> light centre */
-  pathPoly(g); g.strokeStyle="#4a3a28"; g.lineWidth=cell*0.86; g.stroke();
-  pathPoly(g); g.strokeStyle="#6b543b"; g.lineWidth=cell*0.68; g.stroke();
-  pathPoly(g); g.strokeStyle="#7d6647"; g.lineWidth=cell*0.44; g.stroke();
+  pathPoly(g); g.strokeStyle="#4a3a28"; g.lineWidth=cell*0.86*rs; g.stroke();
+  pathPoly(g); g.strokeStyle="#6b543b"; g.lineWidth=cell*0.68*rs; g.stroke();
+  pathPoly(g); g.strokeStyle="#7d6647"; g.lineWidth=cell*0.44*rs; g.stroke();
   /* ruts: two darker thin lines offset from centre */
   const rnd=mulberry32(777);
   for(const s of SEG){ const ax=ox+(s.a[0]+0.5)*cell, ay=oy+(s.a[1]+0.5)*cell, bx2=ox+(s.b[0]+0.5)*cell, by2=oy+(s.b[1]+0.5)*cell;
     const dx=bx2-ax, dy=by2-ay, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
-    for(const off of [-cell*0.13, cell*0.13]){ g.strokeStyle="rgba(48,36,24,0.55)"; g.lineWidth=cell*0.05;
+    for(const off of [-cell*0.13*rs, cell*0.13*rs]){ g.strokeStyle="rgba(48,36,24,0.55)"; g.lineWidth=cell*0.05;
       g.beginPath(); g.moveTo(ax+nx*off,ay+ny*off); g.lineTo(bx2+nx*off,by2+ny*off); g.stroke(); } }
   /* gravel + wear speckles */
   for(let i=0;i<SEG.length;i++){ const s=SEG[i];
     const ax=ox+(s.a[0]+0.5)*cell, ay=oy+(s.a[1]+0.5)*cell, bx2=ox+(s.b[0]+0.5)*cell, by2=oy+(s.b[1]+0.5)*cell;
     const dx=bx2-ax, dy=by2-ay, L=Math.hypot(dx,dy)||1, nx=-dy/L, ny=dx/L;
     const n=Math.round(L/cell*7);
-    for(let k=0;k<n;k++){ const t=rnd(), off=(rnd()-0.5)*cell*0.55;
+    for(let k=0;k<n;k++){ const t=rnd(), off=(rnd()-0.5)*cell*0.55*rs;
       const px=ax+dx*t+nx*off, py=ay+dy*t+ny*off, rr=cell*(0.02+rnd()*0.03);
       g.fillStyle= rnd()<0.5? "rgba(160,140,108,0.5)":"rgba(58,44,30,0.55)";
       g.beginPath(); g.arc(px,py,rr,0,7); g.fill(); } }
