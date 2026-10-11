@@ -497,6 +497,17 @@ export const SPRITES = {
 };
 for (const k in SPRITE_GRIDS) SPRITES[k] = SPRITE_GRIDS[k];
 
+/* Interim (Phase 3 slice 1a): a species without its own grid falls back to a sprite chosen by
+   primary type, so a new critter never renders as an unrelated one. Slice 1b replaces this. */
+const TYPE_FALLBACK = {
+  ember:'cinderpup', tide:'brookfin', verdant:'sproutle', stone:'cragmite',
+  gale:'zephyrik', spark:'voltling', shade:'gloamkitty', radiance:'lussette',
+  frost:'brookfin', iron:'cragmite', wild:'cinderpup', mind:'gloamkitty',
+};
+export function speciesSprite(speciesId, primaryType) {
+  return SPRITES[speciesId] || SPRITES[TYPE_FALLBACK[primaryType]] || SPRITES.sproutle;
+}
+
 /* ---------------- tiles (16x16 painters, cached to canvases) ---------------- */
 
 const tileCache = {};

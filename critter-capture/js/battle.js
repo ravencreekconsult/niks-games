@@ -7,7 +7,7 @@ import {
   MOVES, SPECIES, STRUGGLE_ID, getTypeEffect, ABILITIES,
   createBattle, beginBattle, defaultIntent, resolveTurn,
 } from '../rules/battle-rules.js';
-import { drawSprite, SPRITES, PAL } from './data/sprites.js';
+import { drawSprite, SPRITES, PAL, speciesSprite } from './data/sprites.js';
 import { rollIdentity } from './save.js';
 
 let G = null;
@@ -776,8 +776,8 @@ export function draw(ctx) {
     const gx = x + shk, gy = y;
     if (c.fainted && !force) return;
     ctx.save();
-    if (flip) { ctx.translate(gx + 24, gy); ctx.scale(-1, 1); drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, 0, 0, 2); }
-    else drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, gx + (32 - SPR_W) / 2, gy, 2);
+    if (flip) { ctx.translate(gx + 24, gy); ctx.scale(-1, 1); drawSprite(ctx, speciesSprite(c.speciesId, (SPECIES[c.speciesId] || {}).types && SPECIES[c.speciesId].types[0]), PAL, 0, 0, 2); }
+    else drawSprite(ctx, speciesSprite(c.speciesId, (SPECIES[c.speciesId] || {}).types && SPECIES[c.speciesId].types[0]), PAL, gx + (32 - SPR_W) / 2, gy, 2);
     ctx.restore();
     if (f.flash > 0) {
       ctx.globalAlpha = 0.55;
