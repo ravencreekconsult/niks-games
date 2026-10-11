@@ -1504,10 +1504,16 @@ function drawTower(tw){
         ctx.beginPath(); ctx.moveTo(r*0.1,0); ctx.lineTo(-r*0.05,-r*0.045); ctx.lineTo(-r*0.05,r*0.045);
         ctx.closePath(); ctx.fill(); ctx.restore(); } }
       ctx.restore(); break; }
-    case "sniper":{ /* tall thin watchtower: legs, spire, long barrel, crosshair emblem */
+    case "sniper":{ /* tall thin watchtower: legs, spire, long barrel, sweeping dish.
+       rail spec = long rail with coils; marks = big scoped precision piece.
+       RNG = taller mast + dish, RATE = speed-loader drum, DMG = charge tip + plates. */
       ctx.strokeStyle="#151b23"; ctx.lineWidth=s*0.06; ctx.lineCap="round";
       for(let i=0;i<3;i++){ const aa=Math.PI*0.5+(i-1)*1.15+(i===1?Math.PI:0);
         ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+Math.cos(aa)*r*1.0,py+Math.sin(aa)*r*1.0); ctx.stroke(); }
+      /* body: dark side, mid, lit side */
+      ctx.fillStyle="#1d242e"; ctx.beginPath();
+      ctx.moveTo(px-r*0.32,py); ctx.lineTo(px-r*0.16,py-r*0.85); ctx.lineTo(px+r*0.16,py-r*0.85);
+      ctx.lineTo(px+r*0.32,py); ctx.closePath(); ctx.fill();
       ctx.fillStyle="#2b323e"; ctx.beginPath();
       ctx.moveTo(px-r*0.32,py); ctx.lineTo(px-r*0.16,py-r*0.85); ctx.lineTo(px+r*0.16,py-r*0.85);
       ctx.lineTo(px+r*0.32,py); ctx.closePath(); ctx.fill();
@@ -1515,19 +1521,54 @@ function drawTower(tw){
       ctx.fillStyle="rgba(255,255,255,0.12)"; ctx.beginPath();
       ctx.moveTo(px-r*0.32,py); ctx.lineTo(px-r*0.16,py-r*0.85); ctx.lineTo(px-r*0.04,py-r*0.85);
       ctx.lineTo(px-r*0.04,py); ctx.closePath(); ctx.fill();
+      if(lvD>0){ /* riveted armour plates up the spire */
+        for(let i=0;i<lvD;i++){ ctx.fillStyle="#3a4452";
+          ctx.fillRect(px-r*0.22,py-r*(0.25+i*0.22),r*0.44,r*0.12);
+          ctx.fillStyle="rgba(255,255,255,.12)"; ctx.fillRect(px-r*0.22,py-r*(0.25+i*0.22),r*0.44,r*0.04); } }
+      /* range track: rotating radar dish */
+      if(lvR>0){ const dh=py-r*(0.85+lvR*0.12), da=S.time*1.1;
+        ctx.strokeStyle="#151b23"; ctx.lineWidth=s*0.045;
+        ctx.beginPath(); ctx.moveTo(px,dh+r*0.2); ctx.lineTo(px,dh); ctx.stroke();
+        ctx.save(); ctx.translate(px,dh); ctx.rotate(da);
+        ctx.fillStyle="#4a5568"; ctx.beginPath(); ctx.arc(0,0,r*0.16+lvR*s*0.015,-1.1,1.1);
+        ctx.arc(0,0,r*0.09,1.1,-1.1,true); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.6; ctx.stroke(); ctx.restore(); }
       ctx.fillStyle="#232a34"; ctx.beginPath(); ctx.arc(px,py-r*0.92,r*0.27,0,7); ctx.fill();
       ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.stroke();
       ctx.save(); ctx.translate(px,py-r*0.92); ctx.rotate(tw.ang);
-      ctx.fillStyle="#3a4452"; ctx.fillRect(0,-s*0.035,r*1.4,s*0.07);
-      ctx.fillStyle=col; ctx.fillRect(r*1.22,-s*0.05,s*0.13,s*0.1);
-      ctx.fillStyle="#10151c"; ctx.fillRect(r*0.12,-s*0.07,s*0.17,s*0.065);
-      if(!RM && Math.sin(S.time*3)>0.6){ ctx.fillStyle="rgba(255,255,255,.9)";
-        ctx.beginPath(); ctx.arc(r*0.2,-s*0.04,s*0.022,0,7); ctx.fill(); }
+      if(tw.spec==="rail"){ /* silhouette: long rail with accelerator coils */
+        ctx.fillStyle="#2b323e"; ctx.fillRect(-s*0.05,-s*0.05,r*1.7,s*0.1);
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.strokeRect(-s*0.05,-s*0.05,r*1.7,s*0.1);
+        for(let i=0;i<3;i++){ const cx2=r*(0.45+i*0.42);
+          ctx.strokeStyle=col; ctx.lineWidth=2.5;
+          ctx.beginPath(); ctx.ellipse(cx2,0,s*0.05,s*0.11,0,0,7); ctx.stroke(); }
+        ctx.fillStyle="#e879f9"; ctx.beginPath(); ctx.arc(r*1.68,0,s*0.045,0,7); ctx.fill();
+      } else {
+        ctx.fillStyle="#3a4452"; ctx.fillRect(0,-s*0.035,r*1.4,s*0.07);
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.8; ctx.strokeRect(0,-s*0.035,r*1.4,s*0.07);
+        ctx.fillStyle="rgba(255,255,255,.14)"; ctx.fillRect(0,-s*0.035,r*1.4,s*0.02);
+        ctx.fillStyle=col; ctx.fillRect(r*1.22,-s*0.05,s*0.13,s*0.1);
+        if(tw.spec==="marks"){ /* silhouette: big scope on top */
+          ctx.fillStyle="#1d242e"; ctx.beginPath(); ctx.arc(r*0.32,-s*0.075,s*0.055,0,7); ctx.fill();
+          ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.8; ctx.stroke();
+          ctx.fillStyle="rgba(251,191,36,.85)"; ctx.beginPath(); ctx.arc(r*0.32,-s*0.075,s*0.025,0,7); ctx.fill();
+        } else {
+          ctx.fillStyle="#10151c"; ctx.fillRect(r*0.12,-s*0.07,s*0.17,s*0.065); }
+        if(lvD>=2){ ctx.fillStyle=col; ctx.beginPath(); ctx.arc(r*1.34,0,s*0.035,0,7); ctx.fill(); }
+        if(!RM && Math.sin(S.time*3)>0.6){ ctx.fillStyle="rgba(255,255,255,.9)";
+          ctx.beginPath(); ctx.arc(r*0.2,-s*0.04,s*0.022,0,7); ctx.fill(); }
+      }
       /* crosshair emblem */
       ctx.strokeStyle=col; ctx.lineWidth=1.4;
       ctx.beginPath(); ctx.arc(-r*0.18,0,r*0.15,0,7); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-r*0.33,0); ctx.lineTo(-r*0.03,0);
       ctx.moveTo(-r*0.18,-r*0.15); ctx.lineTo(-r*0.18,r*0.15); ctx.stroke();
+      /* rate track: speed-loader drum that ticks */
+      if(lvF>0){ ctx.fillStyle="#3a4452"; ctx.beginPath();
+        ctx.arc(-r*0.02,s*0.13,s*0.05+lvF*s*0.012,0,7); ctx.fill();
+        ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.5; ctx.stroke();
+        ctx.fillStyle=col; ctx.beginPath();
+        ctx.arc(-r*0.02+Math.cos(S.time*2)*s*0.028,s*0.13+Math.sin(S.time*2)*s*0.028,s*0.016,0,7); ctx.fill(); }
       ctx.restore();
       if(tw.flash>0) muzzle(px+Math.cos(tw.ang)*(r*0.92+r*1.45),py+Math.sin(tw.ang)*(r*0.92+r*1.45),s,tw.ang,col);
       break; }
