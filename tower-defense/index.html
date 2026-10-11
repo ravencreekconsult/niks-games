@@ -311,17 +311,30 @@ function addDecal(x,y,r,kind,color){ S.decals.push({x,y,r,kind,color,life:9,ml:9
 
 function fire(tw,st,tgt){
   tw.flash=0.09; tw.kick=1;
-  if(tw.type.id==="sniper"){ S.bolts.push({x:tw.gx+0.5,y:tw.gy+0.5,x2:tgt.x,y2:tgt.y,life:0.12,color:tw.type.color});
-    hurt(tgt, st.dmg, true); floatTxt(tgt.x,tgt.y,st.dmg,tw.type.color); return; }
+  if(tw.type.id==="sniper"){
+    S.bolts.push({x:tw.gx+0.5,y:tw.gy+0.5,x2:tgt.x,y2:tgt.y,life:0.12,color:tw.type.color});
+    if(tw.spec==="rail"){ /* pierce every enemy along the line */
+      const x0=tw.gx+0.5, y0=tw.gy+0.5, dx=tgt.x-x0, dy=tgt.y-y0, L2=dx*dx+dy*dy||1;
+      for(const e of S.enemies){ if(e.dead) continue;
+        let u=((e.x-x0)*dx+(e.y-y0)*dy)/L2; u=Math.max(0,Math.min(1,u));
+        if(Math.hypot(e.x-(x0+dx*u), e.y-(y0+dy*u))<=0.45){
+          hurt(e, st.dmg*0.8, true); floatTxt(e.x,e.y,st.dmg*0.8,tw.type.color); } }
+      return; }
+    let d=st.dmg;
+    if(tw.spec==="marks"&&Math.random()<0.35){ d*=3;
+      S.nums.push({x:tgt.x,y:tgt.y-0.3,txt:"CRIT!",color:"#ffd166",life:0.9}); }
+    hurt(tgt, d, true); floatTxt(tgt.x,tgt.y,d,tw.type.color); return; }
   if(tw.type.id==="tesla"){ let src={x:tw.gx+0.5,y:tw.gy+0.5}, hits=0;
+    const maxc=st.chain+(tw.spec==="chain"?4:0);
     const cand=[...S.enemies].sort((a,b)=>Math.hypot(a.x-src.x,a.y-src.y)-Math.hypot(b.x-src.x,b.y-src.y));
-    for(const e of cand){ if(hits>=st.chain) break; if(Math.hypot(e.x-src.x,e.y-src.y)>st.range+(hits?0.9:0)) continue;
+    for(const e of cand){ if(hits>=maxc) break; if(Math.hypot(e.x-src.x,e.y-src.y)>st.range+(hits?0.9:0)) continue;
       S.bolts.push({x:src.x,y:src.y,x2:e.x,y2:e.y,life:0.1,color:tw.type.color,zig:true});
       hurt(e, st.dmg*(1-hits*0.15), false); floatTxt(e.x,e.y,st.dmg*(1-hits*0.15),tw.type.color);
+      if(tw.spec==="overload"){ e.slowUntil=S.time+0.9; e.slowPow=0.05; }
       src={x:e.x,y:e.y}; hits++; } return; }
   S.shots.push({x:tw.gx+0.5,y:tw.gy+0.5,tx:tgt.x,ty:tgt.y,tgt,spd:tw.type.id==="missile"?7:11,
     dmg:st.dmg,splash:st.splash,slow:st.slow,poison:st.poison,color:tw.type.color,t:0.6,kind:tw.type.id,
-    spin:Math.random()*Math.PI*2});
+    sp:tw.spec||"",spin:Math.random()*Math.PI*2});
 }
 function impact(s){
   if(s.splash>0){ for(const e of S.enemies){ if(e.dead) continue;
