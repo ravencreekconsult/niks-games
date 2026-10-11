@@ -107,6 +107,17 @@ export const MAPS = {
         'Route 1 is east — watch the tall grass!',
       ] },
     ],
+    trainers: [
+      { x: 20, y: 14, dir: 'left', sight: 3, sprite: 'npcKid', name: 'Rook', flag: 'beatRook',
+        party: [{ speciesId: 'cinderpup', level: 4 }], reward: 120,
+        lines: [
+          'Hey! I\'m Rook — best young catcher in town!',
+          'My cinderpup and I have been training ALL morning.',
+          'Let\'s see what you\'ve got!',
+        ],
+        winLine: 'Wow, you\'re strong! Great battle — take this, you earned it.',
+        loseLine: 'Told you we practiced! Come back for a rematch any time.' },
+    ],
     encounters: null,
   },
   route1: {
