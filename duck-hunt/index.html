@@ -673,7 +673,7 @@ function fire(lx,ly){
       var pu=powerups[q];
       if(pu.dead) continue;
       var px=p.x-pu.x, py=p.y-pu.y;
-      if(px*px+py*py<26*26){ pu.dead=true; hitAny=true; onPowerup(pu); }
+      if(px*px+py*py<34*34){ pu.dead=true; hitAny=true; onPowerup(pu); }
     }
   }
   if(!hitAny){
@@ -729,8 +729,8 @@ function spawnPowerup(){
   var types=['slow','shells','dbl','bonus','flock'];
   var type=types[(Math.random()*types.length)|0];
   var col=type==='slow'?'#8ad4ff':type==='shells'?'#6dffa1':type==='dbl'?'#ffd34d':type==='flock'?'#ff9ad4':'#ffe071';
-  powerups.push({ x:Math.random()<0.5?30:VW-30, y:100+Math.random()*90,
-    vx:(Math.random()<0.5?1:-1)*0.055, type:type, col:col, dead:false, t:Math.random()*6.28 });
+  powerups.push({ x:VW*(0.2+Math.random()*0.6), y:Math.max(90,HORIZON*0.35)+Math.random()*HORIZON*0.3, age:0, life:8000,
+    vx:(Math.random()<0.5?1:-1)*0.02, type:type, col:col, dead:false, t:Math.random()*6.28 });
 }
 
 /* ---------------- round flow ---------------- */
@@ -916,8 +916,9 @@ function update(dt){
 
   var i2;
   for(i2=0;i2<powerups.length;i2++){
-    var pu=powerups[i2]; pu.x+=pu.vx*dt; pu.t+=dt*0.006;
-    if(pu.x<-40||pu.x>VW+40) pu.dead=true;
+    var pu=powerups[i2]; pu.x+=pu.vx*dt; pu.t+=dt*0.006; pu.age=(pu.age||0)+dt;
+    if(pu.x<VW*0.12||pu.x>VW*0.88) pu.vx=-pu.vx;
+    if(pu.age>(pu.life||8000)) pu.dead=true;
   }
   powerups=powerups.filter(function(p){ return !p.dead; });
 
@@ -989,6 +990,8 @@ function drawPowerups(){
   for(i=0;i<powerups.length;i++){
     var pu=powerups[i], bob=Math.sin(pu.t*2)*3;
     ctx.save(); ctx.translate(pu.x,pu.y+bob);
+    if((pu.age||0)>6000&&Math.floor(pu.age/180)%2) ctx.globalAlpha=0.45;
+    ctx.scale(1.2,1.2);
     ctx.globalAlpha=0.35; ctx.fillStyle=pu.col;
     ctx.beginPath(); ctx.arc(0,0,18,0,6.283); ctx.fill();
     ctx.globalAlpha=1; ctx.fillStyle='#0b0f16';
@@ -1175,7 +1178,7 @@ function drawDucksAll(){
       for(j=0;j<dk.trail.length&&j<alphas.length;j++){
         var tp=dk.trail[dk.trail.length-1-j];
         ctx.save(); ctx.globalAlpha=alphas[j];
-        ctx.translate(tp.x,tp.y); ctx.scale(dk.sp.size*0.96,dk.sp.size*0.96); ctx.rotate(dk.bank||0);
+        ctx.translate(tp.x,tp.y); ctx.scale(dk.sp.size*0.96*(dk.vx<0?-1:1),dk.sp.size*0.96); ctx.rotate(dk.bank||0);
         drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,false,Math.sin(dk.wing),dk.sp.cols[2],0);
         ctx.restore();
       }
@@ -1186,7 +1189,7 @@ function drawDucksAll(){
     ctx.beginPath(); ctx.ellipse(dk.x+6+alt*14, groundYAt(dk.x)-6, (14+alt*10)*dk.sp.size, 3.5+alt*1.5, 0,0,6.283); ctx.fill();
     ctx.globalAlpha=1;
     if(dk.sp.gold) drawGlow(dk.x,dk.y);
-    ctx.save(); ctx.translate(dk.x,dk.y); ctx.scale(dk.sp.size,dk.sp.size); ctx.rotate(dk.bank||0);
+    ctx.save(); ctx.translate(dk.x,dk.y); ctx.scale(dk.sp.size*(dk.vx<0?-1:1),dk.sp.size); ctx.rotate(dk.bank||0);
     drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,dk.sp.gold,Math.sin(dk.wing),dk.sp.cols[2],0);
     ctx.restore();
   }
@@ -1196,7 +1199,7 @@ function drawFalling(){
   for(i=0;i<falling.length;i++){
     var fd=falling[i];
     if(fd.sp.gold) drawGlow(fd.x,fd.y);
-    ctx.save(); ctx.translate(fd.x,fd.y); ctx.rotate(fd.rot);
+    ctx.save(); ctx.translate(fd.x,fd.y); if(fd.vx<0) ctx.scale(-1,1); ctx.rotate(fd.rot);
     drawDuckBody(fd.sp.cols,fd.sp.head,fd.sp.wingbar,fd.sp.gold,-0.85,fd.sp.cols[2],0);
     ctx.restore();
   }
