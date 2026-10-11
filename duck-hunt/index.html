@@ -1171,7 +1171,7 @@ function boot(){
 boot();
 
 /* ---------------- debug hook ---------------- */
-window.__hunt={
+if(typeof location!=='undefined'&&/[?&]debug=1/.test(location.search)) window.__hunt={
   state:function(){
     return {
       state:state, score:score, round:round, ducksAlive:ducks.length,
