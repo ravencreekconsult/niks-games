@@ -889,8 +889,35 @@
     }
   }
 
+  /* ---------- section open/closed memory ---------- */
+  var SECTION_IDS = ['sec-power','sec-swords','sec-eggs','sec-pets','sec-index','sec-worlds','sec-codes','sec-rebirth'];
+  function wireSections() {
+    var map = null;
+    try { map = JSON.parse(localStorage.getItem('pas_sections') || 'null'); } catch (e) { map = null; }
+    for (var i = 0; i < SECTION_IDS.length; i++) {
+      (function (id) {
+        var d = document.getElementById(id);
+        if (!d) { return; }
+        try {
+          if (map && typeof map === 'object' && typeof map[id] === 'boolean') { d.open = map[id]; }
+          d.addEventListener('toggle', function () {
+            try {
+              var m = {};
+              for (var j = 0; j < SECTION_IDS.length; j++) {
+                var other = document.getElementById(SECTION_IDS[j]);
+                if (other) { m[SECTION_IDS[j]] = !!other.open; }
+              }
+              localStorage.setItem('pas_sections', JSON.stringify(m));
+            } catch (e2) { /* storage may be blocked */ }
+          });
+        } catch (e3) { /* details unsupported — leave HTML default */ }
+      })(SECTION_IDS[i]);
+    }
+  }
+
   /* ---------- boot ---------- */
   bind();
+  wireSections();
   updateHUD();
   renderSwords();
   renderEggs();
