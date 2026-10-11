@@ -435,8 +435,9 @@ function tap(gx,gy){
   if(ex){ selTower=ex; showInfo(); return; }
   if(pathCells.has(gx+","+gy)) return;
   const t=TOWERS[sel];
+  if(!towerUnlocked(t.id)) return;
   if(S.gold<t.cost){ say("Not enough gold"); return; }
-  S.gold-=t.cost; S.towers.push({gx,gy,type:t,lvl:1,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0,mode:"first"});
+  S.gold-=t.cost; S.towers.push({gx,gy,type:t,rngLv:0,rateLv:0,dmgLv:0,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0,mode:"first"});
   hud(); refreshShopAff();
 }
 function showInfo(){
@@ -537,7 +538,12 @@ function startWave(){
   S.leaks=0;
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
   const z=zoomForWave(S.wave);
+  /* announce towers that unlock THIS wave, and light their shop cards up briefly */
+  const fresh=TOWERS.filter(t=>UNLOCK_WAVE[t.id]===S.wave);
+  if(fresh.length){ S.fresh={ids:fresh.map(t=>t.id),until:S.time+7}; buildShop();
+    try{ setTimeout(()=>{ if(S&&!S.over&&S.fresh&&S.fresh.until<=S.time) buildShop(); },7300); }catch(e){} }
   let msg = spec.boss? "BOSS WAVE "+S.wave : "Wave "+S.wave+" incoming";
+  if(fresh.length) msg="🔓 NEW TOWER UNLOCKED — "+fresh.map(t=>t.name).join(", ")+"!";
   if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
     msg = spec.boss? "BOSS WAVE "+S.wave+" — the valley opens up!" : "The valley opens up — view zooms out!"; }
   if(eb>0) msg += "  ·  early call +"+eb+"g";
@@ -1140,7 +1146,7 @@ function drawHoverCell(){
   ctx.strokeStyle= ok? "rgba(61,220,132,.85)":"rgba(255,59,92,.85)"; ctx.lineWidth=2; ctx.stroke();
 }
 /* ----- tower base pad shared by all designs ----- */
-function drawPad(px,py,s,lvl,color){
+function drawPad(px,py,s,tw,color){
   const r=s*0.45;
   ctx.fillStyle="rgba(0,0,0,0.32)"; ctx.beginPath(); ctx.ellipse(px+s*0.04,py+s*0.14,r*1.04,r*0.84,0,0,7); ctx.fill();
   hexPath(ctx,px,py,r,Math.PI/6);
@@ -1154,12 +1160,13 @@ function drawPad(px,py,s,lvl,color){
   ctx.fillStyle="#8b93a1";
   for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3;
     ctx.beginPath(); ctx.arc(px+Math.cos(a)*r*0.86,py+Math.sin(a)*r*0.86,s*0.03,0,7); ctx.fill(); }
-  /* level pips */
-  for(let i=0;i<lvl-1;i++){ const a=Math.PI*0.75+i*(Math.PI*1.5/5);
-    ctx.fillStyle=color; ctx.beginPath();
-    ctx.arc(px+Math.cos(a)*r*1.14,py+Math.sin(a)*r*1.14,s*0.05,0,7); ctx.fill();
-    ctx.fillStyle="rgba(255,255,255,.55)"; ctx.beginPath();
-    ctx.arc(px+Math.cos(a)*r*1.14,py+Math.sin(a)*r*1.14,s*0.02,0,7); ctx.fill(); }
+  /* three per-track upgrade bars (range cyan / rate gold / damage red) */
+  const cols=["#7ee7ff","#ffd166","#ff6b6b"], lvs=[tw.rngLv||0,tw.rateLv||0,tw.dmgLv||0];
+  for(let i=0;i<3;i++){
+    const bw=r*0.78, bx=px-r*0.55, by=py+r*(0.10+0.24*i);
+    ctx.fillStyle="rgba(0,0,0,0.55)"; ctx.fillRect(bx,by,bw,s*0.05);
+    if(lvs[i]>0){ ctx.fillStyle=cols[i]; ctx.fillRect(bx,by,bw*(lvs[i]/3),s*0.05); }
+    ctx.strokeStyle="rgba(255,255,255,0.25)"; ctx.lineWidth=1; ctx.strokeRect(bx,by,bw,s*0.05); }
   return r;
 }
 function muzzle(px,py,s,ang,color){
@@ -1174,7 +1181,7 @@ function muzzle(px,py,s,ang,color){
 }
 function drawTower(tw){
   const px=CX(tw.gx),py=CY(tw.gy),s=cell,id=tw.type.id,col=tw.type.color;
-  const r=drawPad(px,py,s,tw.lvl,col);
+  const r=drawPad(px,py,s,tw,tw.type.color);
   ctx.save();
   switch(id){
     case "blaster":{ /* round dome turret: twin barrels + chevron emblem */
