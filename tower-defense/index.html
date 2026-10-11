@@ -754,23 +754,25 @@ function drawHoverCell(){
 }
 /* ----- tower base pad shared by all designs ----- */
 function drawPad(px,py,s,lvl,color){
-  const r=s*0.36;
-  ctx.fillStyle="rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(px+s*0.04,py+s*0.1,r*1.02,r*0.82,0,0,7); ctx.fill();
+  const r=s*0.45;
+  ctx.fillStyle="rgba(0,0,0,0.32)"; ctx.beginPath(); ctx.ellipse(px+s*0.04,py+s*0.14,r*1.04,r*0.84,0,0,7); ctx.fill();
   hexPath(ctx,px,py,r,Math.PI/6);
   ctx.fillStyle="#3b414c"; ctx.fill();
-  ctx.strokeStyle="#565e6b"; ctx.lineWidth=2; ctx.stroke();
-  hexPath(ctx,px,py,r*0.78,Math.PI/6);
-  ctx.strokeStyle="rgba(0,0,0,0.35)"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.strokeStyle="#0d1117"; ctx.lineWidth=3; ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,0.22)"; ctx.lineWidth=1.2;
+  hexPath(ctx,px,py,r*0.92,Math.PI/6); ctx.stroke();
+  hexPath(ctx,px,py,r*0.72,Math.PI/6);
+  ctx.strokeStyle="rgba(0,0,0,0.4)"; ctx.lineWidth=1.5; ctx.stroke();
   /* bolts */
   ctx.fillStyle="#8b93a1";
   for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3;
-    ctx.beginPath(); ctx.arc(px+Math.cos(a)*r*0.88,py+Math.sin(a)*r*0.88,s*0.028,0,7); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(px+Math.cos(a)*r*0.86,py+Math.sin(a)*r*0.86,s*0.03,0,7); ctx.fill(); }
   /* level pips */
   for(let i=0;i<lvl-1;i++){ const a=Math.PI*0.75+i*(Math.PI*1.5/5);
     ctx.fillStyle=color; ctx.beginPath();
-    ctx.arc(px+Math.cos(a)*r*1.12,py+Math.sin(a)*r*1.12,s*0.045,0,7); ctx.fill();
-    ctx.fillStyle="rgba(255,255,255,.5)"; ctx.beginPath();
-    ctx.arc(px+Math.cos(a)*r*1.12,py+Math.sin(a)*r*1.12,s*0.018,0,7); ctx.fill(); }
+    ctx.arc(px+Math.cos(a)*r*1.14,py+Math.sin(a)*r*1.14,s*0.05,0,7); ctx.fill();
+    ctx.fillStyle="rgba(255,255,255,.55)"; ctx.beginPath();
+    ctx.arc(px+Math.cos(a)*r*1.14,py+Math.sin(a)*r*1.14,s*0.02,0,7); ctx.fill(); }
   return r;
 }
 function muzzle(px,py,s,ang,color){
