@@ -337,11 +337,12 @@ function startWave(){
   S.wave++; const spec=waveSpec(S.wave);
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
   const z=zoomForWave(S.wave);
+  let msg = spec.boss? "BOSS WAVE "+S.wave : "Wave "+S.wave+" incoming";
   if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
-    say("The valley opens up — view zooms out!",2600); }
+    msg = spec.boss? "BOSS WAVE "+S.wave+" — the valley opens up!" : "The valley opens up — view zooms out!"; }
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
-  if(spec.boss && !(S.cam && z<S.cam.tz)) say("BOSS WAVE "+S.wave,2200); else if(!(S.cam && z<S.cam.tz-0.001)) say("Wave "+S.wave+" incoming",1400);
+  say(msg, spec.boss?2600:1800);
   S.running=true; S.qTimer=0; go.disabled=true; hud();
 }
 const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Storm Titan","Chaos Overlord","Night Emperor","Void Sovereign"];
@@ -534,6 +535,32 @@ window.addEventListener("resize",resize);
 if(typeof ResizeObserver!=="undefined"){ try{ new ResizeObserver(()=>resize()).observe(document.getElementById("stage")); }catch(e){} }
 const CX=(gx)=>ox+(gx+0.5)*cell, CY=(gy)=>oy+(gy+0.5)*cell;
 
+/* ---------- camera (zoom + pan), routed through the cell/ox/oy globals ---------- */
+const BGCELL=96; /* offscreen board resolution — the board layer is always crisp; the camera only scales the blit */
+function applyCam(){
+  if(!S||!S.cam) return;
+  const w=cv.width/dpr||1, h=cv.height/dpr||1;
+  cell=baseCell*S.cam.zoom;
+  const ox0=(w-COLS*cell)/2, oy0=(h-ROWS*cell)/2;
+  let nx=w/2-S.cam.fx*cell, ny=h/2-S.cam.fy*cell;
+  /* clamp: never show anything outside the board (allow the base centred margin at zoom 1) */
+  nx=Math.max(Math.min(0,ox0),Math.min(nx,Math.max(0,ox0)));
+  ny=Math.max(Math.min(0,oy0),Math.min(ny,Math.max(0,oy0)));
+  ox=nx; oy=ny; }
+function zoomForWave(w){ return w>=25?1 : w>=20?1.05 : w>=15?1.15 : w>=10?1.3 : w>=5?1.5 : 1.75; }
+function camStep(){
+  if(!S||!S.cam) return; const c=S.cam;
+  c.zoom = RM? c.tz : c.zoom+(c.tz-c.zoom)*0.09;
+  if(c.follow && !c.manual && !c.fit){
+    /* follow the action: snap to a boss while one lives, else track the furthest enemy */
+    let tgt=null,bd=-1;
+    for(const e of S.enemies){ if(e.dead) continue; if(e.boss){ tgt=e; break; } if(e.dist>bd){ bd=e.dist; tgt=e; } }
+    if(tgt){ c.tx=tgt.x; c.ty=tgt.y; } else { c.tx=COLS/2; c.ty=ROWS/2; }
+    const dx=c.tx-c.fx, dy=c.ty-c.fy, dist=Math.hypot(dx,dy);
+    /* soft easing + small dead-zone so it never jitters */
+    if(dist>1.4){ c.fx+=dx*0.045; c.fy+=dy*0.045; }
+    else { c.fx+=dx*0.02; c.fy+=dy*0.02; } } }
+
 /* seeded pseudo-random so scatter detail never jitters between frames */
 function mulberry32(a){ return function(){ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a);
   t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
@@ -543,14 +570,17 @@ const bg=document.createElement("canvas"); let bgCtx=null;
 function lightPhase(w){ return w>=23?3 : w>=15?2 : w>=7?1 : 0; }
 const WAVE_LIGHT=[[0,0],[0,0.08],[0.05,0.2],[0.1,0.42]]; /* [warm, night] per-phase overlay strengths */
 function renderBG(){
-  try{ bg.width=cv.width; bg.height=cv.height; bgCtx=bg.getContext("2d");
-    const g=bgCtx; g.setTransform(dpr,0,0,dpr,0,0);
-    const W=cv.width/dpr, H=cv.height/dpr;
+  /* render once at a fixed high resolution (BGCELL per cell) so any camera zoom stays crisp */
+  const saveCell=cell, saveOx=ox, saveOy=oy;
+  try{ cell=BGCELL; ox=0; oy=0;
+    bg.width=COLS*BGCELL; bg.height=ROWS*BGCELL; bgCtx=bg.getContext("2d");
+    const g=bgCtx; g.setTransform(1,0,0,1,0,0);
+    const W=COLS*BGCELL, H=ROWS*BGCELL;
     const rnd=mulberry32(1337);
     const ph=(typeof S!=="undefined"&&S)?lightPhase(S.wave):0;
     /* backdrop below the horizon */
     g.fillStyle="#0b120c"; g.fillRect(0,0,W,H);
-    /* sky strip + distant hills above the board */
+    /* sky strip above the board only exists at zoom 1; the board canvas is board-only */
     const shy=Math.max(2,oy), bw=COLS*cell, bh=ROWS*cell, bx=ox, by=oy;
     const skyCols=[["#7ec8f7","#d8f0ff"],["#8fb7e8","#ffd9a8"],["#544a86","#d3825e"],["#131b38","#2a3558"]][ph];
     const hillA= ph>=3? "#101a30" : "#24402a", hillB= ph>=3? "#0a1122" : "#1a3020";
@@ -615,6 +645,7 @@ function renderBG(){
     vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,0.34)");
     g.fillStyle=vg; g.fillRect(bx,by,bw,bh);
   }catch(err){ bgCtx=null; }
+  cell=saveCell; ox=saveOx; oy=saveOy;
 }
 function pointNearPath(px,py,rad){
   for(const s of SEG){ const ax=ox+(s.a[0]+0.5)*cell, ay=oy+(s.a[1]+0.5)*cell, bx2=ox+(s.b[0]+0.5)*cell, by2=oy+(s.b[1]+0.5)*cell;
@@ -728,7 +759,7 @@ function draw(){
   /* day -> night light fade toward the current phase */
   const ph=lightPhase(S.wave), wl=WAVE_LIGHT[ph];
   S.tw+=(wl[0]-S.tw)*0.02; S.tn+=(wl[1]-S.tn)*0.02;
-  if(bgCtx){ try{ ctx.drawImage(bg,0,0,W,H); }catch(err){} }
+  if(bgCtx){ try{ ctx.drawImage(bg,ox,oy,COLS*cell,ROWS*cell); }catch(err){} }
   else safe(()=>{ /* fallback flat board */
     for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
       ctx.fillStyle=(x+y)%2?"#0c1119":"#0a0e15"; ctx.fillRect(ox+x*cell,oy+y*cell,cell,cell); } });
@@ -1338,6 +1369,7 @@ let last=performance.now();
 function loop(now){
   let dt=(now-last)/1000; last=now; if(dt>0.1) dt=0.1;
   if(!paused && !S.over){ for(let i=0;i<speed;i++) step(dt); }
+  safe(camStep); applyCam();
   draw();
   banner.style.display = (S.time<S.banner.until)?"block":"none";
   safe(updateAbil); safe(updateBoss);
