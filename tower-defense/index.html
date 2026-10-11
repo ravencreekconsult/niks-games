@@ -212,6 +212,7 @@ const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: red
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, selSold=null, autoTimer=0;
 let goldMode="test"; try{ goldMode=localStorage.getItem("td_gold")==="real"?"real":"test"; }catch(e){}
+let goTick=0;
 function startGold(){ return goldMode==="real"?100:100000; }
 
 function newGame(){
@@ -403,11 +404,14 @@ function showInfo(){
   iTgt.style.display="";
   iTxt.innerHTML=`<b>${tw.type.name}</b> Lv${tw.lvl}`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
     + ` · dmg ${st.dmg|0} · rng ${st.range.toFixed(1)}`
-    + (tw.lvl<MAXLV? ` · <span style="color:var(--gold)">upgrade ${c}g</span>` : (canSpec? " · pick a special:" : ""));
+    + (tw.lvl<MAXLV? ` · <span style="color:var(--gold)">upgrade ${c}g</span>`
+      : (canSpec? " · <span style=\"color:#ff8fa3;font-weight:700\">pick a special — this choice is PERMANENT, the other path locks</span>" : ""));
   iUp.style.display = tw.lvl<MAXLV? "" : "none";
   iS1.style.display = canSpec? "" : "none";
   iS2.style.display = canSpec? "" : "none";
-  if(canSpec){ iS1.textContent=SPECS[tw.type.id][0].name; iS2.textContent=SPECS[tw.type.id][1].name; }
+  if(canSpec){ const A=SPECS[tw.type.id];
+    iS1.innerHTML="<b>"+A[0].name+"</b><br><span style='font-size:10px;font-weight:400;opacity:.85'>"+A[0].hint+"</span>";
+    iS2.innerHTML="<b>"+A[1].name+"</b><br><span style='font-size:10px;font-weight:400;opacity:.85'>"+A[1].hint+"</span>"; }
   iSell.textContent = "Sell +"+Math.round(selTower.type.cost*0.75*selTower.lvl)+"g";
   iTgt.textContent = "🎯 "+(TGT_NAME[tw.mode||"first"]||"First");
 }
@@ -431,14 +435,14 @@ iSell.onclick=()=>{ if(selSold){ S.gold+=30*selSold.lvl;
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
 /* ---------- level-6 specializations ---------- */
 const SPECS={
- blaster:[{id:"minigun",name:"Minigun"},{id:"gatling",name:"Gatling"}],
- cannon:[{id:"mortar",name:"Mortar"},{id:"flak",name:"Flak"}],
- frost:[{id:"deep",name:"Deep Freeze"},{id:"shatter",name:"Shatter"}],
- sniper:[{id:"rail",name:"Railgun"},{id:"marks",name:"Marksman"}],
- tesla:[{id:"chain",name:"Chain Lightning"},{id:"overload",name:"Overload"}],
- venom:[{id:"plague",name:"Plague"},{id:"corr",name:"Corrosive"}],
- missile:[{id:"cluster",name:"Cluster"},{id:"cruise",name:"Cruise"}],
- coil:[{id:"oc",name:"Overclock"},{id:"amp",name:"Amplifier"}]
+ blaster:[{id:"minigun",name:"Minigun",hint:"much faster, less punch"},{id:"gatling",name:"Gatling",hint:"spins up while firing"}],
+ cannon:[{id:"mortar",name:"Mortar",hint:"huge splash, slower"},{id:"flak",name:"Flak",hint:"shreds flyers"}],
+ frost:[{id:"deep",name:"Deep Freeze",hint:"long, brutal slows"},{id:"shatter",name:"Shatter",hint:"2.2x dmg on frozen"}],
+ sniper:[{id:"rail",name:"Railgun",hint:"pierces every enemy in line"},{id:"marks",name:"Marksman",hint:"35% triple-damage crits"}],
+ tesla:[{id:"chain",name:"Chain Lightning",hint:"+4 chain hits"},{id:"overload",name:"Overload",hint:"chains also slow"}],
+ venom:[{id:"plague",name:"Plague",hint:"poison spreads to neighbours"},{id:"corr",name:"Corrosive",hint:"ignores armour"}],
+ missile:[{id:"cluster",name:"Cluster",hint:"splits into 4 bomblets"},{id:"cruise",name:"Cruise",hint:"double range, +25% dmg"}],
+ coil:[{id:"oc",name:"Overclock",hint:"1.8x boost power"},{id:"amp",name:"Amplifier",hint:"boost adds range + fire rate"}]
 };
 const SPEC_COL={minigun:"#ff6b6b",gatling:"#ffa94d",mortar:"#d98e3f",flak:"#9be7ff",deep:"#7dd3fc",
  shatter:"#c7f0ff",rail:"#e879f9",marks:"#fbbf24",chain:"#a5f3fc",overload:"#f472b6",
@@ -686,8 +690,19 @@ function step(dt){
   if(!S.running && autoOn && !S.over && !S.won){ autoTimer-=dt; if(autoTimer<=0) startWave(); }
 }
 function endGame(){ over.style.display="flex";
-  if(S.won){ oT.textContent="You win! 🎉"; oX.textContent="All 30 waves held. Final score "+S.score+"."; }
-  else{ oT.textContent="Base overrun"; oX.textContent="The swarm got through at wave "+S.wave+" — score "+S.score+". Try more towers on the early bends."; } }
+  let best=0; try{ best=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0; }catch(e){}
+  if(S.won){ oT.textContent="You win! 🎉"; oX.textContent="All 30 waves held. Final score "+S.score+"."
+      +(best>0? " Best endless run: wave "+best+"." : "");
+    oE.style.display=""; oE.textContent="Keep going — Endless (next: wave 31)"; }
+  else{ oT.textContent="Base overrun";
+    if(S.endless && S.wave>best){ try{ localStorage.setItem("td_best_endless",String(S.wave)); best=S.wave; }catch(e){} }
+    oX.textContent="The swarm got through at wave "+S.wave+" — score "+S.score+"."
+      +(best>0? " Best endless run: wave "+best+"." : " Try more towers on the early bends."); oE.style.display="none"; } }
+oE.onclick=()=>{ if(!S.won) return;
+  S.endless=true; S.won=false; S.over=false;
+  over.style.display="none"; go.disabled=false;
+  say("Endless mode! Waves keep scaling — how far can you hold?",2600);
+  hud(); refreshShopAff(); };
 
 /* ================================================================
    DRAW — pre-rendered terrain layer + procedural actors
@@ -1657,8 +1672,11 @@ function loop(now){
   draw();
   banner.style.display = (S.time<S.banner.until)?"block":"none";
   safe(updateAbil); safe(updateBoss);
+  goTick-=dt; if(goTick<=0){ goTick=0.25; if(!S.running&&!S.over) updateGoLabel(); }
   requestAnimationFrame(loop);
 }
+try{ const b=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0;
+  if(b>0) $id("hint").innerHTML += " &bull; 🏆 Best endless run: wave "+b; }catch(e){}
 resize(); newGame(); applyCam(); draw(); requestAnimationFrame(loop);
 })();
 </script>
