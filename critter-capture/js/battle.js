@@ -110,6 +110,10 @@ export function start(game, speciesId, level) {
   addSeen(speciesId);
   fx = {};
   dispHp = {};
+  /* Clear the PREVIOUS battle's result BEFORE buildQueue reads it. buildQueue
+     awards xp and evGains whenever endInfo is set, so leaving the old one in
+     place here applied them a second time on the next encounter. */
+  endInfo = null;
   const battleEvents = beginBattle({ state }).events;
   // ability intros lead the very first playback queue, before the engine's own
   // entry messages — one line per ACTIVE combatant that has an ability
