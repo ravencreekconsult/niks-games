@@ -36,6 +36,7 @@ window.addEventListener('error', function (e) {
 const input = {
   heldDirs: { up: false, down: false, left: false, right: false },
   aQueued: 0, bQueued: 0,
+  lastInput: 'none', lastInputAt: 0,
   held(d) { return !!this.heldDirs[d]; },
   consumeA() { if (this.aQueued > 0) { this.aQueued--; return true; } return false; },
   consumeB() { if (this.bQueued > 0) { this.bQueued--; return true; } return false; },
