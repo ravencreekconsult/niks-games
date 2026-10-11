@@ -259,6 +259,17 @@ export const MAPS = {
         'Still cold! The frost critters never mind it.',
       ] },
     ],
+    trainers: [
+      { x: 24, y: 14, dir: 'left', sight: 3, sprite: 'npcLeader', name: 'Ivy', flag: 'badgeVerdant',
+        party: [{ speciesId: 'ironmite', level: 11 }, { speciesId: 'gravelurk', level: 12 }], reward: 400,
+        lines: [
+          'Well met! You walked the whole Frostwood Route to reach me.',
+          'I\'m Ivy, keeper of the Verdant Badge. My team grows strong on this cold road.',
+          'Show me a catcher\'s heart, and the badge is yours!',
+        ],
+        winLine: 'Magnificent! You\'ve earned it — take the VERDANT BADGE. Wear it proud!',
+        loseLine: 'A fine try! Rest your team, then come back — the badge will wait for you.' },
+    ],
     signs: [
       { x: 5, y: 18, lines: [
         'FROSTWOOD ROUTE',

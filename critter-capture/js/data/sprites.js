@@ -892,7 +892,7 @@ const npcNurse = [
 
 export const SPRITES = {
   playerDown, playerUp, playerSide,
-  npcKid, npcElder, npcScout, npcNurse,
+  npcKid, npcElder, npcScout, npcNurse, npcLeader,
 };
 for (const k in SPRITE_GRIDS) SPRITES[k] = SPRITE_GRIDS[k];
 
