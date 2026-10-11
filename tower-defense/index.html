@@ -172,7 +172,8 @@
       <p>🛡 Soldiers and traps go <b>ON the road</b> — tap a green button, then tap the road.</p>
       <p>👀 Watch the <b>Next:</b> strip so you know who's coming, then press <b>Start Wave</b> — press it early for bonus gold!</p>
       <p>🪙 You earn gold for every kill and for keeping your base leak-free. Lose hearts if a monster gets through!</p>
-      <button id="introGo">Build! 🏗</button>
+      <button id="introGo">Play: Normal (100 gold) 🏗</button>
+      <button id="introSand" style="margin-top:8px;background:linear-gradient(180deg,#8a5cff,#4a2bb8)">🧪 Sandbox: 100,000 gold (test every tower)</button>
     </div></div>
   </div>
 <div id="side">
@@ -270,7 +271,7 @@ const SOLMAX=6, TRAPMAX=12, SOL_COST=50, MINE_COST=60, WIRE_COST=50, STICKY_COST
 const HOLD_IMMUNE=2.5; /* seconds a freed enemy cannot be re-grabbed */
 const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"mine",cost:MINE_COST,gl:"🧨 Mine"},
           {k:"wire",cost:WIRE_COST,gl:"🕸 Wire"},{k:"sticky",cost:STICKY_COST,gl:"🍯 Sticky"}];
-function waveMult(w){ return Math.pow(1.09, w-1); }
+function waveMult(w){ return Math.pow(1.125, w-1); }
 /* lane count grows with the wave: single source of truth (also used by drawRoad) */
 function laneCountFor(w){ return w>=18?4 : w>=10?3 : w>=4?2 : 1; }
 const LANE_SPACING=0.19, LANE_JITTER=0.03; /* offsets in cells, perpendicular to the path */
@@ -313,7 +314,8 @@ RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
 /* ---------- intro dismiss: wired FIRST and made redundant, so no later error in
    this script can ever leave the player stuck on the intro card ---------- */
 try{
-  $id("introGo").onclick=()=>{ try{ intro.style.display="none"; }catch(e){} };
+  $id("introGo").onclick=()=>{ try{ goldMode="real"; localStorage.setItem("td_gold","real"); if(S&&S.wave===0) S.gold=100; hud(); intro.style.display="none"; }catch(e){} };
+  $id("introSand").onclick=()=>{ try{ goldMode="test"; localStorage.setItem("td_gold","test"); if(S&&S.wave===0) S.gold=100000; hud(); say("Sandbox: 100,000 gold",1800); intro.style.display="none"; }catch(e){} };
   /* delegated CAPTURE listener: a tap ANYWHERE on the intro card dismisses it,
      independent of every other handler in the file */
   document.addEventListener("click",(ev)=>{ try{
@@ -715,6 +717,11 @@ function startWave(){
   if(S.running||S.over) return;
   const eb=earlyBonus(); if(eb>0){ S.gold+=eb; }
   S.wave++;
+  /* AUTO-UNLOCK: reaching a tower's / ability's wave gate unlocks it for free */
+  { const got=[];
+    TOWERS.forEach(t=>{ if(!towerUnlocked(t.id) && S.wave>=(UNLOCK_WAVE[t.id]||1)){ S.unlocked[t.id]=true; got.push(t.name); } });
+    Object.keys(ABIL).forEach(k=>{ if(!S.abUnlocked[k] && S.wave>=ABIL[k].wave){ S.abUnlocked[k]=true; got.push(ABIL[k].label); } });
+    if(got.length){ buildShop(); setTimeout(()=>{ try{ say("🔓 UNLOCKED: "+got.join(", "),2600); }catch(e){} },50); } }
   /* CONSUME the stored spec — the wave that runs IS the wave the preview showed */
   const spec=S.nextSpec||waveSpec(S.wave);
   genNextSpec(); /* pre-generate wave+1 so the preview stays truthful */
