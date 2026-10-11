@@ -168,6 +168,7 @@
       <h1>Tower Defense! 🏰</h1>
       <p>🛡 Keep your base safe — stop every monster before it reaches the fort on the right!</p>
       <p>🏗 Pick a tower from the bottom shelf and tap the <b>grass</b> (never the road) to build it. Tap a tower to upgrade or sell it.</p>
+      <p>🔗 <b>Resonance Links:</b> put DIFFERENT towers side by side and they link up for bonus damage!</p>
       <p>🛡 Soldiers and traps go <b>ON the road</b> — tap a green button, then tap the road.</p>
       <p>👀 Watch the <b>Next:</b> strip so you know who's coming, then press <b>Start Wave</b> — press it early for bonus gold!</p>
       <p>🪙 You earn gold for every kill and for keeping your base leak-free. Lose hearts if a monster gets through!</p>
@@ -254,11 +255,11 @@ function towerUnlocked(id){ return id==="blaster" || !!(S&&S.unlocked&&S.unlocke
 const ETYPES = {
   grunt:  {hp:34,  spd:1.3, reward:7,  r:0.24, color:"#8be9fd", atk:5},
   runner: {hp:26,  spd:2.2, reward:8,  r:0.20, color:"#5ef2b0", atk:4},
-  tank:   {hp:150, spd:0.95,reward:16, r:0.30, color:"#ffd166", armor:6, atk:14},
+  tank:   {hp:150, spd:0.95,reward:16, r:0.30, color:"#ffd166", armor:3, atk:14},
   swarm:  {hp:20,  spd:1.7, reward:5,  r:0.17, color:"#a5b4fc", atk:3},
   healer: {hp:90,  spd:1.1, reward:15, r:0.26, color:"#f472b6", heal:14, healR:2.2, atk:6},
   flyer:  {hp:70,  spd:1.9, reward:14, r:0.22, color:"#e2e8f0", flying:true, atk:0},
-  boss:   {hp:1200,spd:0.7, reward:220,r:0.46, color:"#ff3b5c", armor:14, boss:true, atk:35}
+  boss:   {hp:900, spd:0.7, reward:220,r:0.46, color:"#ff3b5c", armor:7, boss:true, atk:35}
 };
 /* deployable road units: soldiers hold one enemy at a time, traps hurt/slow/blast */
 const SOL_LV=[{hp:60, dmg:5, rate:1.0, hold:3.5, rec:2.0},  /* Lv1: boss (35/s) flattens it in 60/35 = 1.7s */
@@ -269,14 +270,14 @@ const SOLMAX=6, TRAPMAX=12, SOL_COST=50, MINE_COST=60, WIRE_COST=50, STICKY_COST
 const HOLD_IMMUNE=2.5; /* seconds a freed enemy cannot be re-grabbed */
 const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"mine",cost:MINE_COST,gl:"🧨 Mine"},
           {k:"wire",cost:WIRE_COST,gl:"🕸 Wire"},{k:"sticky",cost:STICKY_COST,gl:"🍯 Sticky"}];
-function waveMult(w){ return Math.pow(1.155, w-1); }
+function waveMult(w){ return Math.pow(1.09, w-1); }
 /* lane count grows with the wave: single source of truth (also used by drawRoad) */
 function laneCountFor(w){ return w>=18?4 : w>=10?3 : w>=4?2 : 1; }
 const LANE_SPACING=0.19, LANE_JITTER=0.03; /* offsets in cells, perpendicular to the path */
 function waveSpec(w){
   const mult=waveMult(w); const list=[];
   const rng=mulberry32(w*7919+1013); /* seeded: wave N always builds the SAME list */
-  if(w%5===0){ const cnt=1+Math.floor(w/10);
+  if(w%5===0){ const cnt=1+Math.floor((w-5)/10);
     for(let i=0;i<cnt;i++) list.push({t:"boss"});
     for(let i=0;i<Math.min(30,6+w);i++) list.push({t:"grunt"});
     return {mult, list, boss:true}; }
@@ -464,6 +465,12 @@ function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ const un=towerUnl
   c.classList.toggle("sel", un && i===sel && !selTower); }); }
 
 function trRange(tw){ return tw.type.range + TRACK_RNG_ADD*(tw.rngLv||0); }
+const LINK_R=2.3;
+function linkedTowers(tw){ const out=[]; if(!S) return out;
+  for(const o of S.towers){ if(o===tw||o.type.id===tw.type.id) continue;
+    if(Math.hypot(o.gx-tw.gx,o.gy-tw.gy)<=LINK_R) out.push(o); }
+  return out; }
+function linkCount(tw){ const kinds=new Set(); for(const o of linkedTowers(tw)) kinds.add(o.type.id); return Math.min(3,kinds.size); }
 function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
   let dmg=tw.type.dmg*Math.pow(TRACK_DMG,d), range=trRange(tw),
       rate=tw.type.rate*Math.pow(TRACK_RATE,f), splash=tw.type.splash||0,
@@ -475,6 +482,9 @@ function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
       const b=(0.22+tot*0.045)*(sp==="oc"?1.8:1);
       const rb=b*(sp==="amp"?1.6:0.5);
       dmg*=1+b; range*=1+rb; if(sp==="amp") rate*=1+b*0.6; } } }
+  /* TWIST - Resonance Links: towers of DIFFERENT kinds standing within 2.3 cells link up and
+     each gets +8% damage per distinct neighbour kind (max +24%). Mix your defence. */
+  { const n=linkCount(tw); if(n>0) dmg*=1+0.08*n; }
   if(tw.spec==="minigun"){ rate*=2.4; dmg*=0.55; }
   else if(tw.spec==="mortar"){ splash*=1.9; rate*=0.6; range*=1.15; dmg*=1.15; }
   else if(tw.spec==="flak"){ rate*=1.3; }
@@ -743,7 +753,7 @@ function spawn(kind,dist){
      Bosses stay centred (lane 0). */
   const ln=laneCountFor(S.wave);
   let laneOff=0;
-  if(!b.boss){ const i=S.laneRR=(S.laneRR||0)+1;
+  if(!b.boss){ const i=(S.laneRR=(S.laneRR||0)+1)%ln; /* BUGFIX: was unbounded, so every enemy drifted further off the road */
     laneOff=(i-(ln-1)/2)*LANE_SPACING+(Math.random()*2-1)*LANE_JITTER; }
   S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying, lane:laneOff,
@@ -759,7 +769,7 @@ function hurt(e,dmg,ignoreArmor){
     S.fx.push({x:e.x,y:e.y,r0:0.05,r1:0.5,life:0.2,ml:0.2,color:"#00e5ff",w:2});
     if(S.fx.length>80) S.fx.splice(0,S.fx.length-80);
     return; }
-  const d = ignoreArmor? dmg : Math.max(dmg*0.15, dmg - e.armor);
+  const d = ignoreArmor? dmg : Math.max(dmg*0.3, dmg - e.armor);
   e.hp-=d; e.hit=S.time+0.12;
   if(e.hp<=0 && !e.dead){ e.dead=true; S.kills++; S.gold+=e.reward; S.score+=e.reward; hud(); refreshShopAff(); boom(e); }
 }
@@ -1271,6 +1281,7 @@ function draw(){
       const gl=ctx.createRadialGradient(bxx,byy,0,bxx,byy,cell*1.2);
       gl.addColorStop(0,`rgba(61,220,132,${a})`); gl.addColorStop(1,"rgba(61,220,132,0)");
       ctx.fillStyle=gl; ctx.fillRect(bxx-cell*1.2,byy-cell*1.2,cell*2.4,cell*2.4); } });
+  safe(drawCloudShadows);
   safe(drawChevrons);
   safe(drawDecals);
   safe(drawTraps);
@@ -1281,6 +1292,7 @@ function draw(){
   safe(drawDeployHover);
   safe(drawReticle);
   safe(()=>{ if(S.time<S.freezeUntil){ ctx.fillStyle="rgba(140,220,255,0.09)"; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); } });
+  safe(drawLinks);
   for(const tw of S.towers){ safe(()=>drawTower(tw)); }
   for(const e of S.enemies){ safe(()=>drawEnemy(e)); }
   for(const s of S.soldiers){ safe(()=>drawSoldier(s)); }
@@ -1289,9 +1301,45 @@ function draw(){
   safe(drawParts);
   safe(drawGibs);
   safe(drawNums);
+  safe(drawFinish);
   safe(()=>{ if(paused && !S.over) drawPause(W,H); });
   ctx.restore();
 }
+/* ---------- facelift: drifting cloud shadows, resonance links, glow + vignette finish ---------- */
+function drawCloudShadows(){ if(RM) return;
+  const W=COLS*cell,H=ROWS*cell, t=S.time*0.012;
+  ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,W,H); ctx.clip();
+  for(let i=0;i<4;i++){ const px=ox+((t*W*(0.5+i*0.13)+i*W*0.31)%(W*1.5))-W*0.25, py=oy+H*(0.15+i*0.23)+Math.sin(S.time*0.1+i)*H*0.05;
+    const r=Math.max(W,H)*(0.16+0.04*i);
+    const g=ctx.createRadialGradient(px,py,0,px,py,r); g.addColorStop(0,"rgba(0,10,20,0.20)"); g.addColorStop(1,"rgba(0,10,20,0)");
+    ctx.fillStyle=g; ctx.fillRect(px-r,py-r,r*2,r*2); }
+  ctx.restore(); }
+function drawLinks(){ if(S.towers.length<2) return;
+  ctx.save(); ctx.globalCompositeOperation="lighter"; ctx.lineCap="round";
+  for(let i=0;i<S.towers.length;i++) for(let j=i+1;j<S.towers.length;j++){ const a=S.towers[i], b=S.towers[j];
+    if(a.type.id===b.type.id || Math.hypot(a.gx-b.gx,a.gy-b.gy)>LINK_R) continue;
+    const x1=CX(a.gx),y1=CY(a.gy),x2=CX(b.gx),y2=CY(b.gy), pulse=0.5+0.5*Math.sin(S.time*3+i+j);
+    const g=ctx.createLinearGradient(x1,y1,x2,y2); g.addColorStop(0,a.type.color); g.addColorStop(1,b.type.color);
+    ctx.strokeStyle=g; ctx.globalAlpha=0.16+0.12*pulse; ctx.lineWidth=cell*0.24; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.globalAlpha=0.55+0.25*pulse; ctx.lineWidth=Math.max(1.5,cell*0.05); ctx.stroke();
+    const u=(S.time*0.6+i*0.37+j*0.21)%1; ctx.globalAlpha=0.9; ctx.fillStyle="#ffffff";
+    ctx.beginPath(); ctx.arc(x1+(x2-x1)*u,y1+(y2-y1)*u,Math.max(1.6,cell*0.06),0,6.283); ctx.fill(); }
+  ctx.restore(); }
+function drawFinish(){
+  const W=COLS*cell,H=ROWS*cell;
+  /* additive glow on every bullet / bolt so they bloom against the grass */
+  ctx.save(); ctx.globalCompositeOperation="lighter";
+  for(const sh of S.shots){ const g=ctx.createRadialGradient(CX(sh.x-0.5),CY(sh.y-0.5),0,CX(sh.x-0.5),CY(sh.y-0.5),cell*0.55);
+    g.addColorStop(0,"rgba(255,255,255,0.5)"); g.addColorStop(0.4,sh.color+"55"); g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.fillStyle=g; const cx=CX(sh.x-0.5),cy=CY(sh.y-0.5); ctx.fillRect(cx-cell*0.6,cy-cell*0.6,cell*1.2,cell*1.2); }
+  ctx.restore();
+  /* soft vignette + linked-tower tag on the selected tower */
+  const g=ctx.createRadialGradient(ox+W/2,oy+H/2,Math.min(W,H)*0.45,ox+W/2,oy+H/2,Math.max(W,H)*0.75);
+  g.addColorStop(0,"rgba(0,0,10,0)"); g.addColorStop(1,"rgba(0,0,10,0.34)");
+  ctx.fillStyle=g; ctx.fillRect(ox,oy,W,H);
+  if(selTower && S.towers.includes(selTower)){ const n=linkCount(selTower); if(n>0){
+    ctx.save(); ctx.font="bold "+Math.max(10,cell*0.3)+"px system-ui"; ctx.textAlign="center"; ctx.fillStyle="#9bffe0";
+    ctx.shadowColor="#000"; ctx.shadowBlur=4; ctx.fillText("LINK +"+Math.round(n*8)+"% dmg",CX(selTower.gx),CY(selTower.gy)-cell*0.72); ctx.restore(); } } }
 function drawChevrons(){
   const n=13, speedA=RM?0.25:0.9;
   for(let i=0;i<n;i++){
