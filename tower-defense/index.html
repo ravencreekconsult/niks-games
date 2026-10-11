@@ -100,6 +100,10 @@
     <button id="abFrz">❄️ Freeze</button>
     <button id="abRep">🔧 Repair</button>
     <button id="abOvr">⚡ Overcharge</button>
+    <button id="abSol">🛡 Soldier</button>
+    <button id="abSpike">🔻 Spikes</button>
+    <button id="abTar">🕳 Tar</button>
+    <button id="abBomb">💣 Bomb</button>
   </div>
   <div id="stage">
     <canvas id="cv"></canvas>
@@ -148,14 +152,20 @@ function upCost(t,l){ return Math.round(t.cost*(0.75*l)); }
 
 /* ---------- enemies ---------- */
 const ETYPES = {
-  grunt:  {hp:34,  spd:1.3, reward:7,  r:0.24, color:"#8be9fd"},
-  runner: {hp:26,  spd:2.2, reward:8,  r:0.20, color:"#5ef2b0"},
-  tank:   {hp:150, spd:0.95,reward:16, r:0.30, color:"#ffd166", armor:6},
-  swarm:  {hp:20,  spd:1.7, reward:5,  r:0.17, color:"#a5b4fc"},
-  healer: {hp:90,  spd:1.1, reward:15, r:0.26, color:"#f472b6", heal:14, healR:2.2},
-  flyer:  {hp:70,  spd:1.9, reward:14, r:0.22, color:"#e2e8f0", flying:true},
-  boss:   {hp:1200,spd:0.7, reward:220,r:0.46, color:"#ff3b5c", armor:14, boss:true}
+  grunt:  {hp:34,  spd:1.3, reward:7,  r:0.24, color:"#8be9fd", atk:5},
+  runner: {hp:26,  spd:2.2, reward:8,  r:0.20, color:"#5ef2b0", atk:4},
+  tank:   {hp:150, spd:0.95,reward:16, r:0.30, color:"#ffd166", armor:6, atk:14},
+  swarm:  {hp:20,  spd:1.7, reward:5,  r:0.17, color:"#a5b4fc", atk:3},
+  healer: {hp:90,  spd:1.1, reward:15, r:0.26, color:"#f472b6", heal:14, healR:2.2, atk:6},
+  flyer:  {hp:70,  spd:1.9, reward:14, r:0.22, color:"#e2e8f0", flying:true, atk:0},
+  boss:   {hp:1200,spd:0.7, reward:220,r:0.46, color:"#ff3b5c", armor:14, boss:true, atk:35}
 };
+/* deployable road units: soldiers hold one enemy at a time, traps hurt/slow/blast */
+const SOL_LV=[{hp:120,dmg:8},{hp:180,dmg:13},{hp:250,dmg:18}]; /* per-level soldier stats */
+const SOL_UP=[{cost:40},{cost:65}];                            /* upgrade costs to Lv2/Lv3 */
+const SOLMAX=6, TRAPMAX=12, SOL_COST=50, SPIKE_COST=40, TAR_COST=60, BOMB_COST=80;
+const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"spike",cost:SPIKE_COST,gl:"🔻 Spikes"},
+          {k:"tar",cost:TAR_COST,gl:"🕳 Tar"},{k:"bomb",cost:BOMB_COST,gl:"💣 Bomb"}];
 function waveMult(w){ return Math.pow(1.155, w-1); }
 function waveSpec(w){
   const mult=waveMult(w); const list=[];
@@ -186,10 +196,12 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   abAir=$id("abAir"),abFrz=$id("abFrz"),abRep=$id("abRep"),abOvr=$id("abOvr"),
   bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
   eleft=$id("eleft"),
-  gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn");
+  gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn"),
+  abSol=$id("abSol"),abSpike=$id("abSpike"),abTar=$id("abTar"),abBomb=$id("abBomb");
+RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
-let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, autoTimer=0;
+let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, selSold=null, autoTimer=0;
 let goldMode="test"; try{ goldMode=localStorage.getItem("td_gold")==="real"?"real":"test"; }catch(e){}
 function startGold(){ return goldMode==="real"?100:100000; }
 
@@ -198,9 +210,10 @@ function newGame(){
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[],
       queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
       freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
+      soldiers:[], traps:[], deploy:null,
       tw:0, tn:0, bgPhase:0,
       cam:{zoom:1.75,tz:1.75,fx:COLS/2,fy:ROWS/2,tx:COLS/2,ty:ROWS/2,follow:true,manual:false,fit:false} };
-  selTower=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
+  selTower=null; selSold=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
   autoTimer=0; go.disabled=false; buildShop(); hud(); applyCam();
 }
 function hud(){ elGold.textContent=S.gold; elLives.textContent=S.lives; elWave.textContent=S.wave; elScore.textContent=S.score;
