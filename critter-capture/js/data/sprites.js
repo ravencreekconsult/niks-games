@@ -472,9 +472,28 @@ const npcScout = [
   '................',
 ];
 
+const npcNurse = [
+  '................',
+  '.....wwwwww.....',
+  '....wwwwwwww....',
+  '....ssssssss....',
+  '....skssssks....',
+  '....ssssssss....',
+  '.....ssssss.....',
+  '....wwwwwwww....',
+  '...wwwrrrrww....',
+  '...wwwrwwrww....',
+  '...wwwrrrrww....',
+  '....ww....ww....',
+  '....ww....ww....',
+  '...mmm....mmm...',
+  '................',
+  '................',
+];
+
 export const SPRITES = {
   playerDown, playerUp, playerSide,
-  npcKid, npcElder, npcScout,
+  npcKid, npcElder, npcScout, npcNurse,
 };
 for (const k in SPRITE_GRIDS) SPRITES[k] = SPRITE_GRIDS[k];
 
