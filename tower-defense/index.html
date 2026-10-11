@@ -1884,8 +1884,8 @@ function drawEnemy(e){
         ctx.fillStyle=e.color; roundRect(ctx,-r*0.62,-r*0.38,r*1.35,r*0.76,r*0.16); ctx.fill();
         ctx.strokeStyle="#0d1117"; ctx.lineWidth=2; ctx.stroke();
         ctx.fillStyle=lit; roundRect(ctx,-r*0.62,-r*0.38,r*1.35,r*0.26,r*0.16); ctx.fill();
-        if(lvD||true){ ctx.fillStyle=dark; ctx.beginPath(); ctx.arc(-r*0.1,0,r*0.1,0,7); ctx.fill();
-          ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.4; ctx.stroke(); }
+        ctx.fillStyle=dark; ctx.beginPath(); ctx.arc(-r*0.1,0,r*0.1,0,7); ctx.fill();
+          ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.4; ctx.stroke();
         /* gun */
         ctx.fillStyle="#191510"; roundRect(ctx,r*0.55,-r*0.09,r*0.8,r*0.18,r*0.06); ctx.fill();
         ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.6; ctx.stroke();
@@ -1960,7 +1960,6 @@ function drawEnemy(e){
         const fl0=Math.sin(t*9+e.dist*4);
         const flap= fl0>0? fl0*0.85 : fl0*0.45;
         for(const sg of [-1,1]){
-          const wy=sg*(1.5+flap)*(sg>0?1:1);
           ctx.fillStyle="rgba(226,232,240,.55)";
           ctx.beginPath();
           ctx.moveTo(-r*0.1,0);
@@ -2021,7 +2020,7 @@ function drawEnemy(e){
           ctx.lineTo(Math.cos(a)*r*0.95,Math.sin(a)*r*0.95-r*0.15);
           ctx.lineTo(Math.cos(a+0.14)*r*0.5,Math.sin(a+0.14)*r*0.5); ctx.closePath(); ctx.fill();
           ctx.strokeStyle="#7a5310"; ctx.lineWidth=1.4; ctx.stroke(); }
-        ctx.fillStyle="rgba(255,255,255,.5)"; ctx.beginPath(); ctx.arc(-Math.PI*0.5*0+ -r*0.05,-r*0.85,r*0.06,0,7); ctx.fill();
+        ctx.fillStyle="rgba(255,255,255,.5)"; ctx.beginPath(); ctx.arc(-r*0.05,-r*0.85,r*0.06,0,7); ctx.fill();
         ctx.restore(); break; }
     }
     ctx.restore();
