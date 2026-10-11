@@ -292,8 +292,27 @@ function openPartyMenu() {
       cb: function () { openDetailCard(i); },
     });
   });
+  items.push({ label: 'ABILITIES', cb: function () { openAbilityList(); } });
   items.push({ label: 'TYPE CHART', cb: function () { openTypeList(); } });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+/* The abilities screens: one disabled info row per ability — name, desc, and
+   which species carry it (scanned live from SPECIES) — then BACK. */
+function openAbilityList() {
+  const items = [{ label: 'ABILITIES (' + Object.keys(RULES.ABILITIES).length + ')', disabled: true }];
+  Object.keys(RULES.ABILITIES).forEach(function (id) {
+    const ab = RULES.ABILITIES[id];
+    if (!ab) return;
+    const holders = [];
+    Object.keys(RULES.SPECIES).forEach(function (sid) {
+      const sp = RULES.SPECIES[sid];
+      if (sp && sp.ability === id) holders.push(sp.name);
+    });
+    items.push({ label: ab.name, sub: ab.desc + (holders.length ? ' — ' + holders.join(', ') : ''), disabled: true });
+  });
+  items.push({ label: 'BACK', cb: openPartyMenu });
   setMenu(items);
 }
 

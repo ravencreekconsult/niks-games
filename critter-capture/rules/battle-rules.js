@@ -588,20 +588,30 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
     };
     const fireOnHit = (target, attacker, mv, dealt) => {
       const ab = ABILITIES[target.ability];
-      if (ab && ab.hooks && ab.hooks.onHit) ab.hooks.onHit(ctxFor({ self:target, attacker, move:mv, damage:dealt }));
+      if (ab && ab.hooks && ab.hooks.onHit) {
+        ev.push({ t:'ability', targetId: target.id, ability: target.ability });
+        ab.hooks.onHit(ctxFor({ self:target, attacker, move:mv, damage:dealt }));
+      }
     };
     const fireOnDealDamage = (attacker, target, dealt) => {
       const ab = ABILITIES[attacker.ability];
-      if (ab && ab.hooks && ab.hooks.onDealDamage) ab.hooks.onDealDamage(ctxFor({ self:attacker, target, damage:dealt }));
+      if (ab && ab.hooks && ab.hooks.onDealDamage) {
+        ev.push({ t:'ability', targetId: attacker.id, ability: attacker.ability });
+        ab.hooks.onDealDamage(ctxFor({ self:attacker, target, damage:dealt }));
+      }
     };
     const fireOnTurnEnd = (c) => {
       const ab = ABILITIES[c.ability];
-      if (ab && ab.hooks && ab.hooks.onTurnEnd) ab.hooks.onTurnEnd(ctxFor({ self:c }));
+      if (ab && ab.hooks && ab.hooks.onTurnEnd) {
+        ev.push({ t:'ability', targetId: c.id, ability: c.ability });
+        ab.hooks.onTurnEnd(ctxFor({ self:c }));
+      }
     };
     const fireOnLowHp = (c) => {
       const ab = ABILITIES[c.ability];
       if (ab && ab.hooks && ab.hooks.onLowHp && !c.volatile.lowFired && c.hp > 0 && c.hp * 3 <= c.maxHp) {
         c.volatile.lowFired = true;
+        ev.push({ t:'ability', targetId: c.id, ability: c.ability });
         ab.hooks.onLowHp(ctxFor({ self:c }));
       }
     };
@@ -825,6 +835,7 @@ export function resolveTurn({ state, intents = [], participants = [], seed = 1 }
       // onBeforeMove hook (may cancel)
       const ab = ABILITIES[actor.ability];
       if (ab && ab.hooks && ab.hooks.onBeforeMove) {
+        ev.push({ t:'ability', targetId: actor.id, ability: actor.ability });
         const r = ab.hooks.onBeforeMove(ctxFor({ self:actor, move:mv }));
         if (r && r.cancel) { msg(actor.name + ' held back!'); return; }
       }

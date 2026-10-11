@@ -191,7 +191,7 @@ function submit(mine) {
 const DUR = {
   message: 1000, move: 380, damage: 480, miss: 550, heal: 420,
   status: 520, statusEnd: 250, stage: 420, weather: 520, faint: 700,
-  catch: 1250, run: 650, switch: 500, end: 350,
+  catch: 1250, run: 650, switch: 500, end: 350, ability: 700,
 };
 
 function catchDuration(ev) {
@@ -256,6 +256,13 @@ function stepPlayback(dtMs) {
   const ev = step.ev;
   catchAnim = null; // every new beat replaces the previous catch animation
   if (ev.t === 'message') msg = ev.text; // keep the last message otherwise
+  else if (ev.t === 'ability') {
+    // mid-battle ability activation: "<Name>'s <Ability>!" (entry intros are
+    // spliced client-side at battle start, so only these fire here)
+    const c = combatant(ev.targetId);
+    const ab = ABILITIES[ev.ability] || null;
+    if (c && ab) msg = c.name + "'s " + ab.name + '!';
+  }
   else if (ev.t === 'catch') {
     catchAnim = { targetId: ev.targetId, success: !!ev.success, shakes: ev.shakes || 0, t: 0, total: step.dur };
     msg = 'You threw a Capture Ball!';
