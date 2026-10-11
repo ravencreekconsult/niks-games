@@ -60,6 +60,17 @@
   #panelMedal{ font-size:clamp(18px,5vw,30px); font-weight:900; letter-spacing:.08em; }
   #panelBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
   #panelBtns button{ min-width:150px; }
+  @media (max-height:520px){
+    #panel{ gap:5px; padding:6px 10px; overflow-y:auto; justify-content:flex-start; }
+    #panelTitle{ font-size:clamp(20px,6vh,30px); }
+    #panelSub{ font-size:10px; }
+    #panelStats{ display:grid; grid-template-columns:1fr 1fr; gap:3px 8px; min-width:min(640px,94%); font-size:11px; }
+    #panelStats .row:last-child{ grid-column:1/3; }
+    #panelBtns button{ min-height:36px; min-width:120px; }
+    #statbar{ max-height:30px; }
+    button{ min-height:38px; }
+    #controls{ padding:4px 8px; }
+  }
   .primary{ background:linear-gradient(180deg,#ff8a2b,#c65a05) !important; border-color:#ffcf8a !important;
     color:#200d00 !important; }
 </style>
@@ -300,9 +311,16 @@ function resize(){
   var w=Math.max(1,Math.round(cw*dpr)), h=Math.max(1,Math.round(ch*dpr));
   if(w!==cv.width) cv.width=w;
   if(h!==cv.height) cv.height=h;
+  /* adaptive field: the logical view follows the screen shape so wide phones/Quest get a wide
+     field and portrait phones get a tall one, instead of a small letterboxed 640x400 box */
+  var asp=cw/ch, nVW=clamp(Math.round(400*asp),520,1200), nVH=clamp(Math.round(nVW/asp),400,700);
+  if(!isFinite(nVW)||!isFinite(nVH)){ nVW=640; nVH=400; }
+  var changed=(nVW!==VW||nVH!==VH);
+  VW=nVW; VH=nVH;
   scaleS=Math.min(w/VW,h/VH);
   offX=(w-VW*scaleS)/2; offY=(h-VH*scaleS)/2;
   cvRect=r||null;
+  if(changed){ glowCv=null; try{ if(typeof sceneIndex==='number'&&bgLayer){ buildSceneLayers(sceneIndex); initWeather(); } }catch(e){} }
 }
 /* pointer mapping (CSS px -> logical view, uniform scale + letterbox) */
 var cvRect=null;
@@ -359,10 +377,25 @@ function rr(c,x,y,w,h,r){
 function offCanvas(){
   try{ var oc=document.createElement('canvas'); oc.width=VW; oc.height=VH; return oc; }catch(e){ return null; }
 }
+var layerNoSun=false, layerOff=0;
 function makeLayer(drawFn){
-  var oc=offCanvas(); if(!oc) return null;
-  var c=oc.getContext('2d'); if(!c) return null;
-  try{ drawFn(c); }catch(e){ return null; }
+  /* scenery is authored for a 640-wide view: draw it there, then centre it and extend both sides
+     with mirrored copies (sun-free, so there is only ever one sun) out to the current field width */
+  var rW=VW, tA=null, tB=null; VW=640;
+  try{
+    tA=offCanvas(); layerNoSun=false; var cA=tA&&tA.getContext('2d'); if(cA) drawFn(cA);
+    tB=offCanvas(); layerNoSun=true; var cB=tB&&tB.getContext('2d'); if(cB) drawFn(cB);
+  }catch(e){ VW=rW; layerNoSun=false; return null; }
+  VW=rW; layerNoSun=false;
+  if(!tA||!tB) return tA;
+  var oc=offCanvas(); if(!oc) return tA;
+  var g=oc.getContext('2d'), o=Math.round((VW-640)/2), k, x, flip;
+  layerOff=o;
+  for(k=-3;k<=3;k++){ x=o+k*640; if(x>=VW||x+640<=0) continue;
+    flip=(Math.abs(k)%2===1);
+    if(k===0){ g.drawImage(tA,x,0); }
+    else if(flip){ g.save(); g.translate(x+640,0); g.scale(-1,1); g.drawImage(tB,0,0); g.restore(); }
+    else g.drawImage(tB,x,0); }
   return oc;
 }
 function pineOn(c,x,baseY,h,w,col1,col2,snow){
@@ -400,7 +433,7 @@ function buildSceneLayers(idx){
     for(i=0;i<n;i++){ c.fillStyle=mixHex(s.top,s.bot,i/(n-1)); c.fillRect(0,i*bh-0.5,VW,bh+1.4); }
     if(s.stars) starsOn(c,true);
     // god rays
-    if(s.sun){
+    if(s.sun&&!layerNoSun){
       c.save(); c.globalAlpha=0.10; c.fillStyle=s.sun.col;
       for(i=0;i<6;i++){ c.save(); c.translate(s.sun.x,s.sun.y); c.rotate(-1.2+i*0.36+Math.sin(i)*0.1); c.fillRect(0,-3,420,6); c.restore(); }
       c.restore();
@@ -464,7 +497,7 @@ function drawWaterShimmer(){
   }
   if(s.sun){
     ctx.globalAlpha=0.25; ctx.fillStyle=s.sun.col;
-    ctx.fillRect(s.sun.x-24+Math.sin(tG*0.002)*4, HORIZON+6, 48, VH-HORIZON-10);
+    ctx.fillRect(s.sun.x+layerOff-24+Math.sin(tG*0.002)*4, HORIZON+6, 48, VH-HORIZON-10);
     ctx.globalAlpha=1;
   }
 }
