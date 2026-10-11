@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Critter Capture</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overflow: hidden; background: #1a1c2c; touch-action: none;
     -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
   #wrap { height: 100%; display: flex; flex-direction: column; }
@@ -25,21 +25,31 @@
   .mbtn.sel { background: #3b5dc9; outline: 2px solid #ffcd75; }
   .mbtn:disabled { opacity: 0.45; }
   #controls { flex: 0 0 auto; display: flex; justify-content: space-between;
-    align-items: center; padding: 10px 14px 16px; background: #333c57; }
-  #dpad { position: relative; width: 150px; height: 150px; }
-  .dbtn { position: absolute; width: 50px; height: 50px; background: rgba(244,244,244,0.25);
-    border: 2px solid rgba(244,244,244,0.5); border-radius: 8px; color: #f4f4f4;
-    font: bold 18px monospace; display: flex; align-items: center; justify-content: center;
-    touch-action: none; }
-  .dbtn:active { background: rgba(115,239,247,0.5); }
-  #dUp { left: 50px; top: 0; } #dDown { left: 50px; top: 100px; }
-  #dLeft { left: 0; top: 50px; } #dRight { left: 100px; top: 50px; }
-  #abBtns { display: flex; gap: 14px; align-items: flex-end; }
-  #btnB, #btnA { width: 64px; height: 64px; border-radius: 50%; font: bold 20px monospace;
-    color: #1a1c2c; border: 3px solid #1a1c2c; touch-action: none; }
+    align-items: center; padding: 10px 14px calc(16px + env(safe-area-inset-bottom));
+    background: none; pointer-events: none; }
+  #dpad { --pad: clamp(150px, 42vmin, 230px); position: relative;
+    width: var(--pad); height: var(--pad); border-radius: 50%;
+    background: rgba(26,28,44,0.35); border: 2px solid rgba(244,244,244,0.45);
+    box-shadow: 0 0 10px rgba(0,0,0,0.55); opacity: 0.55;
+    touch-action: none; pointer-events: auto; user-select: none;
+    transition: opacity 0.08s; }
+  #dpad.pressed { opacity: 1; }
+  .dbtn { position: absolute; width: 33.4%; height: 33.4%;
+    background: rgba(244,244,244,0.22); border: 2px solid rgba(244,244,244,0.55);
+    border-radius: 10px; color: #f4f4f4; font: bold 18px monospace;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none; }
+  #dUp { left: 33.3%; top: 0; } #dDown { left: 33.3%; top: 66.6%; }
+  #dLeft { left: 0; top: 33.3%; } #dRight { left: 66.6%; top: 33.3%; }
+  #abBtns { display: flex; gap: 14px; align-items: flex-end; pointer-events: auto; }
+  #btnB, #btnA { width: clamp(56px, 16vmin, 84px); height: clamp(56px, 16vmin, 84px);
+    border-radius: 50%; font: bold 20px monospace; color: #1a1c2c;
+    border: 3px solid rgba(26,28,44,0.6); touch-action: none; opacity: 0.55;
+    box-shadow: 0 0 10px rgba(0,0,0,0.55); user-select: none;
+    transition: opacity 0.08s; }
   #btnB { background: #ef7d57; margin-bottom: 18px; }
   #btnA { background: #a7f070; }
-  #btnB:active, #btnA:active { filter: brightness(1.2); }
+  .pressed { opacity: 1 !important; filter: brightness(1.2); }
 </style>
 </head>
 <body>
