@@ -57,7 +57,7 @@
   var OLD_KEY = 'pas_save_v1';
   function defaultState() {
     return {
-      strength: 0, level: 1, xp: 0, wins: 0, rebirths: 0, world: 0,
+      strength: 0, level: 1, xp: 0, wins: 0, rebirths: 0, world: 0, maxWorld: 0,
       owned: {}, equipped: null,
       pets: [], petCounts: {}, equipPets: [],
       codes: {}, luckBonus: 0,
@@ -103,6 +103,7 @@
     if (typeof s.level !== 'number' || s.level < 1) { s.level = 1; }
     if (typeof s.world !== 'number' || !isFinite(s.world)) { s.world = 0; }
     s.world = Math.max(0, Math.min(D.WORLDS.length - 1, Math.floor(s.world) || 0));
+    s.maxWorld = Math.max(s.world, Math.min(D.WORLDS.length - 1, Math.floor(s.maxWorld) || 0));
     return s;
   }
   function save() {
@@ -308,14 +309,26 @@
     var html = '';
     for (var w = 0; w < D.WORLDS.length; w++) {
       var wd = D.WORLDS[w];
-      var reached = w <= S.world;
+      var reached = w <= S.maxWorld;
+      var first = wd.swords[0].req;
       html += '<div class="sword' + (reached ? ' owned' : ' locked') + '">' +
         '<span class="nm">' + wd.name + (reached ? '' : ' 🔒') + '</span>' +
-        '<span class="ml">' + (reached ? 'Boss: ' + wd.boss : 'Beat the previous boss') + '</span>' +
-        '<span class="rq">' + (reached ? (w === S.world ? 'here now' : 'cleared') : 'locked') + '</span>' +
+        '<span class="ml">' + (reached ? 'Boss: ' + wd.boss + ' · pulls from ' + fmt(first) + ' strength' : 'Beat the previous boss') + '</span>' +
+        (reached && w !== S.world ? '<button class="btn travel" data-w="' + w + '" style="min-height:40px;padding:6px 14px">GO HERE</button>' : '<span class="rq">' + (reached ? 'here now' : 'locked') + '</span>') +
         '</div>';
     }
     el.worldList.innerHTML = html;
+    var tb = el.worldList.querySelectorAll('.travel');
+    for (var i = 0; i < tb.length; i++) {
+      tb[i].onclick = function () {
+        var w2 = parseInt(this.getAttribute('data-w'), 10);
+        if (w2 <= S.maxWorld) {
+          S.world = w2; lastEligKey = '';
+          toast('Traveled to ' + D.WORLDS[w2].name + '. Pull swords here to farm wins!');
+          updateHUD(); renderSwords(); renderEggs(); renderWorlds(); save();
+        }
+      };
+    }
   }
 
   /* ---------- THE PULL ---------- */
@@ -348,7 +361,7 @@
     if (!pw.list.length) {
       var first = curWorld().swords[0];
       showMsg('Too weak to pull!', 'You need at least ' + fmt(first.req) +
-        ' strength to pull the first sword. Tap TRAIN to get stronger!');
+        ' strength to pull the first sword. Tap TRAIN to get stronger' + (S.maxWorld > S.world ? '.' : ', or open the Worlds tab and GO HERE on an earlier world to farm wins and swords.'));
       return;
     }
     var sw = rollSword();
@@ -438,7 +451,7 @@
   function renderEggs() {
     el.eggWins.textContent = 'Your wins: ' + fmt(S.wins) + ' (every pull pays wins!)';
     var html = '';
-    for (var w = 0; w <= S.world && w < D.WORLDS.length; w++) {
+    for (var w = 0; w <= S.maxWorld && w < D.WORLDS.length; w++) {
       var wd = D.WORLDS[w];
       var egg = wd.egg;
       var can = S.wins >= egg.cost;
@@ -722,8 +735,13 @@
     S.strength += strGain;
     el.bossOverlay.style.display = 'none';
     boss = null;
-    if (S.world < D.WORLDS.length - 1) {
-      S.world++;
+    if (S.world < S.maxWorld) {
+      showMsg('BOSS DEFEATED AGAIN!', 'Rematch won: +' + fmt(winGain) + ' wins, +' + fmt(strGain) + ' strength.', 'NICE');
+      scene('burst', 0.5, 0.4, '#ffd700', 20);
+    } else if (S.world < D.WORLDS.length - 1) {
+      S.world++; S.maxWorld = S.world;
+      var entry = D.WORLDS[S.world].swords[0].req;
+      if (S.strength < entry) { S.strength = entry; }
       showMsg('BOSS DEFEATED!', 'You beat the ' + world.boss + '! +' + fmt(winGain) + ' wins, +' + fmt(strGain) +
         ' strength.\nWelcome to ' + D.WORLDS[S.world].name + ' — new swords and the ' + D.WORLDS[S.world].egg.name + ' are waiting!', 'ONWARD!');
       scene('flash', '#ffd700');
@@ -842,7 +860,7 @@
     if (S.rebirths < 10) { showMsg('Not yet!', 'Super Rebirth needs 10 rebirths. You have ' + S.rebirths + '.'); return; }
     showMsg('SUPER REBIRTH?', 'Resets your rebirths to 0 plus everything a rebirth resets, but you keep pets, luck and codes, and every Super Rebirth multiplies ALL power by x3 forever. Super Rebirths so far: ' + (S.superRebirths || 0) + '.', 'SUPER REBIRTH!', function () {
       S.superRebirths = (S.superRebirths || 0) + 1;
-      S.rebirths = 0; S.strength = 0; S.level = 1; S.xp = 0; S.world = 0; S.owned = {}; S.equipped = null; S.pity = 0;
+      S.rebirths = 0; S.strength = 0; S.level = 1; S.xp = 0; S.world = 0; S.maxWorld = 0; S.owned = {}; S.equipped = null; S.pity = 0;
       toast('SUPER REBIRTH! Total power x' + rebirthMult().toFixed(2));
       scene('flash', '#ffd700'); scene('burst', 0.5, 0.4, '#ffd700', 40);
       updateHUD(); renderSwords(); renderEggs(); renderWorlds(); renderQuests(); save();
@@ -860,7 +878,7 @@
       S.strength = 0;
       S.level = 1;
       S.xp = 0;
-      S.world = 0;
+      S.world = 0; S.maxWorld = 0;
       S.owned = {};
       S.equipped = null;
       S.pity = 0;
@@ -936,7 +954,7 @@
     }
     return {
       strength: S.strength,
-      world: S.world,
+      world: S.world, maxWorld: S.maxWorld,
       worldName: curWorld() ? curWorld().name : '',
       sword: sw ? { n: sw.n, c: rarityCol(sw.r) } : null,
       pets: pets,
