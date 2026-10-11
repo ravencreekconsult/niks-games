@@ -408,7 +408,9 @@ function showMoveMenu() {
     if (!mv) continue;
     const usable = slot.pp > 0;
     if (usable) anyUsable = true;
-    const eff = getTypeEffect(mv.type, foeTypes);
+    // effectiveness only means anything for a move that deals damage — a
+    // status move hits or misses, it is never "not very effective"
+    const eff = mv.power > 0 ? getTypeEffect(mv.type, foeTypes) : 1;
     const effTxt = eff !== 1 ? ' x' + (Math.round(eff * 10) / 10) : '';
     const sub = String(mv.type).toUpperCase() + ' · ' + String(mv.cat).toUpperCase() + ' · ' +
       (mv.power ? mv.power : '—') + effTxt;
