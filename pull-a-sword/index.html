@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Pull a Sword</title>
 <style>
   :root{
@@ -20,26 +20,59 @@
   .stat .lbl{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
   .stat .val{font-size:15px;font-weight:800;}
   .accent-p{color:var(--purple);} .accent-c{color:var(--cyan);} .accent-g{color:var(--gold);}
+
   #cvwrap{position:relative;flex:0 0 auto;background:#0d1117;border-bottom:1px solid var(--border);}
   canvas#cv{display:block;width:100%;height:100%;touch-action:none;}
   #hint{position:absolute;left:8px;bottom:6px;font-size:10px;color:var(--muted);opacity:.85;pointer-events:none;}
-  main{flex:1 1 auto;overflow-y:auto;padding:8px 10px 6px;-webkit-overflow-scrolling:touch;}
+
+  main{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:8px 10px 6px;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:8px;}
   h3{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+  .dim{color:var(--muted);font-size:11px;line-height:1.5;}
+  .row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+
+  /* sword / world / egg rows */
   .sword{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px;border-radius:8px;margin:2px 0;font-size:12px;background:#0f141c;}
   .sword .nm{font-weight:700;} .sword .rq{font-size:10px;color:var(--muted);}
   .sword .ml{font-weight:800;font-size:12px;}
   .owned{outline:1px solid #2b3542;}
   .eq{box-shadow:0 0 0 1px var(--gold) inset;}
-  .pets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-  .petslot{background:#0f141c;border:1px solid var(--border);border-radius:10px;min-height:56px;padding:5px;
-    display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:10px;color:var(--muted);}
+  .locked{opacity:.45;}
+
+  /* equipped pets grid — visible container, game.js fills it */
+  .pets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .petslot{background:#0f141c;border:1px solid var(--border);border-radius:10px;min-height:72px;padding:6px 4px;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:10px;color:var(--muted);gap:2px;}
+  .petslot .pe{font-size:22px;line-height:1;}
   .petslot .pn{font-size:10px;font-weight:700;color:var(--text);line-height:1.1;}
   .petslot .pm{font-size:10px;color:var(--cyan);font-weight:800;}
   .petslot.on{border-color:var(--gold);box-shadow:0 0 8px rgba(255,215,0,.25);}
-  footer{flex:0 0 auto;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#12161d;border-top:1px solid var(--border);}
+
+  /* pet index grid */
+  .index{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  @media (min-width:480px){ .index{grid-template-columns:repeat(4,1fr);} }
+  .itile{background:#0f141c;border:1px solid var(--border);border-radius:10px;min-height:58px;padding:5px 3px;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;font-size:9px;color:var(--muted);}
+  .itile .ie{font-size:18px;line-height:1;}
+  .itile .in{font-size:9px;font-weight:700;color:var(--text);line-height:1.1;}
+  .itile.locked{filter:grayscale(1);opacity:.42;}
+  .itile.owned{border-width:2px;}
+
+  /* rarity helper classes */
+  .r-Common{color:var(--common);} .r-Uncommon{color:var(--uncommon);} .r-Rare{color:var(--rare);}
+  .r-Epic{color:var(--epic);} .r-Legendary{color:var(--legendary);} .r-Mythic{color:var(--mythic);}
+
+  /* bars */
+  .bar{position:relative;height:16px;border-radius:9px;background:#0b0f14;border:1px solid var(--border);overflow:hidden;margin:5px 0;}
+  .bar .barfill{height:100%;width:100%;transition:width .12s linear;}
+  #pullFill{background:linear-gradient(90deg,#7c5cff,#00e5ff);}
+  #bossHpFill{background:linear-gradient(90deg,#ff4d4d,#ffa657);}
+  #playerHpFill{background:linear-gradient(90deg,#3fb950,#00e5ff);}
+  .bartxt{font-size:11px;color:var(--muted);}
+
+  /* buttons */
   .btn{flex:1;min-height:56px;border:none;border-radius:14px;font-size:14px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:.02em;
-    background:#21262d;border:1px solid var(--border);transition:transform .05s;}
+    background:#21262d;border:1px solid var(--border);transition:transform .05s;touch-action:manipulation;}
   .btn:active{transform:scale(.97);}
   .btn:disabled{opacity:.45;}
   .btn.train{background:linear-gradient(180deg,#00e5ff,#0090a8);color:#04121a;border-color:#00e5ff;}
@@ -48,15 +81,13 @@
   .btn.atk{background:linear-gradient(180deg,#ffd700,#b38f00);color:#1a1400;border-color:#ffd700;min-height:52px;}
   .btn.ghost{background:#21262d;color:var(--text);min-height:52px;}
   .btn.small{min-height:44px;flex:0 0 auto;padding:0 14px;font-size:13px;}
-  .bar{position:relative;height:16px;border-radius:9px;background:#0b0f14;border:1px solid var(--border);overflow:hidden;margin:5px 0;}
-  .bar > div{height:100%;width:100%;transition:width .12s linear;}
-  #pullBar > div{width:100%;background:linear-gradient(90deg,#7c5cff,#00e5ff);}
-  #bossHpFill{background:linear-gradient(90deg,#ff4d4d,#ffa657);}
-  #playerHpFill{background:linear-gradient(90deg,#3fb950,#00e5ff);}
-  .bartxt{font-size:11px;color:var(--muted);}
-  .row{display:flex;gap:8px;margin-top:6px;}
+
+  footer{flex:0 0 auto;display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#12161d;border-top:1px solid var(--border);}
+
   .codeRow{display:flex;gap:8px;}
   input#codeInput{flex:1;min-height:44px;border-radius:10px;border:1px solid var(--border);background:#0b0f14;color:var(--text);padding:0 12px;font-size:14px;text-transform:uppercase;}
+
+  /* overlays */
   .overlay{position:fixed;inset:0;background:rgba(4,7,11,.82);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50;}
   .ocard{width:100%;max-width:440px;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px;
     box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;animation:pop .18s ease-out;}
@@ -64,12 +95,35 @@
   .ocard h2{margin:0 0 6px;font-size:20px;}
   .ocard p{margin:6px 0;font-size:13px;color:var(--muted);line-height:1.4;}
   .rarity{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;}
-  #victory{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
+
+  /* pull reveal card — game.js sets --rc (rarity colour) and the r-* class */
+  #reveal .ocard{--rc:#9da7b3;border:2px solid var(--rc);box-shadow:0 0 26px color-mix(in srgb, var(--rc) 55%, transparent),0 20px 60px rgba(0,0,0,.6);}
+  #revealRarity{font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:800;color:var(--rc);}
+  #revealName{font-size:26px;font-weight:900;margin:8px 0 2px;color:var(--rc);text-shadow:0 0 16px var(--rc);}
+  #revealMult{font-size:16px;font-weight:800;color:var(--text);}
+  #revealText{font-size:12px;color:var(--muted);}
+  #reveal .ocard::after{content:'';position:absolute;inset:0;border-radius:18px;pointer-events:none;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,rgba(255,255,255,.30) 50%,rgba(255,255,255,.14) 55%,transparent 70%);
+    background-size:280% 100%;animation:shine 1.6s ease-in-out infinite;}
+  @keyframes shine{from{background-position:130% 0}to{background-position:-130% 0}}
+  .ocard{position:relative;}
+
+  /* egg hatch — pure CSS egg */
+  #hatchEgg{width:88px;height:112px;margin:10px auto;border-radius:50% 50% 50% 50% / 62% 62% 42% 42%;
+    background:radial-gradient(circle at 32% 26%, #fdf6e3 0%, #f2e2bd 34%, #d8bd85 68%, #b3925a 100%);
+    box-shadow:inset -8px -12px 18px rgba(90,60,20,.35), inset 6px 8px 12px rgba(255,255,255,.5), 0 10px 24px rgba(0,0,0,.5);
+    position:relative;}
+  #hatchEgg::before{content:'';position:absolute;left:16%;top:30%;width:46%;height:30%;border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.75), rgba(255,255,255,0) 70%);}
+  #hatchEgg::after{content:'✦';position:absolute;right:16%;bottom:26%;font-size:16px;color:rgba(140,100,40,.5);}
+  #hatchEgg.wobble{animation:wob .5s ease-in-out infinite;}
+  @keyframes wob{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+
   #victory h1{color:var(--gold);font-size:26px;margin:0 0 10px;text-shadow:0 0 18px rgba(255,215,0,.5);}
+
   #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#1c2330;border:1px solid var(--border);
     color:var(--text);padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;
     transition:opacity .25s;z-index:60;max-width:90vw;text-align:center;}
-  .dim{color:var(--muted);font-size:11px;}
 </style>
 </head>
 <body>
@@ -86,30 +140,43 @@
     <span id="strength" style="display:none">0</span>
   </header>
 
-  <div id="cvwrap"><canvas id="cv"></canvas><div id="hint">tap the stone to train</div></div>
+  <div id="cvwrap">
+    <canvas id="cv"></canvas>
+    <div id="hint">tap the stone to train</div>
+  </div>
 
   <main>
     <div class="card">
       <h3>Your Power</h3>
-      <div class="dim">Tap power: <b id="tapFmt">1</b> &nbsp;|&nbsp; Battle DPS: <b id="dpsFmt">1</b></div>
-      <div class="dim">Pet mult: <b id="petMultFmt">x1</b> &nbsp;|&nbsp; Rebirth mult: <b id="rebirthFmt">x1</b></div>
-      <div class="bar" id="pullBar"><div id="pullFill"></div></div>
+      <div class="dim">Tap power: <b id="tapFmt">1</b> &nbsp;|&nbsp; Battle DPS: <b id="dpsFmt">1</b> &nbsp;|&nbsp; Pet mult: <b id="petMultFmt">x1</b></div>
+      <div class="dim">Luck: <b id="luckFmt">x1</b> &nbsp;|&nbsp; Rebirth mult: <b id="rebirthFmt">x1</b></div>
+      <div class="bar"><div class="barfill" id="pullFill"></div></div>
       <div class="dim" id="pullHintTxt">Pull ready.</div>
+      <div class="dim" id="pityTxt"></div>
+      <div class="dim" id="pullsTxt"></div>
     </div>
 
     <div class="card">
       <h3>Swords &mdash; <span id="worldName2">Castle</span></h3>
       <div id="swordList"></div>
+      <div class="dim" id="oddsNote">These percentages are your live chance of pulling each sword &mdash; they improve as your strength and luck grow.</div>
     </div>
 
     <div class="card">
-      <h3>Pets &mdash; <span id="petsInfo">0/3 equipped</span></h3>
-      <div class="pets" id="petsPanel"></div>
-      <div class="pets" style="display:none"></div>
-      <div style="display:none">
-        <div id="pet0"></div><div id="pet1"></div><div id="pet2"></div><div id="pet3"></div>
-        <div id="pet4"></div><div id="pet5"></div><div id="pet6"></div><div id="pet7"></div>
-      </div>
+      <h3>Eggs</h3>
+      <div class="dim" id="eggWins"></div>
+      <div id="eggList"></div>
+    </div>
+
+    <div class="card">
+      <h3>Pets &mdash; <span id="petsInfo">equipped 0/3 &middot; indexed 0/27</span></h3>
+      <div id="petsPanel" class="pets"></div>
+    </div>
+
+    <div class="card">
+      <h3>Pet Index &mdash; <span id="indexInfo"></span></h3>
+      <div id="indexGrid" class="index"></div>
+      <div class="dim" id="slotInfo"></div>
     </div>
 
     <div class="card">
@@ -124,7 +191,7 @@
 
     <div class="card">
       <h3>Rebirth</h3>
-      <div class="dim">At level 10+, reset strength/level/world/swords for a permanent +25% power (pets are kept).</div>
+      <div class="dim">At level 10+, reset strength/level/world/swords for a permanent <b style="color:var(--cyan)">+25% power</b> (pets are kept).</div>
       <div class="row"><button class="btn small" id="rebirthBtn">REBIRTH</button><button class="btn small ghost" id="restartBtn">RESTART</button></div>
     </div>
   </main>
@@ -136,6 +203,7 @@
   </footer>
 </div>
 
+<!-- message box -->
 <div class="overlay" id="msg" style="display:none">
   <div class="ocard">
     <h2 id="msgTitle">Message</h2>
@@ -144,19 +212,46 @@
   </div>
 </div>
 
+<!-- pull reveal -->
+<div class="overlay" id="reveal" style="display:none">
+  <div class="ocard">
+    <div id="revealRarity">COMMON</div>
+    <div id="revealName">Dawn Sword</div>
+    <div id="revealMult">x2 power</div>
+    <p id="revealText"></p>
+    <button class="btn atk" id="revealOk">AWESOME!</button>
+  </div>
+</div>
+
+<!-- egg hatch -->
+<div class="overlay" id="hatch" style="display:none">
+  <div class="ocard">
+    <h2 id="hatchTitle">Hatch an Egg</h2>
+    <div id="hatchEgg"></div>
+    <p id="hatchText"></p>
+    <div class="row">
+      <button class="btn atk" id="hatchBtn1">HATCH x1</button>
+      <button class="btn atk" id="hatchBtn5">HATCH x5</button>
+    </div>
+    <div class="row"><button class="btn ghost" id="hatchClose">CLOSE</button></div>
+  </div>
+</div>
+
+<!-- boss fight -->
 <div class="overlay" id="bossOverlay" style="display:none">
   <div class="ocard">
     <h2 id="bossName">Boss</h2>
-    <div class="bar"><div id="bossHpFill" style="width:100%"></div></div>
+    <div class="bar"><div class="barfill" id="bossHpFill" style="width:100%"></div></div>
     <div class="bartxt" id="bossHpText">HP</div>
     <div class="dim" style="margin-top:8px">Your HP</div>
-    <div class="bar"><div id="playerHpFill" style="width:100%"></div></div>
+    <div class="bar"><div class="barfill" id="playerHpFill" style="width:100%"></div></div>
     <div class="bartxt" id="playerHpText">HP</div>
     <div class="bartxt" id="bossDps"></div>
     <div class="row"><button class="btn atk" id="attackBtn">ATTACK</button><button class="btn ghost" id="fleeBtn">FLEE</button></div>
   </div>
 </div>
 
+<!-- final victory -->
 <div class="overlay" id="victory" style="display:none">
   <div class="ocard">
     <h1>YOU PULLED THE FINAL SWORD</h1>
@@ -167,598 +262,8 @@
 
 <div id="toast"></div>
 
-<script>
-'use strict';
-/* ============================================================
-   PULL A SWORD - single-file, mobile-first incremental game
-   ============================================================ */
-var store = (typeof localStorage !== 'undefined') ? localStorage : { getItem:function(){return null;}, setItem:function(){} };
-var SAVE_KEY = 'pas_save_v1';
-var later = (typeof setTimeout !== 'undefined') ? setTimeout : function(f){ try{f();}catch(e){} };
-var now = function(){ return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); };
-var RAF = (typeof requestAnimationFrame === 'function') ? requestAnimationFrame : function(cb){ return later(function(){ cb(now()); }, 16); };
-
-/* ---------- element cache (ONLY getElementById) ---------- */
-var IDS = ['cv','strength','wins','level','rebirths','world','equipped','trainBtn','pullBtn','bossBtn','msg','msgTitle','msgText','msgBtn',
- 'strengthFmt','dpsFmt','tapFmt','petMultFmt','rebirthFmt','pullBar','pullFill','pullHintTxt','worldName2','codeInput','redeemBtn','rebirthBtn',
- 'restartBtn','petsPanel','petsInfo','pet0','pet1','pet2','pet3','pet4','pet5','pet6','pet7','bossOverlay','bossName','bossHpFill','bossHpText',
- 'playerHpFill','playerHpText','bossDps','attackBtn','fleeBtn','victory','victoryBtn','toast','swordList','worldList'];
-var el = {};
-for (var _i = 0; _i < IDS.length; _i++) { el[IDS[_i]] = document.getElementById(IDS[_i]); }
-var cv = el.cv;
-var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
-
-/* ---------- constants ---------- */
-var COL = { common:'#9da7b3', uncommon:'#3fb950', rare:'#58a6ff', epic:'#bc8cff', legendary:'#ffa657', mythic:'#ff4d4d' };
-var TIERS = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
-var RC = { Common:'#9da7b3', Uncommon:'#3fb950', Rare:'#58a6ff', Epic:'#bc8cff', Legendary:'#ffa657', Mythic:'#ff4d4d' };
-
-/* ---------- world / sword data (exact names, order, tiers) ---------- */
-var WORLDS = [
-  { name:'Castle', boss:'Stone Golem', swords:[
-    { n:'Dawn Sword',       req:50,      m:2,      r:'Common' },
-    { n:'Heartsbane Sword', req:700,     m:4,      r:'Uncommon' },
-    { n:'Sword of Essence', req:5000,    m:8,      r:'Rare' },
-    { n:'Kotetsu Blade',    req:41500,   m:16,     r:'Epic' },
-    { n:'Excalibur',        req:460000,  m:32,     r:'Legendary' },
-    { n:'The King',         req:850000,  m:64,     r:'Mythic' } ] },
-  { name:'Volcano Cave', boss:'Magma Dragon', swords:[
-    { n:'Dark Sword',   req:6e6,     m:100,  r:'Common' },
-    { n:'Void Ripper',  req:44.3e6,  m:180,  r:'Uncommon' },
-    { n:'Veilpiercer',  req:406.6e6, m:320,  r:'Rare' },
-    { n:'Bleakharvest', req:3.2e9,   m:600,  r:'Epic' },
-    { n:'Pyroslash',    req:44e9,    m:1100, r:'Legendary' },
-    { n:'Dravenar',     req:100e9,   m:2000, r:'Mythic' } ] },
-  { name:'Glacier Peaks', boss:'Huge Yeti', swords:[
-    { n:'Frost Reaver',    req:280e9,  m:3500,  r:'Common' },
-    { n:'Avalanche Edge',  req:1.8e12, m:6000,  r:'Uncommon' },
-    { n:'Frozen Fury',     req:7e12,   m:10000, r:'Rare' },
-    { n:"Blizzard's Bane", req:200e12, m:18000, r:'Epic' },
-    { n:'Aquila',          req:1.7e15, m:32000, r:'Legendary' },
-    { n:'Glacius',         req:2.3e15, m:56000, r:'Mythic' } ] },
-  { name:'Desert', boss:'Anubis Colossus', swords:[
-    { n:'Carrotbane',    req:7.5e15, m:100000,   r:'Common' },
-    { n:"Nile's Fury",   req:65e15,  m:180000,   r:'Uncommon' },
-    { n:"Amun's Might",  req:550e15, m:320000,   r:'Rare' },
-    { n:'Bastet Staff',  req:3.5e18, m:560000,   r:'Epic' },
-    { n:"Ra's Judgement",req:25e18,  m:1000000,  r:'Legendary' },
-    { n:'Anubis Blade',  req:150e18, m:1800000,  r:'Mythic' } ] },
-  { name:'Enchanted Forest', boss:'Forest Guardian', swords:[
-    { n:'Rootbound Edge',    req:900e18, m:3000000,  r:'Common' },
-    { n:'Thornbranch Blade', req:6e21,   m:5000000,  r:'Uncommon' },
-    { n:'Verdant Staff',     req:40e21,  m:8000000,  r:'Rare' },
-    { n:'Verdant Cleaver',   req:250e21, m:13000000, r:'Epic' },
-    { n:'Elderwood Ravager', req:1.5e24, m:21000000, r:'Legendary' },
-    { n:'Forest Guardian',   req:9e24,   m:34000000, r:'Mythic' } ] }
-];
-
-/* pets dropped by bosses + code pet */
-var PETS = [
-  { n:'Castle Cat',      m:1.5,  world:0 },
-  { n:'Magma Pup',       m:2.5,  world:1 },
-  { n:'Frost Fox',       m:4,    world:2 },
-  { n:'Sand Scarab',     m:7,    world:3 },
-  { n:'Verdant Sprite',  m:12,   world:4 },
-  { n:"Nik's Blade",     m:3,    world:-1 }
-];
-var CODES = { 'PULL2026':{ t:'strength', v:5000 }, 'NIK':{ t:'pet', v:"Nik's Blade" }, 'SWORDLUCK':{ t:'luck', v:0.25 } };
-
-/* ---------- game state ---------- */
-var S;
-function freshState(){
-  return { strength:0, level:1, xp:0, wins:0, rebirths:0, world:0,
-    owned:{}, equipped:null, pets:[], equipPets:[], codes:{}, luckMult:1 };
-}
-
-/* ---------- big number formatting ---------- */
-var SUF = ['','K','M','B','T','Q','Qn','Sx','Sp','Oc','No','Dc'];
-function fmt(n){
-  n = Number(n) || 0;
-  if (!isFinite(n)) return 'INF';
-  if (n < 0) return '-' + fmt(-n);
-  if (n < 1000){ return (n % 1 !== 0 && n < 10) ? n.toFixed(1) : String(Math.floor(n)); }
-  var i = 0;
-  while (n >= 1000 && i < SUF.length - 1){ n /= 1000; i++; }
-  return (n >= 100 ? n.toFixed(0) : n.toFixed(1)) + SUF[i];
-}
-
-/* ---------- derived values ---------- */
-function findSword(name){
-  for (var w = 0; w < WORLDS.length; w++){
-    for (var s = 0; s < WORLDS[w].swords.length; s++){
-      if (WORLDS[w].swords[s].n === name) return WORLDS[w].swords[s];
-    }
-  }
-  return null;
-}
-function equippedMult(){ var sw = S.equipped ? findSword(S.equipped) : null; return sw ? sw.m : 1; }
-function petMult(){
-  var m = 1;
-  for (var i = 0; i < S.equipPets.length; i++){
-    for (var p = 0; p < PETS.length; p++) if (PETS[p].n === S.equipPets[i]) m *= PETS[p].m;
-  }
-  return m;
-}
-function rebirthMult(){ return Math.pow(1.25, S.rebirths); }
-function luckMult(){ return S.luckMult; }
-function tapPower(){ return 1 * (1 + 0.15 * S.level) * equippedMult() * petMult() * rebirthMult() * luckMult(); }
-function dps(){ return equippedMult() * petMult() * rebirthMult() * luckMult() * (1 + 0.15 * S.level); }
-function xpNeed(){ return Math.max(8, Math.floor(15 * Math.pow(S.level, 1.5))); }
-function hasIdle(){ return S.equipPets.length > 0 || S.wins > 0; }
-
-/* ---------- HUD ---------- */
-function updateHUD(){
-  el.strength.textContent = String(Math.floor(S.strength));
-  el.level.textContent = String(S.level);
-  el.wins.textContent = String(S.wins);
-  el.rebirths.textContent = String(S.rebirths);
-  el.world.textContent = WORLDS[S.world].name;
-  el.equipped.textContent = S.equipped ? S.equipped : 'None';
-  el.strengthFmt.textContent = fmt(S.strength);
-  el.tapFmt.textContent = fmt(tapPower());
-  el.dpsFmt.textContent = fmt(dps());
-  el.petMultFmt.textContent = 'x' + fmt(petMult());
-  el.rebirthFmt.textContent = 'x' + rebirthMult().toFixed(2);
-  renderSwords(); renderWorlds(); renderPets();
-}
-function toast(msg){
-  el.toast.textContent = msg;
-  el.toast.style.opacity = '1';
-  later(function(){ el.toast.style.opacity = '0'; }, 1400);
-}
-function showMsg(title, text, color, btnLabel, action){
-  el.msgTitle.textContent = title;
-  el.msgTitle.style.color = color || '#e6edf3';
-  el.msgText.innerHTML = text || '';
-  el.msgBtn.textContent = btnLabel || 'OK';
-  el.msgBtn.onclick = function(){ el.msg.style.display = 'none'; if (action) action(); };
-  el.msg.style.display = 'flex';
-}
-
-/* ---------- panels ---------- */
-function renderSwords(){
-  var W = WORLDS[S.world], h = '';
-  el.worldName2.textContent = W.name;
-  for (var i = 0; i < W.swords.length; i++){
-    var s = W.swords[i];
-    var owned = !!S.owned[s.n];
-    var isEq = S.equipped === s.n;
-    var can = S.strength >= s.req;
-    h += '<div class="sword ' + (owned?'owned ':'') + (isEq?'eq':'') + '">' +
-      '<span><span class="nm" style="color:' + RC[s.r] + '">' + s.n + '</span>' +
-      '<br><span class="rq">' + s.r + (owned ? ' &middot; owned' : '') + '</span></span>' +
-      '<span style="text-align:right"><span class="ml" style="color:' + RC[s.r] + '">x' + s.m + '</span>' +
-      '<br><span class="rq">needs ' + fmt(s.req) + (can ? ' &#10003;' : '') + '</span></span></div>';
-  }
-  el.swordList.innerHTML = h;
-}
-function renderWorlds(){
-  var h = '';
-  for (var w = 0; w < WORLDS.length; w++){
-    var un = w <= S.world;
-    h += '<div class="sword"><span><span class="nm" style="color:' + (un?'#e6edf3':'#5b6673') + '">' +
-      (un ? WORLDS[w].name : '???') + '</span> <span class="rq">' + WORLDS[w].boss + '</span></span>' +
-      '<span class="rq">' + (un ? (w === S.world ? 'HERE' : 'cleared') : 'locked') + '</span></div>';
-  }
-  el.worldList.innerHTML = h;
-}
-var PET_SLOT_IDS = ['pet0','pet1','pet2','pet3','pet4','pet5','pet6','pet7'];
-function renderPets(){
-  el.petsInfo.textContent = S.equipPets.length + '/3 equipped';
-  var locks = S.pets.length;
-  // rebuild grid via cached pet slot elements (no dynamic DOM)
-  for (var i = 0; i < PET_SLOT_IDS.length; i++){
-    var e = el[PET_SLOT_IDS[i]];
-    if (i < locks){
-      var name = S.pets[i];
-      var pm = 1; for (var p = 0; p < PETS.length; p++) if (PETS[p].n === name) pm = PETS[p].m;
-      var on = S.equipPets.indexOf(name) >= 0;
-      e.className = 'petslot' + (on ? ' on' : '');
-      e.innerHTML = '<span class="pn">' + name + '</span><span class="pm">x' + pm + '</span>' +
-        '<span style="font-size:9px;color:' + (on?'#ffd700':'#9da7b3') + '">' + (on?'EQUIPPED':'tap to equip') + '</span>';
-    } else {
-      e.className = 'petslot';
-      e.innerHTML = '<span class="pn" style="color:#5b6673">empty</span>';
-    }
-  }
-}
-function togglePet(idx){
-  if (idx >= S.pets.length) return;
-  var name = S.pets[idx];
-  var at = S.equipPets.indexOf(name);
-  if (at >= 0){ S.equipPets.splice(at,1); toast(name + ' unequipped'); }
-  else if (S.equipPets.length < 3){ S.equipPets.push(name); toast(name + ' equipped! petMult x' + fmt(petMult())); }
-  else { toast('Only 3 pets can be equipped'); }
-  updateHUD(); save();
-}
-
-/* ---------- economy actions ---------- */
-function train(){
-  S.strength += tapPower();
-  spawnBurst(0.5, 0.6, '#00e5ff', 4);
-  updateHUD();
-  maybeSave();
-}
-function addXp(n){
-  S.xp += n;
-  var need = xpNeed();
-  while (S.xp >= need){ S.xp -= need; S.level++; need = xpNeed(); onLevel(); }
-}
-function onLevel(){
-  toast('LEVEL UP!  Lv ' + S.level + '  (+15% tap power)');
-  spawnBurst(0.5, 0.35, '#7c5cff', 26); shake(8);
-  updateHUD(); save();
-}
-var lastPull = -1e9, PULL_CD = 1000;
-function pull(){
-  var t = now();
-  if (t - lastPull < PULL_CD){ toast('Pulling...'); return; }
-  var W = WORLDS[S.world];
-  var avail = [];
-  for (var i = 0; i < W.swords.length; i++) if (W.swords[i].req <= S.strength) avail.push(W.swords[i]);
-  if (avail.length === 0){
-    showMsg('Too Weak!', 'You need at least ' + fmt(W.swords[0].req) + ' strength to pull a sword from this stone. Keep training!', '#9da7b3', 'TRAIN');
-    lastPull = t;
-    return;
-  }
-  lastPull = t;
-  var total = 0;
-  for (var k = 0; k < avail.length; k++) total += (k + 1);
-  var r = Math.random() * total, pick = avail[0];
-  for (var j = 0; j < avail.length; j++){ r -= (j + 1); if (r <= 0){ pick = avail[j]; break; } }
-  var isNew = !S.owned[pick.n];
-  if (isNew){
-    S.owned[pick.n] = 1;
-    if (pick.m > equippedMult()){
-      S.equipped = pick.n;
-      celebrate(pick);
-    } else {
-      showMsg('New Sword!', pick.n + ' <span class="rarity" style="color:' + RC[pick.r] + '">' + pick.r + '</span><br>x' + pick.m + ' power added to your collection.', RC[pick.r], 'YES!');
-      spawnBurst(0.5, 0.5, RC[pick.r], 18);
-    }
-    addXp(3 + S.world * 3);
-  } else {
-    var bonus = tapPower() * 15 + pick.req;
-    S.strength += bonus;
-    toast('Duplicate ' + pick.n + '!  +' + fmt(bonus) + ' strength');
-    spawnBurst(0.5, 0.5, RC[pick.r], 10);
-    addXp(1);
-  }
-  updateHUD();
-  save();
-}
-function celebrate(sw){
-  spawnBurst(0.5, 0.45, RC[sw.r], 46);
-  shake(14);
-  flashColor = RC[sw.r]; flashT = 1;
-  showMsg('NEW SWORD EQUIPPED!',
-    '<span class="rarity" style="color:' + RC[sw.r] + '">' + sw.r + '</span><br>' +
-    '<b style="font-size:18px;color:' + RC[sw.r] + '">' + sw.n + '</b><br>x' + sw.m + ' power', RC[sw.r], 'AWESOME');
-  toast('Equipped ' + sw.n + ' (x' + sw.m + ')');
-}
-
-/* ---------- boss fight ---------- */
-var fight = null;
-function bossStats(){
-  var W = WORLDS[S.world];
-  var top = W.swords[W.swords.length - 1].m;
-  var hp = Math.max(500, Math.round(top * 25));
-  return { name:W.boss, maxHp:hp, hp:hp, maxPhp:hp + 2000, php:hp + 2000, dmg:Math.max(1, Math.ceil(hp / 70)), reward:Math.round(top * 200) };
-}
-function openBoss(){
-  if (S.world >= WORLDS.length) { return; }
-  fight = bossStats();
-  el.bossName.textContent = fight.name;
-  el.bossDps.textContent = 'Your DPS: ' + fmt(dps()) + '  |  boss hits for ' + fmt(fight.dmg);
-  renderFight();
-  el.bossOverlay.style.display = 'flex';
-}
-function renderFight(){
-  if (!fight) return;
-  el.bossHpFill.style.width = Math.max(0, (fight.hp / fight.maxHp) * 100) + '%';
-  el.playerHpFill.style.width = Math.max(0, (fight.php / fight.maxPhp) * 100) + '%';
-  el.bossHpText.textContent = fight.name + ' HP: ' + fmt(Math.max(0, fight.hp)) + ' / ' + fmt(fight.maxHp);
-  el.playerHpText.textContent = 'You HP: ' + fmt(Math.max(0, fight.php)) + ' / ' + fmt(fight.maxPhp);
-}
-function attack(){
-  if (!fight) return;
-  var d = dps();
-  fight.hp -= d;
-  spawnBurst(0.5, 0.4, '#ffd700', 8);
-  if (fight.hp <= 0){ winBoss(); return; }
-  // boss counter-attacks (synchronous: one exchange per attack)
-  fight.php -= fight.dmg;
-  if (fight.php <= 0){ loseBoss(); return; }
-  renderFight();
-}
-function winBoss(){
-  var w = S.world;
-  var reward = fight.reward;
-  S.wins++;
-  S.strength += reward;
-  var petName = null;
-  for (var i = 0; i < PETS.length; i++) if (PETS[i].world === w) petName = PETS[i].n;
-  var gotPet = false;
-  if (petName && S.pets.indexOf(petName) < 0){
-    S.pets.push(petName); gotPet = true;
-    if (S.equipPets.length < 3) S.equipPets.push(petName);
-  }
-  var wasFinal = (w === WORLDS.length - 1);
-  if (!wasFinal) S.world = w + 1;
-  addXp(40 * (w + 1) * (w + 1));
-  el.bossOverlay.style.display = 'none';
-  fight = null;
-  spawnBurst(0.5, 0.4, '#3fb950', 40); shake(16);
-  updateHUD(); save();
-  var txt = 'You defeated <b>' + WORLDS[w].boss + '</b>!<br>+' + fmt(reward) + ' strength' +
-    (gotPet ? '<br>New pet: <b style="color:#00e5ff">' + petName + '</b>' : '') +
-    (wasFinal ? '' : '<br>World unlocked: <b>' + WORLDS[S.world].name + '</b>');
-  if (wasFinal){
-    showMsg('YOU PULLED THE FINAL SWORD', 'You defeated the Forest Guardian and every world boss. The stone is silent &mdash; you win!', '#ffd700', 'CLAIM', function(){
-      el.victory.style.display = 'flex';
-    });
-  } else {
-    showMsg('VICTORY!', txt, '#3fb950', 'CONTINUE');
-  }
-}
-function loseBoss(){
-  var name = fight ? fight.name : 'The boss';
-  el.bossOverlay.style.display = 'none';
-  fight = null;
-  updateHUD(); save();
-  showMsg('KNOCKED OUT!', name + ' knocked you out!<br>Pull a stronger sword and train more, then retry.', '#ff4d4d', 'RETRY', function(){ openBoss(); });
-}
-
-/* ---------- rebirth / restart ---------- */
-function doRebirth(){
-  S.rebirths++;
-  var kept = S.pets.slice(), keptEq = S.equipPets.slice();
-  var r = S.rebirths;
-  S.strength = 0; S.level = 1; S.xp = 0; S.world = 0; S.owned = {}; S.equipped = null;
-  S.rebirths = r; S.pets = kept; S.equipPets = keptEq;
-  updateHUD(); save();
-  toast('REBIRTH ' + S.rebirths + '!  Power x' + rebirthMult().toFixed(2));
-}
-function confirmRebirth(){
-  if (S.level < 10){ showMsg('Not Yet', 'You need level 10 to rebirth. You are level ' + S.level + '.', '#9da7b3', 'OK'); return; }
-  showMsg('Rebirth?', 'Resetting strength, level, world and swords.<br>You keep pets and gain a permanent <b style="color:#00e5ff">+25% power</b>.<br>Continue?', '#7c5cff', 'REBIRTH', doRebirth);
-}
-function restartGame(){
-  showMsg('Restart?', 'This wipes ALL progress including pets, wins and rebirths.', '#ff4d4d', 'WIPE SAVE', function(){
-    S = freshState();
-    try { if (store.removeItem) store.removeItem(SAVE_KEY); else store.setItem(SAVE_KEY, ''); } catch(e){}
-    updateHUD(); save();
-    toast('Save wiped. Fresh start!');
-  });
-}
-
-/* ---------- codes ---------- */
-function redeem(){
-  var raw = (el.codeInput && typeof el.codeInput.value === 'string') ? el.codeInput.value : '';
-  var code = raw.trim().toUpperCase();
-  if (!code){ toast('Type a code first'); return; }
-  var def = CODES[code];
-  if (!def){ showMsg('Invalid Code', '"' + code + '" is not a real code. Try again!', '#ff4d4d', 'OK'); return; }
-  if (S.codes[code]){ showMsg('Already Used', 'You already redeemed ' + code + '.', '#9da7b3', 'OK'); return; }
-  S.codes[code] = 1;
-  if (def.t === 'strength'){ S.strength += def.v; showMsg('Code Redeemed!', '+' + fmt(def.v) + ' strength!', '#00e5ff', 'NICE'); }
-  else if (def.t === 'luck'){ S.luckMult *= (1 + def.v); showMsg('Code Redeemed!', 'Permanent luck bonus: +' + Math.round(def.v*100) + '% power!', '#7c5cff', 'NICE'); }
-  else if (def.t === 'pet'){
-    if (S.pets.indexOf(def.v) < 0){ S.pets.push(def.v); if (S.equipPets.length < 3) S.equipPets.push(def.v); }
-    showMsg('Code Redeemed!', 'A free pet: <b style="color:#00e5ff">' + def.v + '</b> (x3)!', '#00e5ff', 'NICE');
-  }
-  if (el.codeInput) el.codeInput.value = '';
-  updateHUD(); save();
-}
-
-/* ---------- save / load ---------- */
-var lastSaveT = -1e9;
-function save(){ try { store.setItem(SAVE_KEY, JSON.stringify(S)); } catch(e){} }
-function maybeSave(){ var t = now(); if (t - lastSaveT > 1000){ lastSaveT = t; save(); } }
-function load(){
-  var raw = null;
-  try { raw = store.getItem(SAVE_KEY); } catch(e){ raw = null; }
-  if (!raw) return;
-  try {
-    var d = JSON.parse(raw);
-    if (d && typeof d === 'object'){
-      S = freshState();
-      if (typeof d.strength === 'number') S.strength = d.strength;
-      if (typeof d.level === 'number') S.level = Math.max(1, d.level);
-      if (typeof d.xp === 'number') S.xp = d.xp;
-      if (typeof d.wins === 'number') S.wins = d.wins;
-      if (typeof d.rebirths === 'number') S.rebirths = d.rebirths;
-      if (typeof d.world === 'number') S.world = Math.max(0, Math.min(WORLDS.length - 1, d.world));
-      if (typeof d.luckMult === 'number') S.luckMult = d.luckMult;
-      if (d.owned) S.owned = d.owned;
-      if (d.equipped && findSword(d.equipped)) S.equipped = d.equipped;
-      if (d.pets && d.pets.length) S.pets = d.pets;
-      if (d.equipPets && d.equipPets.length) S.equipPets = d.equipPets;
-      if (d.codes) S.codes = d.codes;
-    }
-  } catch(e){}
-}
-
-/* ---------- canvas rendering (cosmetic only) ---------- */
-var W = 360, H = 240;
-var stars = [], parts = [], shakeT = 0, shakeMag = 0, flashT = 0, flashColor = '#ffffff', blink = 0;
-function resize(){
-  var w = (typeof window.innerWidth === 'number' && window.innerWidth > 0) ? Math.floor(window.innerWidth) : (cv.width || 360);
-  var h = (typeof window.innerHeight === 'number' && window.innerHeight > 0) ? Math.floor(window.innerHeight * 0.40) : (cv.height || 240);
-  cv.width = Math.max(240, w);
-  cv.height = Math.max(150, h);
-  W = cv.width; H = cv.height;
-  if (cv.style) cv.style.height = H + 'px';
-  buildStars();
-}
-function buildStars(){
-  stars = [];
-  var sn = Math.max(24, Math.floor(W * H / 9000));
-  for (var i = 0; i < sn; i++) stars.push({ x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.4+0.4, p:Math.random()*6.28 });
-}
-function shake(m){ shakeT = 0.28; shakeMag = m; }
-function spawnBurst(fx, fy, color, n){
-  for (var i = 0; i < n; i++){
-    var a = Math.random() * 6.283, sp = 40 + Math.random() * 200;
-    parts.push({ x:fx*W, y:fy*H, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp - 40, life:0.6 + Math.random()*0.6, t:0, c:color, s:1.5 + Math.random()*3 });
-  }
-  if (parts.length > 260) parts.splice(0, parts.length - 260);
-}
-function renderFrame(dt){
-  if (!ctx) return;
-  blink += dt;
-  ctx.setTransform ? 0 : 0;
-  ctx.clearRect(0, 0, W, H);
-  var sx = 0, sy = 0;
-  if (shakeT > 0){ shakeT -= dt; sx = (Math.random()-0.5)*shakeMag; sy = (Math.random()-0.5)*shakeMag; }
-  ctx.save();
-  ctx.translate(sx, sy);
-
-  // background
-  ctx.fillStyle = '#0d1117';
-  ctx.fillRect(-20, -20, W + 40, H + 40);
-
-  // stars
-  for (var i = 0; i < stars.length; i++){
-    var st = stars[i];
-    var tw = 0.45 + 0.55 * Math.abs(Math.sin(blink * 1.6 + st.p));
-    ctx.globalAlpha = tw;
-    ctx.fillStyle = (i % 7 === 0) ? '#7c5cff' : '#e6edf3';
-    ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, 6.283); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-
-  // moon
-  ctx.fillStyle = '#1b2230';
-  ctx.beginPath(); ctx.arc(W * 0.82, H * 0.22, Math.min(W, H) * 0.10, 0, 6.283); ctx.fill();
-
-  // ground
-  ctx.fillStyle = '#111720';
-  ctx.fillRect(0, H * 0.74, W, H * 0.26);
-  ctx.fillStyle = '#182030';
-  ctx.fillRect(0, H * 0.74, W, 2);
-
-  // the stone
-  var cx = W * 0.5, cy = H * 0.70, sw2 = Math.min(W, H) * 0.30;
-  ctx.fillStyle = '#232c3a';
-  ctx.beginPath();
-  ctx.moveTo(cx - sw2, cy);
-  ctx.lineTo(cx + sw2, cy);
-  ctx.lineTo(cx + sw2 * 0.72, cy - sw2 * 0.95);
-  ctx.lineTo(cx - sw2 * 0.72, cy - sw2 * 0.95);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#30363d'; ctx.lineWidth = 2; ctx.stroke();
-
-  // sword in the stone
-  var gcol = '#8b95a6', blade = '#c8d1de';
-  var sw = S.equipped ? findSword(S.equipped) : null;
-  if (sw){ blade = RC[sw.r]; }
-  var sc = Math.min(W, H) * 0.42;
-  var bob = Math.sin(blink * 2) * sc * 0.02;
-  ctx.save();
-  ctx.translate(cx, cy - sw2 * 0.95 + bob);
-  ctx.shadowColor = sw ? RC[sw.r] : '#7c5cff';
-  ctx.shadowBlur = 16;
-  ctx.fillStyle = blade;
-  ctx.beginPath();
-  ctx.moveTo(0, -sc);
-  ctx.lineTo(sc * 0.09, -sc * 0.55);
-  ctx.lineTo(sc * 0.06, 0);
-  ctx.lineTo(-sc * 0.06, 0);
-  ctx.lineTo(-sc * 0.09, -sc * 0.55);
-  ctx.closePath(); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = gcol;
-  ctx.fillRect(-sc * 0.22, 0, sc * 0.44, sc * 0.07);
-  ctx.fillStyle = '#7c5cff';
-  ctx.fillRect(-sc * 0.05, sc * 0.06, sc * 0.10, sc * 0.22);
-  ctx.fillStyle = gcol;
-  ctx.beginPath(); ctx.arc(0, sc * 0.30, sc * 0.06, 0, 6.283); ctx.fill();
-  ctx.restore();
-
-  // particles
-  for (var p = parts.length - 1; p >= 0; p--){
-    var pt = parts[p];
-    pt.t += dt;
-    pt.x += pt.vx * dt; pt.y += pt.vy * dt; pt.vy += 260 * dt;
-    var life = 1 - pt.t / pt.life;
-    if (life <= 0){ parts.splice(p, 1); continue; }
-    ctx.globalAlpha = Math.max(0, life);
-    ctx.fillStyle = pt.c;
-    ctx.beginPath(); ctx.arc(pt.x, pt.y, pt.s * (0.4 + life), 0, 6.283); ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-
-  // rarity flash wash
-  if (flashT > 0){
-    flashT -= dt * 1.6;
-    ctx.globalAlpha = Math.max(0, flashT) * 0.28;
-    ctx.fillStyle = flashColor;
-    ctx.fillRect(-20, -20, W + 40, H + 40);
-    ctx.globalAlpha = 1;
-  }
-  ctx.restore();
-}
-
-/* ---------- main loop ---------- */
-var lastT = -1, idleAcc = 0, barAcc = 0;
-function loop(t){
-  if (lastT < 0) lastT = t;
-  var dt = (t - lastT) / 1000;
-  lastT = t;
-  if (dt > 0.25) dt = 0.25;
-  if (dt < 0) dt = 0;
-  // idle auto-training (1/sec) once you have a pet or a win
-  idleAcc += dt;
-  while (idleAcc >= 1){
-    idleAcc -= 1;
-    if (hasIdle()) S.strength += tapPower() * 0.5;
-    updateHUD();
-  }
-  // pull cooldown bar (cosmetic)
-  barAcc += dt;
-  if (barAcc >= 0.05){
-    barAcc = 0;
-    var rem = now() - lastPull;
-    var f = Math.max(0, Math.min(1, rem / PULL_CD));
-    if (el.pullFill) el.pullFill.style.width = (f * 100) + '%';
-    if (el.pullHintTxt) el.pullHintTxt.textContent = (f >= 1) ? 'Pull ready.' : 'Ready in ' + ((PULL_CD - rem) / 1000).toFixed(1) + 's';
-  }
-  renderFrame(Math.max(0.001, dt));
-  RAF(loop);
-}
-
-/* ---------- wire up ---------- */
-function init(){
-  S = freshState();
-  load();
-  resize();
-  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('resize', resize);
-
-  el.trainBtn.onclick = train;
-  el.pullBtn.onclick = pull;
-  el.bossBtn.onclick = openBoss;
-  el.attackBtn.onclick = attack;
-  el.fleeBtn.onclick = function(){ el.bossOverlay.style.display = 'none'; fight = null; };
-  el.msgBtn.onclick = function(){ el.msg.style.display = 'none'; };
-  el.victoryBtn.onclick = function(){ el.victory.style.display = 'none'; };
-  el.rebirthBtn.onclick = confirmRebirth;
-  el.restartBtn.onclick = restartGame;
-  el.redeemBtn.onclick = redeem;
-  for (var i = 0; i < PET_SLOT_IDS.length; i++){
-    (function(idx){ el[PET_SLOT_IDS[idx]].onclick = function(){ togglePet(idx); }; })(i);
-  }
-  if (cv) cv.onpointerdown = function(ev){
-    if (ev && ev.preventDefault) ev.preventDefault();
-    train();
-    if (ev && typeof ev.clientX === 'number'){ spawnBurst(ev.clientX / (W || 1), ev.clientY / (H || 1), '#00e5ff', 5); }
-  };
-
-  updateHUD();
-  save();
-  RAF(loop);
-}
-init();
-</script>
+<script src="data.js"></script>
+<script src="game.js"></script>
+<script src="scene.js"></script>
 </body>
 </html>
