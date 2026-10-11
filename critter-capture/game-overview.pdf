@@ -1,0 +1,302 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R 6 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 9 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 10 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 11 0 R >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 7 0 R /F2 8 0 R >> >> /Contents 12 0 R >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+9 0 obj
+<< /Length 0 >>
+stream
+BT
+/F2 20 Tf
+13 TL
+1 0 0 1 72 716 Tm
+(CRITTER CAPTURE) Tj
+/F1 11 Tf
+T*
+(Game Overview) Tj
+T*
+T*
+/F2 13 Tf
+(WHAT IT IS) Tj
+/F1 10 Tf
+T*
+T*
+(Critter Capture is a monster-catching role-playing game in the classic Game Boy) Tj
+T*
+(tradition, rebuilt to a modern standard. You walk a region on foot, meet wild) Tj
+T*
+(creatures in the tall grass, battle them in turn-based fights, and catch them) Tj
+T*
+(to build a team. It runs in a web browser, so it plays on a tablet and inside a) Tj
+T*
+(Meta Quest 3 headset, with nothing to install.) Tj
+T*
+T*
+(The aim is not to out-size the games that inspired it. It is to be distinctive) Tj
+T*
+(and premium: a tight, dense adventure that feels like a remake rather than a) Tj
+T*
+(throwback to one.) Tj
+T*
+T*
+/F2 13 Tf
+(THE WORLD) Tj
+/F1 10 Tf
+T*
+T*
+(The region is Rivenmoor. The journey runs in one long line that keeps opening:) Tj
+T*
+(a coastal home village, three towns in a wooded valley, a lake crossing, a) Tj
+T*
+(mining town, a mountain pass, a coastal city, and finally the league tower.) Tj
+T*
+T*
+(Each leg is gated by a badge or a field power, so progress is also permission.) Tj
+T*
+(You can see where you are not yet allowed to go, which is what makes exploring) Tj
+T*
+(feel like achievement.) Tj
+T*
+T*
+(Roughly twenty areas: six towns, crossing routes, two forests, two cave) Tj
+T*
+(systems, a coast and a sea route, a mountain, a marsh, ruins, and the league) Tj
+T*
+(approach. Time of day shifts the colour of the world and changes what appears) Tj
+T*
+(in the grass - some creatures come out only at night, others only in rain.) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Length 0 >>
+stream
+BT
+/F2 13 Tf
+13 TL
+1 0 0 1 72 716 Tm
+(THE CREATURES) Tj
+/F1 10 Tf
+T*
+T*
+(Thirty-six species ship in the first chapter. They are built as data rather) Tj
+T*
+(than code, so the roster can grow past a hundred later by adding entries rather) Tj
+T*
+(than features, and they sit in two- and three-stage evolution lines.) Tj
+T*
+T*
+(The type chart is our own: twelve types - Ember, Tide, Verdant, Stone, Gale,) Tj
+T*
+(Spark, Frost, Shade, Radiance, Iron, Wild and Mind. Twelve is enough for a rich) Tj
+T*
+(set of strengths and weaknesses, and few enough to actually learn.) Tj
+T*
+T*
+(Every creature carries the modern six statistics - health, attack, defence,) Tj
+T*
+(special attack, special defence and speed - plus hidden individual values, a) Tj
+T*
+(nature, and training values earned in battle. Two creatures of the same species) Tj
+T*
+(are never quite the same.) Tj
+T*
+T*
+/F2 13 Tf
+(THE BATTLE SYSTEM) Tj
+/F1 10 Tf
+T*
+T*
+(Battles are turn-based, one creature out at a time. The depth comes from how) Tj
+T*
+(many systems interlock:) Tj
+T*
+T*
+(- Moves with power, accuracy, limited uses, priority, a physical or special) Tj
+T*
+(  split, a type, and often a secondary effect.) Tj
+T*
+(- Five status conditions of our own - Scorch, Blight, Static, Slumber and) Tj
+T*
+(  Chill. Each behaves differently, and they do not all stack.) Tj
+T*
+(- Statistics that can be raised or lowered six steps either way.) Tj
+T*
+(- Critical hits, damage variance, and type multipliers running from no effect) Tj
+T*
+(  to four times damage.) Tj
+T*
+(- Weather that changes damage and interacts with abilities.) Tj
+T*
+(- Held items, switching, a party of six, and storage beyond that.) Tj
+T*
+(- Catching with tiered balls, odds that depend on the target's remaining health) Tj
+T*
+(  and status, and a throw-and-wobble you can watch.) Tj
+T*
+(- Experience, growth, learning moves on level, and evolution.) Tj
+T*
+(- Trainers who spot you across a route and battle for prize money.) Tj
+T*
+(- An opponent that switches out of a bad matchup and heals when low, rather) Tj
+T*
+(  than picking moves at random.) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Length 0 >>
+stream
+BT
+/F2 13 Tf
+13 TL
+1 0 0 1 72 716 Tm
+(PASSIVE ABILITIES) Tj
+/F1 10 Tf
+T*
+T*
+(Every species has at least one passive ability that fires on its own: summoning) Tj
+T*
+(weather on entry, healing a little each turn, raising defence when struck,) Tj
+T*
+(shrugging off status, or boosting one type of move. Abilities are what turn a) Tj
+T*
+(battle from rock-paper-scissors into a puzzle, and the game announces each one) Tj
+T*
+(the moment it triggers, so a player learns them by watching.) Tj
+T*
+T*
+/F2 13 Tf
+(THE SIGNATURE IDEA: LINEAGE) Tj
+/F1 10 Tf
+T*
+T*
+(Most games in this genre give you a random colour variant you cannot influence.) Tj
+T*
+(Ours is different, and it is the heart of the design.) Tj
+T*
+T*
+(Every creature carries a permanent, visible record of where it came from and) Tj
+T*
+(what it inherited. That record has three parts:) Tj
+T*
+T*
+(- Heritage traits, which pass down and affect battle. Breeding combines the) Tj
+T*
+(  parents' traits under clear rules, so chaining generations produces) Tj
+T*
+(  combinations that do not exist in the wild.) Tj
+T*
+(- Marks - visible patterns and colours that show ancestry. Because Marks are) Tj
+T*
+(  heritable, you can breed toward the look you want instead of hoping for it.) Tj
+T*
+(  That turns a lottery into a project.) Tj
+T*
+(- Origin - the wild area it came from, or the player whose line it descends) Tj
+T*
+(  from, shown as a small family tree on the creature's card.) Tj
+T*
+T*
+(This changes what trading means. You are not swapping a stat block; you are) Tj
+T*
+(swapping a history. It also gives the game an engine for endless variety at no) Tj
+T*
+(art cost, which is the one place a small team can genuinely out-produce a large) Tj
+T*
+(one.) Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Length 0 >>
+stream
+BT
+/F2 13 Tf
+13 TL
+1 0 0 1 72 716 Tm
+(THE DRIFT) Tj
+/F1 10 Tf
+T*
+T*
+(Released creatures do not simply vanish. They drift into other players' worlds) Tj
+T*
+(with their lineage attached, so you can meet someone else's bloodline in your) Tj
+T*
+(own grass. Breeding, releasing, trading and exploring become one loop.) Tj
+T*
+T*
+/F2 13 Tf
+(CO-OP) Tj
+/F1 10 Tf
+T*
+T*
+(Two players can share a battle. That is rare in this genre, and it is a) Tj
+T*
+(deliberate differentiator. Multiplayer is always an enhancement and never a) Tj
+T*
+(dependency: if the connection is down, the game still starts, plays and saves) Tj
+T*
+(on its own.) Tj
+T*
+T*
+/F2 13 Tf
+(THE LOOK) Tj
+/F1 10 Tf
+T*
+T*
+(The target is HD-2D - hand-drawn pixel creatures standing in a three-dimensional) Tj
+T*
+(world, with a shallow depth of field that makes the scene look like a small) Tj
+T*
+(diorama, plus real lighting, glow and drifting particles. It is exactly what) Tj
+T*
+('a Game Boy game, remade' means today.) Tj
+T*
+T*
+(It is also a rendering layer rather than a different game: the world stays a) Tj
+T*
+(grid of tiles underneath, so the ambitious part cannot break the part that) Tj
+T*
+(works. It is planned as a deliberate late stage, with a graphics setting that) Tj
+T*
+(falls back to flat, crisp pixel art if a device struggles.) Tj
+T*
+T*
+/F2 13 Tf
+(HOW IT IS STRUCTURED) Tj
+/F1 10 Tf
+T*
+T*
+(Chapter One is a complete game of roughly ten to twelve hours - four badge) Tj
+T*
+(challenges, about twenty areas, thirty-six creatures - with its own beginning,) Tj
+T*
+(middle and ending, and threads left open on purpose. Later chapters extend the) Tj
+T*
+(story, the region and the systems. Every chapter ends with something finished,) Tj
+T*
+(so stopping is never a loss.) Tj
+ET
+endstream
+endobj
