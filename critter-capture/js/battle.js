@@ -22,8 +22,16 @@ let endInfo = null;        // {winnerSide, rewards}
 let resultMsg = '';
 let overTimer = 0;
 let caughtFlag = false;
+let catchAnim = null;      // {targetId, success, shakes, t, total} — the ball throw + shakes
 const PLAYER_ID = 'c0_0';
 const VIEW_W = 240, VIEW_H = 160;
+
+/* catch animation timeline (ms) — the engine already tells us how many shakes */
+const CATCH_THROW = 460;   // ball flight from the player across to the wild critter
+const CATCH_SHAKE = 300;   // one wobble of the resting ball
+const CATCH_OPEN  = 420;   // final beat: the click (caught) or the burst (broke free)
+const BALL_START  = { x: 58, y: 86 };
+const BALL_END    = { x: 172, y: 42 };
 
 function combatant(id) { return state.combatants.find(c => c.id === id); }
 function activeOf(side) { return state.combatants.find(c => c.side === side && !c.fainted && c.active !== false) || state.combatants.find(c => c.side === side); }
@@ -62,6 +70,7 @@ export function start(game, speciesId, level) {
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
   caughtFlag = false;
+  catchAnim = null;
   endInfo = null;
   overTimer = 0;
   phase = 'playback';
@@ -124,6 +133,13 @@ const DUR = {
   catch: 1250, run: 650, switch: 500, end: 350,
 };
 
+function catchDuration(ev) {
+  // a catch is not a fixed beat: it is a throw plus one wobble per shake
+  return ev.t === 'catch'
+    ? CATCH_THROW + (ev.shakes || 0) * CATCH_SHAKE + CATCH_OPEN
+    : (DUR[ev.t] || 300);
+}
+
 function buildQueue(events) {
   const out = [];
   // level-up messages splice in before the end event
@@ -135,7 +151,7 @@ function buildQueue(events) {
     if (ev.t === 'end') {
       for (const text of levelMsgs) out.push({ ev: { t: 'message', text }, dur: DUR.message });
     }
-    out.push({ ev, dur: DUR[ev.t] || 300 });
+    out.push({ ev, dur: catchDuration(ev) });
   }
   return out;
 }
@@ -167,7 +183,12 @@ function stepPlayback(dtMs) {
   }
   const step = queue.shift();
   const ev = step.ev;
+  catchAnim = null; // every new beat replaces the previous catch animation
   if (ev.t === 'message') msg = ev.text; // keep the last message otherwise
+  else if (ev.t === 'catch') {
+    catchAnim = { targetId: ev.targetId, success: !!ev.success, shakes: ev.shakes || 0, t: 0, total: step.dur };
+    msg = 'You threw a Capture Ball!';
+  }
   else if (ev.t === 'heal') {
     const c = combatant(ev.targetId);
     if (c) msg = c.name + ' recovered ' + ev.amount + ' HP!';
@@ -210,6 +231,7 @@ function finishBattle() {
   resultMsg = (resultMsg ? resultMsg + ' ' : '') + outcome;
   msg = resultMsg;
   G.persist();
+  catchAnim = null;
   phase = 'over';
   overTimer = 1600;
 }
