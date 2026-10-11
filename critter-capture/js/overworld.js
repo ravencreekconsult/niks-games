@@ -17,6 +17,7 @@ let dir = 'down';
 let moving = false, mFromX = 0, mFromY = 0, mT = 0;
 let persistTimer = 0;     // debounced position save (see persistSoon)
 let npcTiles = null;      // Set of "x,y" for NPC tiles (solid + interactable)
+let lastCX = 0, lastCY = 0; // last camera offset (for tap -> tile mapping)
 
 /* Position changes are worth saving, but a save per tile would fire ~6x a second
    while walking. Coalesce them: one save shortly after the player stops moving. */
@@ -143,6 +144,7 @@ export function draw(ctx) {
   let cy = Math.floor(fy) - (VIEW_H / 2 - TILE / 2);
   cx = Math.max(0, Math.min(map.w * TILE - VIEW_W, cx));
   cy = Math.max(0, Math.min(map.h * TILE - VIEW_H, cy));
+  lastCX = cx; lastCY = cy; // remembered for tapTarget()
   ctx.drawImage(staticCv, -cx, -cy);
   // player: 1px walk bob, flipped for left
   const bob = moving ? (mT < 0.5 ? -1 : 0) : 0;
@@ -158,23 +160,50 @@ export function draw(ctx) {
   }
 }
 
-/** What the player is facing (NPC or sign), or null. Only meaningful when
- *  the player is standing still — the dialogue layer in core.js asks for it. */
+/** Which steps an NPC says RIGHT NOW: first-visit `lines`, or `again` on a
+ *  later visit once npc.flag is set. `again` is either a plain array of steps
+ *  or { check: 'flagName', ifTrue: [...], ifFalse: [...] } for a remembered
+ *  yes/no answer. Steps are strings or ask-objects (see areas.js). */
+function linesFor(n) {
+  const f = (G && G.save && G.save.flags) ? G.save.flags : {};
+  if (n.again && n.flag && f[n.flag]) {
+    if (Array.isArray(n.again)) return n.again;
+    return f[n.again.check] ? n.again.ifTrue : n.again.ifFalse;
+  }
+  return n.lines;
+}
+
+function npcTarget(n) {
+  return { kind: 'npc', name: n.name, steps: linesFor(n), npc: n };
+}
+
 function findAhead() {
   const dx = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
   const dy = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
   const x = ptx + dx, y = pty + dy;
   for (const n of (map.npcs || [])) {
-    if (n.x === x && n.y === y) return { kind: 'npc', name: n.name, lines: n.lines };
+    if (n.x === x && n.y === y) return npcTarget(n);
   }
   for (const s of (map.signs || [])) {
-    if (s.x === x && s.y === y) return { kind: 'sign', name: 'SIGN', lines: s.lines };
+    if (s.x === x && s.y === y) return { kind: 'sign', name: 'SIGN', steps: s.lines };
   }
   return null;
 }
 export function facingTarget() {
   if (!map || moving) return null;
   return findAhead();
+}
+
+/** A tap on the canvas (view coords 0..240 x 0..160) hit an NPC? Returns the
+ *  same target shape as facingTarget() so core can open the same dialogue. */
+export function tapTarget(vx, vy) {
+  if (!map || moving) return null;
+  const x = Math.floor((vx + lastCX) / TILE);
+  const y = Math.floor((vy + lastCY) / TILE);
+  for (const n of (map.npcs || [])) {
+    if (n.x === x && n.y === y) return npcTarget(n);
+  }
+  return null;
 }
 
 export function info() {
