@@ -188,9 +188,12 @@ const TRACK_MUL={range:0.8, rate:1.0, dmg:1.1};
 const TRACK_RNG_ADD=0.38, TRACK_RATE=1.13, TRACK_DMG=1.24;
 function trackCost(t,k,lv){ return Math.round(t.cost*TRACK_MUL[k]*(0.30+0.22*lv)); } /* lv = level being bought (1..3) */
 function trackLabel(k){ return k==="range"?"RNG":k==="rate"?"RATE":"DMG"; }
-/* unlock table: tower id -> wave it becomes buyable (applies in Testing AND Real) */
-const UNLOCK_WAVE={blaster:1,cannon:1,frost:1,sniper:4,venom:6,tesla:8,missile:11,coil:14};
-function towerUnlocked(id){ return S.wave >= (UNLOCK_WAVE[id]||1)-1; }
+/* unlock ladder: each tower has a wave gate AND a one-off gold price paid in-run.
+   Blaster is owned from the start; every other type must be BOUGHT in ladder order
+   (Testing gold still has to buy unlocks — gold never grants free unlocks). */
+const UNLOCK_WAVE={blaster:1,cannon:2,frost:4,sniper:6,tesla:8,venom:10,missile:13,coil:16};
+const UNLOCK_COST={blaster:0,cannon:250,frost:500,sniper:900,tesla:1400,venom:2000,missile:2800,coil:3800};
+function towerUnlocked(id){ return id==="blaster" || !!(S&&S.unlocked&&S.unlocked[id]); }
 
 /* ---------- enemies ---------- */
 const ETYPES = {
@@ -259,7 +262,8 @@ function newGame(){
   S={ gold:startGold(), lives:25, score:0, wave:0, running:false, over:false, won:false,
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[],
       queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
-      freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
+      freezeUntil:0, ocUntil:0, armed:false, cd:{air:0,frz:0,rep:0,ovr:0},
+      unlocked:{blaster:true}, abUnlocked:{}, seen:{grunt:true},
       soldiers:[], traps:[], deploy:null,
       tw:0, tn:0, bgPhase:0,
       nextSpec:null, leaks:0, leaksTotal:0, kills:0, clearAt:0, endless:false,
@@ -312,20 +316,27 @@ const GLYPHS={blaster:"»",cannon:"◉",frost:"❄",sniper:"⊕",tesla:"⚡",ven
 function buildShop(){
   shop.innerHTML="";
   TOWERS.forEach((t,i)=>{ const d=document.createElement("div");
-    const locked=!towerUnlocked(t.id);
-    d.className="tcard"+(locked?" locked":"")+(!locked&&i===sel?" sel":"")+(S.gold<t.cost&&!locked?" nope":"");
+    const unlocked=towerUnlocked(t.id);
+    const gated=S.wave < (UNLOCK_WAVE[t.id]||1);
+    d.className="tcard"+(!unlocked?" locked":"")+(unlocked&&i===sel?" sel":"")+(unlocked&&S.gold<t.cost?" nope":"");
     const fresh=S.fresh && S.fresh.ids && S.fresh.until>S.time && S.fresh.ids.indexOf(t.id)>=0;
     if(fresh) d.className+=" glow";
     d.innerHTML=`<span class="gl" style="color:${t.color}">${GLYPHS[t.id]||"◆"}</span><b style="color:${t.color}">${t.name}</b>`
-      +(locked? `<span class="locktxt">🔒 LOCKED · wave ${UNLOCK_WAVE[t.id]}</span>`
-              : `<span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`);
-    d.onclick=()=>{ if(locked){ say("🔒 "+t.name+" unlocks at wave "+UNLOCK_WAVE[t.id]+" — keep going!",1600); return; }
+      +(!unlocked? (gated? `<span class="locktxt">🔒 LOCKED · wave ${UNLOCK_WAVE[t.id]}</span>`
+                        : `<span class="locktxt">🔓 UNLOCK · ${UNLOCK_COST[t.id]}g</span>`)
+                : `<span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`);
+    d.onclick=()=>{ if(!unlocked){
+        if(gated){ say("🔒 "+t.name+" unlocks at wave "+UNLOCK_WAVE[t.id]+" — keep going!",1600); return; }
+        if(S.gold<UNLOCK_COST[t.id]){ say("Need "+UNLOCK_COST[t.id]+"g to unlock "+t.name+"!",1600); return; }
+        S.gold-=UNLOCK_COST[t.id]; S.unlocked[t.id]=true;
+        say("🔓 "+t.name.toUpperCase()+" UNLOCKED!",2000);
+        hud(); buildShop(); return; }
       sel=i; selTower=null; selSold=null; S.deploy=null; info.style.display="none"; resize(); buildShop(); };
     shop.appendChild(d); });
 }
-function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ const locked=!towerUnlocked(TOWERS[i].id);
-  c.classList.toggle("nope",!locked && S.gold<TOWERS[i].cost);
-  c.classList.toggle("sel", !locked && i===sel && !selTower); }); }
+function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ const un=towerUnlocked(TOWERS[i].id);
+  c.classList.toggle("nope",un && S.gold<TOWERS[i].cost);
+  c.classList.toggle("sel", un && i===sel && !selTower); }); }
 
 function trRange(tw){ return tw.type.range + TRACK_RNG_ADD*(tw.rngLv||0); }
 function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
