@@ -280,6 +280,10 @@ export function update(dt) {
     overTimer -= dt * 1000;
     if (overTimer <= 0) { phase = 'idle'; G.endBattle(); }
   }
+  if (catchAnim) {
+    catchAnim.t += dt * 1000;
+    if (catchAnim.t >= catchAnim.total) catchAnim.t = catchAnim.total;
+  }
   for (const id in fx) {
     const f = fx[id];
     if (f.flash > 0) f.flash -= dt * 1000;
@@ -349,6 +353,88 @@ function statBox(ctx, c, x, y, w, isFoe) {
   ctx.fillText(Math.max(0, Math.round(shown)) + '/' + c.maxHp, x + 5, y + 22);
 }
 
+/* ---------------- the catch animation: throw, wobble, click or burst -------------- */
+
+function catchProgress() {
+  if (!catchAnim) return null;
+  const t = catchAnim.t;
+  if (t < CATCH_THROW) return { stage: 'throw', p: t / CATCH_THROW, targetId: catchAnim.targetId };
+  const after = t - CATCH_THROW;
+  const shakes = (catchAnim.shakes || 0) * CATCH_SHAKE;
+  if (after < shakes) {
+    return {
+      stage: 'shake', targetId: catchAnim.targetId,
+      i: Math.floor(after / CATCH_SHAKE), p: (after % CATCH_SHAKE) / CATCH_SHAKE,
+    };
+  }
+  return { stage: 'open', targetId: catchAnim.targetId, p: Math.min(1, (after - shakes) / CATCH_OPEN) };
+}
+
+/* The Capture Ball, drawn in code like everything else. `rot` tips it from its base. */
+function drawBall(ctx, x, y, rot, scale) {
+  scale = scale || 1;
+  const R = 8 * scale;
+  ctx.save();
+  ctx.translate(x, y + R * 0.6);
+  if (rot) ctx.rotate(rot);
+  ctx.translate(0, -R * 0.6);
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2);
+  ctx.fillStyle = PAL.white; ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(0, 0, R, Math.PI, 0); ctx.clip();
+  ctx.fillStyle = PAL.red; ctx.fillRect(-R, -R, R * 2, R);   // upper half
+  ctx.restore();
+  ctx.fillStyle = PAL.ink;
+  ctx.fillRect(-R, -Math.max(1, R * 0.16), R * 2, Math.max(2, R * 0.32)); // the band
+  ctx.beginPath(); ctx.arc(0, 0, R - 1, 0, Math.PI * 2);
+  ctx.strokeStyle = PAL.ink; ctx.lineWidth = Math.max(1, 1.5 * scale); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, Math.max(1.5, R * 0.3), 0, Math.PI * 2);
+  ctx.fillStyle = PAL.white; ctx.fill();
+  ctx.strokeStyle = PAL.ink; ctx.lineWidth = 1; ctx.stroke();
+  ctx.restore();
+}
+
+function drawSparks(ctx, x, y, p) {
+  const n = 6, d = 6 + p * 16;
+  ctx.fillStyle = PAL.yell;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + 0.4;
+    const sx = Math.round(x + Math.cos(a) * d);
+    const sy = Math.round(y + Math.sin(a) * d);
+    ctx.fillRect(sx - 1, sy - 1, 3, 3);
+  }
+}
+
+function drawCatch(ctx, cp) {
+  if (!cp) return;
+  if (cp.stage === 'throw') {
+    // an arc across the screen, growing slightly as it travels away from us
+    const p = cp.p;
+    const x = BALL_START.x + (BALL_END.x - BALL_START.x) * p;
+    const y = BALL_START.y + (BALL_END.y - BALL_START.y) * p - Math.sin(Math.PI * p) * 26;
+    drawBall(ctx, x, y, p * Math.PI * 3, 0.55 + 0.45 * p);
+    return;
+  }
+  const x = BALL_END.x, y = BALL_END.y;
+  if (cp.stage === 'shake') {
+    // one wobble per shake the engine rolled — 1-3 means it broke free, 4 means caught
+    const wobble = Math.sin(cp.p * Math.PI) * ((cp.i % 2) ? -0.5 : 0.5);
+    const hop = Math.sin(cp.p * Math.PI) * 2;
+    drawBall(ctx, x, y - hop, wobble, 1);
+    return;
+  }
+  if (catchAnim.success) {
+    drawBall(ctx, x, y, 0, 1);
+    if (cp.p > 0.2) drawSparks(ctx, x, y, cp.p);
+  } else {
+    // it burst open — a shockwave ring, and the critter comes back out
+    if (cp.p < 0.55) drawBall(ctx, x, y, 0, 1);
+    if (cp.p < 1) {
+      ctx.strokeStyle = PAL.white; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, 5 + cp.p * 20, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+}
+
 export function draw(ctx) {
   if (!state) return;
   // backdrop
@@ -359,13 +445,14 @@ export function draw(ctx) {
   ctx.beginPath(); ctx.ellipse(172, 56, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
 
   const me = activeOf(0), foe = activeOf(1);
+  const cp = catchProgress();
   const SPR_W = 16; // critter grids are 8 cells wide at scale 2
-  const drawMon = (c, x, y, flip) => {
+  const drawMon = (c, x, y, flip, force) => {
     if (!c) return;
     const f = fx[c.id] || {};
     const shk = f.shake > 0 ? ((Math.floor(f.shake / 40) % 2) ? 2 : -2) : 0;
     const gx = x + shk, gy = y;
-    if (c.fainted) return;
+    if (c.fainted && !force) return;
     ctx.save();
     if (flip) { ctx.translate(gx + 24, gy); ctx.scale(-1, 1); drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, 0, 0, 2); }
     else drawSprite(ctx, SPRITES[c.speciesId] || SPRITES.sproutle, PAL, gx + (32 - SPR_W) / 2, gy, 2);
@@ -377,8 +464,13 @@ export function draw(ctx) {
       ctx.globalAlpha = 1;
     }
   };
-  drawMon(foe, 156, 24, false);
+  // the wild critter is marked fainted the instant a catch succeeds, but it must stay
+  // on screen through the throw and pop back out if the catch fails
+  const inBall = cp && foe && cp.targetId === foe.id &&
+    (cp.stage === 'shake' || (cp.stage === 'open' && catchAnim.success));
+  if (!inBall) drawMon(foe, 156, 24, false, !!cp);
   drawMon(me, 30, 62, true);
+  drawCatch(ctx, cp);
   if (foe) statBox(ctx, foe, 8, 6, 96, true);
   if (me) statBox(ctx, me, 136, 78, 96, false);
 
