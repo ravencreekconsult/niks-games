@@ -237,6 +237,7 @@ function reqMet(req) {
     case "clicks":     return s.clicks >= req.v;
     case "buildings":  return totalBuildings() >= req.v;
     case "building":   return owned(req.id) >= req.v;
+    case "upgrades":   { var n = 0; for (var k in NK.state.upgrades) if (NK.state.upgrades[k]) n++; return n >= req.v; }
     case "golden":     return s.goldenClicked >= req.v;
     case "ascensions": return s.ascensions >= req.v;
     case "playtime":   return s.playSeconds >= req.v;
