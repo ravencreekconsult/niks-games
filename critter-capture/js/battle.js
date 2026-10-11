@@ -25,7 +25,28 @@ let overTimer = 0;
 let caughtFlag = false;
 let caughtJoinedParty = false;
 let catchAnim = null;      // {targetId, success, shakes, t, total} — the ball throw + shakes
+let wildIdentity = null;   // the rolled {ivs, nature} of this wild critter
 const PLAYER_ID = 'c0_0';
+
+/* Real identity for a party member from the save; never undefined. */
+function memberIdentity(m) {
+  if (m.ivs && typeof m.ivs === 'object' && m.nature) return { ivs: m.ivs, nature: m.nature };
+  return rollIdentity(m.speciesId, 'fallback' + (m.level || 1));
+}
+
+function addEvs(m, gains) {
+  if (!gains || typeof gains !== 'object') return;
+  if (!m.evs || typeof m.evs !== 'object') m.evs = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  const keys = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+  let total = keys.reduce((s, k) => s + (m.evs[k] || 0), 0);
+  for (const k of keys) {
+    const want = (m.evs[k] || 0) + (gains[k] || 0);
+    const room = Math.max(0, Math.min(252 - (m.evs[k] || 0), 510 - total));
+    const add = Math.max(0, Math.min(want - (m.evs[k] || 0), room));
+    m.evs[k] = (m.evs[k] || 0) + add;
+    total += add;
+  }
+}
 const VIEW_W = 240, VIEW_H = 160;
 
 /* catch animation timeline (ms) — the engine already tells us how many shakes */
