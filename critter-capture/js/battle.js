@@ -20,7 +20,7 @@ let wildId = '', wildLevel = 1;
 let endInfo = null;        // {winnerSide, rewards}
 let resultMsg = '';
 let overTimer = 0;
-
+let caughtFlag = false;
 const PLAYER_ID = 'c0_0';
 const VIEW_W = 240, VIEW_H = 160;
 
@@ -59,6 +59,7 @@ export function start(game, speciesId, level) {
   queue = [];
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
+  caughtFlag = false;
   endInfo = null;
   overTimer = 0;
   phase = 'playback';
@@ -143,6 +144,7 @@ function applyFx(ev) {
     f.flash = 220; f.shake = 260;
   }
   if (ev.t === 'catch' && ev.success) {
+    caughtFlag = true;
     const sp = combatant(ev.targetId);
     if (sp && G.save.dex.caught.indexOf(sp.speciesId) === -1) {
       G.save.dex.caught.push(sp.speciesId);
@@ -179,11 +181,10 @@ function applyXp(gain) {
   while (mon.xp >= xpNeed(mon.level) && mon.level < 100) {
     mon.xp -= xpNeed(mon.level);
     mon.level += 1;
-    msgs.push(mon.speciesId === wildId ? '' : '');
-    msgs[msgs.length - 1] = (SPECIES[mon.speciesId] || { name: mon.speciesId }).name +
-      ' grew to level ' + mon.level + '!';
+    const spName = (SPECIES[mon.speciesId] || { name: mon.speciesId }).name;
+    msgs.push(spName + ' grew to level ' + mon.level + '!');
   }
-  return msgs.filter(Boolean);
+  return msgs;
 }
 
 /* ---------------- battle end ---------------- */
@@ -193,12 +194,11 @@ function finishBattle() {
   const me = combatant(PLAYER_ID);
   if (me && !me.caught) mon.hp = Math.max(0, me.hp);
   if (mon.hp <= 0) { mon.hp = null; resultMsg += ' It was rushed to rest and revived.'; }
-  let outcome = 'The battle ended.';
-  if (endInfo) {
-    if (endInfo.winnerSide === 0) outcome = 'You won the battle!';
-    else if (endInfo.winnerSide === 1) outcome = 'You were defeated...';
-    else if (queueWonByCatch()) outcome = 'Gotcha! ' + SPECIES[wildId].name + ' was caught!';
-  }
+  let outcome;
+  if (caughtFlag) outcome = SPECIES[wildId].name + ' joined your dex!';
+  else if (endInfo && endInfo.winnerSide === 0) outcome = 'You won the battle!';
+  else if (endInfo && endInfo.winnerSide === 1) outcome = 'You were defeated...';
+  else outcome = 'You got away safely.';
   resultMsg = (resultMsg ? resultMsg + ' ' : '') + outcome;
   msg = resultMsg;
   G.persist();
@@ -206,9 +206,7 @@ function finishBattle() {
   overTimer = 1600;
 }
 
-function queueWonByCatch() {
-  return false; // catch outcome is read from the played 'catch' event instead
-}
+function queueWonByCatch() { return caughtFlag; }
 
 /* ---------------- menus (rendered by core as big touch buttons) ---------------- */
 
@@ -289,9 +287,9 @@ function hpBar(ctx, x, y, w, ratio) {
 function statBox(ctx, c, x, y, w, isFoe) {
   const sp = SPECIES[c.speciesId] || { name: c.name };
   ctx.fillStyle = PAL.white;
-  ctx.fillRect(x, y, w, 26);
+  ctx.fillRect(x, y, w, 30);
   ctx.strokeStyle = PAL.dark;
-  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 25);
+  ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 29);
   ctx.fillStyle = PAL.ink;
   ctx.font = 'bold 8px monospace';
   ctx.textBaseline = 'top';
@@ -299,7 +297,7 @@ function statBox(ctx, c, x, y, w, isFoe) {
   ctx.fillText('Lv' + c.level, x + w - 30, y + 3);
   hpBar(ctx, x + 4, y + 15, w - 8, c.hp / c.maxHp);
   ctx.fillStyle = PAL.slate;
-  ctx.fillText(c.hp + '/' + c.maxHp, x + 4, y + 28);
+  ctx.fillText(c.hp + '/' + c.maxHp, x + 4, y + 21);
 }
 
 export function draw(ctx) {
