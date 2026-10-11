@@ -537,7 +537,9 @@ function useItem(id, i) {
 
 function openPartyMenu() {
   const party = Game.save.party;
-  const items = [{ label: 'PARTY (' + party.length + ')  $' + (Game.save.money || 0), disabled: true }];
+  const flags = flagsOf();
+  const badgeMark = flags.badgeVerdant ? ' ◆ Verdant' : '';
+  const items = [{ label: 'PARTY (' + party.length + ')  $' + (Game.save.money || 0) + badgeMark, disabled: true }];
   party.forEach(function (m, i) {
     const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
     const max = maxHpOf(m);
@@ -548,10 +550,24 @@ function openPartyMenu() {
     });
   });
   items.push({ label: 'BAG', cb: openBag });
+  items.push({ label: 'BADGES', cb: openBadges });
   items.push({ label: 'DEX', cb: openDex });
   items.push({ label: 'ABILITIES', cb: function () { openAbilityList(); } });
   items.push({ label: 'TYPE CHART', cb: function () { openTypeList(); } });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+/* The badges screen: one row per badge, EARNED when its flag is set,
+   LOCKED until then. Badge 2-4 are a later slice, so they stay LOCKED. */
+function openBadges() {
+  const earned = flagsOf().badgeVerdant;
+  const items = [{ label: 'BADGES', disabled: true }];
+  items.push({ label: 'Verdant  ' + (earned ? 'EARNED' : 'LOCKED'), disabled: true });
+  items.push({ label: 'Tide Badge  LOCKED', disabled: true });
+  items.push({ label: 'Ember Badge  LOCKED', disabled: true });
+  items.push({ label: 'Frost Badge  LOCKED', disabled: true });
+  items.push({ label: 'BACK', cb: openPartyMenu });
   setMenu(items);
 }
 
