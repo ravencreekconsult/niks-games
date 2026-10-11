@@ -25,7 +25,7 @@ const TOWN_ROWS = [
   '#..rrrr........rrrr....#',
   '#..hDh.........hDh.....#',
   '#......................#',
-  '#....==========..........#',
+  '#....==========........#',
   '#....=......=..........#',
   '#..rr=......=...ff.....#',
   '#..rr=..~~..=...ff.....#',
@@ -96,22 +96,29 @@ export const MAPS = {
   },
 };
 
-/** Parse a map into a grid of legend entries; validates row widths. */
+/** Parse a map into a grid of legend entries; validates row widths and tile codes.
+ *  Collects ALL problems and throws once with every issue listed, one per line,
+ *  in y order. Return value for valid maps is unchanged. */
 export function parseMap(map) {
+  const problems = [];
   const grid = [];
   for (let y = 0; y < map.h; y++) {
     const row = map.rows[y];
     if (!row || row.length !== map.w) {
-      throw new Error('Map "' + map.id + '" row ' + y + ' has width ' +
+      problems.push('Map "' + map.id + '" row ' + y + ' has width ' +
         (row ? row.length : 'none') + ', expected ' + map.w);
+      continue;
     }
     const cells = [];
     for (let x = 0; x < map.w; x++) {
       const def = map.legend[row[x]];
-      if (!def) throw new Error('Map "' + map.id + '" unknown tile code "' + row[x] + '" at ' + x + ',' + y);
+      if (!def) problems.push('Map "' + map.id + '" unknown tile code "' + row[x] + '" at ' + x + ',' + y);
       cells.push(def);
     }
     grid.push(cells);
+  }
+  if (problems.length > 0) {
+    throw new Error(problems.join('\n'));
   }
   return grid;
 }
