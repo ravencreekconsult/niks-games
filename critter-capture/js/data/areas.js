@@ -63,6 +63,41 @@ const ROUTE_ROWS = [
   '############################',
 ];
 
+/* --- Willowbrook (second town), 24 wide x 18 tall --- */
+const TOWN2_ROWS = [
+  '########################',
+  '#......................#',
+  '#..rrrrrr......rrrr....#',
+  '#..rrrrrr......rrrr....#',
+  '#..hhhDhh......hDDh....#',
+  '#......................#',
+  '#..........====........#',
+  '#..........=...........#',
+  '#..ff......=......ff...#',
+  '#..........=...........#',
+  '#..........====........#',
+  '#......................#',
+  '#..~~~~~~~~............#',
+  '#..~~~~~~~~......S.....#',
+  '========================',
+  '#......................#',
+  '#....TT........TT......#',
+  '########################',
+];
+
+/* --- Willowbrook Healing Centre (interior), 12 wide x 9 tall --- */
+const HEAL_ROWS = [
+  '############',
+  '#..........#',
+  '#..........#',
+  '#..======..#',
+  '#..........#',
+  '#..........#',
+  '#..........#',
+  '#..........#',
+  '#####DD#####',
+];
+
 export const MAPS = {
   town: {
     id: 'town', name: 'Rivenmoor', w: 24, h: 18,
@@ -127,6 +162,7 @@ export const MAPS = {
     spawn: { x: 1, y: 14 },
     warps: [
       { x: 0, y: 14, to: 'town', tx: 22, ty: 14 },
+      { x: 27, y: 14, to: 'town2', tx: 1, ty: 14 },
     ],
     npcs: [
       { x: 3, y: 12, dir: 'down', sprite: 'npcScout', name: 'Scout Pip', flag: 'metPip', lines: [
@@ -169,6 +205,56 @@ export const MAPS = {
         { speciesId: 'gloamkitty', min: 4, max: 6, weight: 1 },
       ],
     },
+  },
+  town2: {
+    id: 'town2', name: 'Willowbrook', w: 24, h: 18,
+    rows: TOWN2_ROWS,
+    legend: LEGEND,
+    spawn: { x: 1, y: 14 },
+    warps: [
+      { x: 0, y: 14, to: 'route1', tx: 26, ty: 14 },
+      { x: 6, y: 4, to: 'heal_centre', tx: 5, ty: 7 },
+    ],
+    npcs: [
+      { x: 5, y: 7, dir: 'down', sprite: 'npcKid', name: 'Bram', flag: 'metBram', lines: [
+        'Welcome to Willowbrook!',
+        'Our healing centre is free — just walk in and talk to Nurse Hazel.',
+        'Route 1 runs east, back to Rivenmoor.',
+      ], again: [
+        'Nurse Hazel will patch up your whole team. She never charges a coin.',
+      ] },
+    ],
+    signs: [
+      { x: 17, y: 13, lines: [
+        'WILLOWBROOK TOWN',
+        'Tired critters, rest easy.',
+        'The healing centre has a green roof — north-west of here.',
+      ] },
+    ],
+    trainers: [],
+    encounters: null,
+  },
+  heal_centre: {
+    id: 'heal_centre', name: 'Healing Centre', w: 12, h: 9,
+    rows: HEAL_ROWS,
+    legend: LEGEND,
+    spawn: { x: 5, y: 7 },
+    warps: [
+      { x: 5, y: 8, to: 'town2', tx: 6, ty: 5 },
+      { x: 6, y: 8, to: 'town2', tx: 6, ty: 5 },
+    ],
+    npcs: [
+      { x: 6, y: 2, dir: 'down', sprite: 'npcNurse', name: 'Nurse Hazel', flag: 'metHazel', heal: true, lines: [
+        'Welcome to the Willowbrook Healing Centre!',
+        'Let me take a look at your whole team...',
+        'There — every one of them is rested and back to full strength!',
+      ], again: [
+        'Come back any time. Your critters always get the best care here.',
+      ] },
+    ],
+    signs: [],
+    trainers: [],
+    encounters: null,
   },
 };
 

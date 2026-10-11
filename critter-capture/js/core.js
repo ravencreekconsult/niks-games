@@ -335,6 +335,8 @@ function closeDialog() {
     flagsOf()[dlgTarget.npc.flag] = true;
     Game.persist();
   }
+  // a healing-centre nurse restores the party as the conversation ends
+  if (dlgTarget && dlgTarget.npc && dlgTarget.npc.heal) healParty();
   dlgSteps = null;
   dlgTarget = null;
   if (dlgEl) dlgEl.style.display = 'none';
@@ -389,6 +391,19 @@ function statsOf(m) {
 function maxHpOf(m) {
   const st = statsOf(m);
   return st ? st.hp : 1;
+}
+
+/* A healing-centre NPC (an npc carrying `heal: true`) restores the whole
+   party on the way out of the conversation. `hp: null` already means "full",
+   so every member is simply written to its real max HP. */
+function healParty() {
+  const party = Game.save.party || [];
+  party.forEach(function (m) {
+    if (!m) return;
+    m.hp = maxHpOf(m);
+  });
+  Game.persist();
+  return party.length;
 }
 
 function openPartyMenu() {
