@@ -99,6 +99,7 @@ const Game = {
   input,
   save: null,
   persist() { saveGame(this.save); },
+  setMenu, // battle.js calls G.setMenu(...) — must be on the object, not just module scope
   onEncounter(speciesId, level) {
     scene = 'battle';
     try { battle.start(Game, speciesId, level); }
