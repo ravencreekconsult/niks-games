@@ -51,6 +51,22 @@
   #info button:active{transform:scale(.94)}
   #info .up{background:linear-gradient(135deg,var(--ok),var(--accent2));color:#06110f;border:0}
   #info .sell{background:#2a1418;color:#ff9db0;border-color:#5a2630}
+  #abil{display:flex;gap:8px;padding:7px 9px;background:linear-gradient(0deg,rgba(12,17,25,.94),rgba(20,26,37,.94));border-top:1px solid var(--line)}
+  #abil button{flex:1;min-height:46px;border:1px solid var(--line);border-radius:12px;background:rgba(9,13,20,.88);
+    color:var(--ink);font-weight:800;font-size:13px;padding:6px 4px;transition:transform .08s,opacity .15s}
+  #abil button:active{transform:scale(.95)}
+  #abil button.armed{border-color:var(--bad);box-shadow:0 0 12px rgba(255,59,92,.5);color:#ffd0d8}
+  #bossbar{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:min(560px,86%);display:none;z-index:5;
+    background:rgba(8,11,17,.88);border:1px solid rgba(255,59,92,.55);border-radius:12px;padding:5px 10px 7px;
+    pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+  #bname{font-size:12px;font-weight:800;letter-spacing:.4px;color:#ff8fa3;text-shadow:0 0 8px rgba(255,59,92,.4)}
+  #btrack{position:relative;height:12px;border-radius:6px;background:rgba(0,0,0,.6);margin-top:4px;overflow:hidden;border:1px solid rgba(255,255,255,.15)}
+  #bfill{position:absolute;top:0;left:0;height:100%;width:100%;background:linear-gradient(90deg,#ff3b5c,#ff8a3d)}
+  #bsh{position:absolute;top:0;right:0;height:100%;width:0;background:rgba(0,229,255,.75)}
+  .gtog{display:flex;gap:4px;align-items:center}
+  .gtog>span{font-size:11px;color:var(--dim);font-weight:700}
+  .gtog button{background:rgba(9,13,20,.9);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:700}
+  .gtog button.on{color:var(--accent2);border-color:var(--accent2)}
   .hint{padding:6px 10px 8px;background:rgba(12,17,25,.94);color:#718093;font-size:11px}
   @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card{animation:none} }
 </style>
