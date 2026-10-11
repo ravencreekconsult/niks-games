@@ -384,16 +384,24 @@ function doAirstrike(gx,gy){
       if(S.nums.length<30) floatTxt(e.x,e.y,320*(0.35+0.65*f),"#ffb347"); } }
   hud();
 }
-function detonate(tp){ const p=pathAt(tp.d), x=p.x, y=p.y, R=1.6;
-  S.shake=Math.max(S.shake,12);
+function detonateMine(tp,tscale){ const p=pathAt(tp.d), x=p.x, y=p.y, R=1.2;
+  S.shake=Math.max(S.shake,10);
   for(let i=0;i<2;i++) S.fx.push({x,y,r0:0.2+i*0.25,r1:R*(0.85+i*0.12),life:0.45+i*0.1,ml:0.45+i*0.1,color:i?"#ffd166":"#ffffff",w:4});
-  for(let i=0;i<36;i++){ const a=Math.random()*Math.PI*2,sp=2+Math.random()*3.5;
+  for(let i=0;i<28;i++){ const a=Math.random()*Math.PI*2,sp=2+Math.random()*3;
     S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.4+Math.random()*.4,color:i%3?"#ffb347":"#ff5a3c",size:2.5}); }
+  if(S.parts.length>250) S.parts.splice(0,S.parts.length-250);
   addDecal(x,y,R*0.6,"scorch","#150e08");
-  for(const e of S.enemies){ if(e.dead) continue; const d=Math.hypot(e.x-x,e.y-y);
-    if(d<=R){ const f=1-d/R; hurt(e,260*(0.35+0.65*f),true); floatTxt(e.x,e.y,260*(0.35+0.65*f),"#ffb347"); } }
-  hud();
+  for(const e of S.enemies){ if(e.dead||e.flying) continue; const d=Math.hypot(e.x-x,e.y-y);
+    if(d<=R){ const f=1-d/R; const dm=26*tscale*(0.5+0.5*f);
+      hurtTrap(e,dm); floatTxt(e.x,e.y,dm,"#ffb347"); } }
+  tp.pulse=0.3; hud();
 }
+/* HARD RULE: trap damage can never take an enemy below 15% of its max HP —
+   traps soften and slow, towers do the killing. No trap can kill a full-health enemy. */
+function hurtTrap(e,dmg){ const floor=e.max*0.15;
+  const d=Math.max(0,Math.min(e.hp-floor, dmg));
+  if(d>0) hurt(e,d,false); }
+function doAirstrike(gx,gy){
 abAir.onclick=()=>{ if(paused||S.over||S.time<S.cd.air) return; S.armed=!S.armed; if(S.armed) S.deploy=null; say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1200); };
 abFrz.onclick=()=>{ if(paused||S.over||S.time<S.cd.frz) return; S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); };
 abRep.onclick=()=>{ if(paused||S.over||S.time<S.cd.rep||S.repairUses<=0) return; S.cd.rep=S.time+ABIL.rep.cd; S.repairUses--;
@@ -423,11 +431,16 @@ function tap(gx,gy){
       if(S.soldiers.find(s=>s.gx===gx&&s.gy===gy)){ say("A soldier is already here",1000); return; }
       if(S.soldiers.filter(s=>!s.dead).length>=SOLMAX){ say("Max "+SOLMAX+" soldiers on the field",1200); return; }
       const L=SOL_LV[0];
-      S.soldiers.push({gx,gy,d:pathDistOf(gx,gy),lvl:1,max:L.hp,hp:L.hp,dmg:L.dmg,atkT:0,swing:0,tgt:null,dead:false,deathT:0});
+      S.soldiers.push({gx,gy,d:pathDistOf(gx,gy),lvl:1,max:L.hp,hp:L.hp,dmg:L.dmg,atkT:0,swing:0,tgt:null,dead:false,deathT:0,
+        holdT:0,holdMax:L.hold,swingTime:1/L.rate,recT:0,recMax:L.rec});
     } else {
       if(S.traps.find(t=>t.gx===gx&&t.gy===gy)){ say("Something is already here",1000); return; }
       if(S.traps.length>=TRAPMAX){ say("Max "+TRAPMAX+" traps",1100); return; }
-      S.traps.push({gx,gy,kind:S.deploy,d:pathDistOf(gx,gy),cd:0,pulse:0,dead:false});
+      const nb={gx,gy,kind:S.deploy,d:pathDistOf(gx,gy),cd:0,pulse:0,dead:false};
+      if(S.deploy==="mine") nb.trig=false;
+      else if(S.deploy==="wire"){ nb.hitsLeft=8; nb.seen=new Set(); }
+      else if(S.deploy==="sticky") nb.ttl=20;
+      S.traps.push(nb); }
     }
     S.gold-=r.cost; hud(); refreshShopAff(); return; }
   const sl=S.soldiers.find(s=>s.gx===gx&&s.gy===gy&&!s.dead);
@@ -500,6 +513,7 @@ iUp.onclick=()=>{ if(selSold){ const s=selSold;
     if(s.lvl>=3) return; const c=SOL_UP[s.lvl-1];
     if(S.gold<c.cost){ say("Need "+c.cost+"g"); return; }
     S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
+    s.holdMax=L.hold; s.recMax=L.rec; s.swingTime=1/L.rate; s.holdT=0; s.recT=0; s.tgt=null;
     say("Soldier Lv"+s.lvl+"!",1100); hud(); showInfo(); return; }
   if(selTower) buyTrack("range"); };
 iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
