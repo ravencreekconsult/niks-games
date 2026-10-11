@@ -245,7 +245,7 @@
   var twinkles = [];
 
   /* pull animation state */
-  var pull = null; /* { t0, col, fired, cb, name } */
+  var pullState = null; /* { t0, col, fired, cb, name } */
   var swordUp = 0; /* 0..1 how far the sword is lifted out (animated, settles back) */
   var swordUpTarget = 0;
 
