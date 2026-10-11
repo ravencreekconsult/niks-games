@@ -692,20 +692,11 @@ function renderBG(){
     const ph=(typeof S!=="undefined"&&S)?lightPhase(S.wave):0;
     /* backdrop below the horizon */
     g.fillStyle="#0b120c"; g.fillRect(0,0,W,H);
-    /* sky strip above the board only exists at zoom 1; the board canvas is board-only */
-    const shy=Math.max(2,oy), bw=COLS*cell, bh=ROWS*cell, bx=ox, by=oy;
+    /* the board canvas is board-only; the horizon band is painted into the TOP
+       ROWS of the board itself (after all board art) so it shows at any zoom */
+    const bw=COLS*cell, bh=ROWS*cell, bx=ox, by=oy;
     const skyCols=[["#7ec8f7","#d8f0ff"],["#8fb7e8","#ffd9a8"],["#544a86","#d3825e"],["#131b38","#2a3558"]][ph];
     const hillA= ph>=3? "#101a30" : "#24402a", hillB= ph>=3? "#0a1122" : "#1a3020";
-    if(shy>2){
-      const sky=g.createLinearGradient(0,0,0,shy);
-      sky.addColorStop(0,skyCols[0]); sky.addColorStop(1,skyCols[1]);
-      g.fillStyle=sky; g.fillRect(0,0,W,shy);
-      g.fillStyle=hillA;
-      g.beginPath(); g.ellipse(W*0.2,shy,W*0.2,cell*1.3,0,Math.PI,Math.PI*2); g.fill();
-      g.beginPath(); g.ellipse(W*0.82,shy,W*0.26,cell*0.9,0,Math.PI,Math.PI*2); g.fill();
-      g.fillStyle=hillB;
-      g.beginPath(); g.ellipse(W*0.5,shy,W*0.5,cell*0.55,0,Math.PI,Math.PI*2); g.fill();
-    }
     g.fillStyle="#31502b"; g.fillRect(bx,by,bw,bh);
     /* soft mottling patches */
     for(let i=0;i<130;i++){ const px=bx+rnd()*bw, py=by+rnd()*bh, rr=cell*(0.4+rnd()*1.3);
@@ -756,6 +747,17 @@ function renderBG(){
     const vg=g.createRadialGradient(bx+bw/2,by+bh/2,Math.min(bw,bh)*0.42,bx+bw/2,by+bh/2,Math.max(bw,bh)*0.72);
     vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,0.34)");
     g.fillStyle=vg; g.fillRect(bx,by,bw,bh);
+    /* horizon band: per-phase sky gradient + distant hill silhouettes over the top
+       of row 0 (row 0 never carries the path, only border trees — safe to overlay) */
+    const shy=cell*0.55;
+    const sky=g.createLinearGradient(0,0,0,shy);
+    sky.addColorStop(0,skyCols[0]); sky.addColorStop(1,skyCols[1]);
+    g.fillStyle=sky; g.fillRect(0,0,W,shy);
+    g.fillStyle=hillA;
+    g.beginPath(); g.ellipse(W*0.2,shy,W*0.2,cell*0.5,0,Math.PI,Math.PI*2); g.fill();
+    g.beginPath(); g.ellipse(W*0.82,shy,W*0.26,cell*0.36,0,Math.PI,Math.PI*2); g.fill();
+    g.fillStyle=hillB;
+    g.beginPath(); g.ellipse(W*0.5,shy,W*0.5,cell*0.24,0,Math.PI,Math.PI*2); g.fill();
   }catch(err){ bgCtx=null; }
   cell=saveCell; ox=saveOx; oy=saveOy;
 }
@@ -954,7 +956,7 @@ function drawRanges(){
     if(selTower===tw){ const st=effStats(tw);
       ring(tw.gx,tw.gy,st.range,"rgba(255,255,255,.4)","rgba(255,255,255,.05)",S.time*22); }
   }
-  if(!S.over && S.hover && !selTower && !S.armed){ const st=TOWERS[sel];
+  if(!S.over && S.hover && !selTower && !S.armed && !S.deploy){ const st=TOWERS[sel];
     ring(S.hover.gx,S.hover.gy,st.range,"rgba(0,229,255,.4)","rgba(0,229,255,.06)",-S.time*18); }
 }
 function drawReticle(){ if(!S.armed||S.over||!S.hover) return;
@@ -967,7 +969,7 @@ function drawReticle(){ if(!S.armed||S.over||!S.hover) return;
   ctx.stroke();
   ctx.fillStyle="rgba(255,59,92,.9)"; ctx.beginPath(); ctx.arc(px,py,2.5,0,7); ctx.fill(); }
 function drawHoverCell(){
-  if(!S.hover || S.over || S.armed) return;
+  if(!S.hover || S.over || S.armed || S.deploy) return;
   const h=S.hover;
   if(pathCells.has(h.gx+","+h.gy)) return;
   if(S.towers.find(t=>t.gx===h.gx&&t.gy===h.gy)) return;
