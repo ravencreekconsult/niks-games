@@ -491,7 +491,6 @@ function tap(gx,gy){
       else if(S.deploy==="wire"){ nb.hitsLeft=8; nb.seen=new Set(); }
       else if(S.deploy==="sticky") nb.ttl=20;
       S.traps.push(nb); }
-    }
     S.gold-=r.cost; hud(); refreshShopAff(); return; }
   const sl=S.soldiers.find(s=>s.gx===gx&&s.gy===gy&&!s.dead);
   if(sl){ selSold=sl; selTower=null; showInfo(); return; }
