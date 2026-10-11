@@ -81,14 +81,22 @@
     <button id="spd">1x</button>
     <button id="pause">❚❚</button>
     <button id="auto">Auto</button>
+    <span class="gtog"><span>Gold:</span><button id="gT" class="on">Testing</button><button id="gR">Real</button></span>
     <button id="go">Start Wave</button>
+  </div>
+  <div id="abil">
+    <button id="abAir">💥 Airstrike</button>
+    <button id="abFrz">❄️ Freeze</button>
+    <button id="abRep">🔧 Repair</button>
+    <button id="abOvr">⚡ Overcharge</button>
   </div>
   <div id="stage">
     <canvas id="cv"></canvas>
     <div id="banner"></div>
+    <div id="bossbar"><span id="bname"></span><div id="btrack"><div id="bfill"></div><div id="bsh"></div></div></div>
     <div id="over"><div class="card"><h1 id="oT"></h1><p id="oX"></p><button id="oB">Play again</button></div></div>
   </div>
-  <div id="info"><span id="iTxt"></span><button class="up" id="iUp">Upgrade</button><button class="sell" id="iSell">Sell</button></div>
+  <div id="info"><span id="iTxt"></span><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
   <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; Speed / Auto wave up top</div>
 </div>
