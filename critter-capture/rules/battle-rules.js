@@ -381,26 +381,34 @@ export function createBattle({ seed = 1, teams = [] }) {
 
 /**
  * defaultIntent({ state, pid }) -> intent
- * Always returns a valid intent object for ANY state:
- *  - if pid has a living active critter and a living foe: best usable move
- *    (highest power with PP left), or Struggle when out of PP;
- *  - otherwise a safe no-op { kind:'skip' }.
+ * ALWAYS returns a usable intent object for ANY state, and NEVER throws:
+ *  - if pid has a combatant (living and active preferred), return its best
+ *    usable move (highest power with PP left), or Struggle when it has no
+ *    move with PP > 0 (or no moves at all);
+ *  - a fainted or otherwise unable-to-act combatant still yields a
+ *    syntactically valid Struggle intent (the resolver skips fainted
+ *    actors, so this is safe for the server's idle-player auto-submit);
+ *  - only a pid with NO combatant at all yields { kind:'skip' }.
  */
 export function defaultIntent({ state, pid }) {
-  const cs = ((state && state.combatants) || []).filter(c => c && c.pid === pid && !c.fainted && c.active !== false);
-  const c = cs[0];
-  if (!c) return { pid, actorId: null, kind: 'skip' };
-  const foes = ((state.combatants) || []).filter(o => o && o.side !== c.side && !o.fainted);
-  if (!foes.length) return { pid, actorId: c.id, kind: 'skip' };
-  const usable = (c.moves || []).filter(m => m && m.pp > 0 && MOVES[m.id] && !MOVES[m.id].unlimited);
-  let moveId = STRUGGLE_ID;
-  let targetId = foes[0].id;
-  if (usable.length) {
-    usable.sort((a, b) => (MOVES[b.id].power || 0) - (MOVES[a.id].power || 0));
-    moveId = usable[0].id;
-    if (MOVES[moveId].target === 'self') targetId = c.id;
+  try {
+    const all = ((state && state.combatants) || []).filter(c => c && c.pid === pid);
+    const c = all.find(x => !x.fainted && x.active !== false)
+           || all.find(x => !x.fainted)
+           || all[0];
+    if (!c) return { pid, actorId: null, kind: 'skip' };
+    const usable = (c.moves || [])
+      .filter(m => m && m.pp > 0 && MOVES[m.id] && !MOVES[m.id].unlimited)
+      .sort((a, b) => (MOVES[b.id].power || 0) - (MOVES[a.id].power || 0));
+    const moveId = usable.length ? usable[0].id : STRUGGLE_ID;
+    const foes = ((state.combatants) || []).filter(o => o && o.side !== c.side && !o.fainted);
+    const targetId = (MOVES[moveId] && MOVES[moveId].target === 'self')
+      ? c.id
+      : (foes[0] ? foes[0].id : c.id);
+    return { pid, actorId: c.id, kind: 'move', moveId, targetId };
+  } catch (e) {
+    return { pid, actorId: null, kind: 'skip' };
   }
-  return { pid, actorId: c.id, kind: 'move', moveId, targetId };
 }
 
 /* =====================================================================
