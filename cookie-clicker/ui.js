@@ -132,7 +132,7 @@ function toast(title, desc, ico, life) {
   }, life || 3500);
 }
 function showModal(html) {
-  $("modal-body").innerHTML = html;
+  $("modal-text").innerHTML = html;
   $("modal").classList.add("show");
 }
 function hideModal() { $("modal").classList.remove("show"); }
@@ -156,9 +156,10 @@ function updateHud() {
   // buff chips
   var buffs = s.buffs.filter(function (b) { return b.endsAt > Date.now(); });
   var bc = $("buffs");
-  var now = Date.now();
-  var sig = buffs.length;
-  if (sig !== bc.childElementCount) {
+  var sig = "";
+  for (var i = 0; i < buffs.length; i++) sig += buffs[i].id + ",";
+  if (sig !== bc.getAttribute("data-sig")) {
+    bc.setAttribute("data-sig", sig);
     bc.innerHTML = "";
     for (var i = 0; i < buffs.length; i++) {
       var chip = el("span", "chip" + (buffs[i].mult < 1 ? " chip-bad" : ""));
@@ -169,9 +170,10 @@ function updateHud() {
       bc.appendChild(chip);
     }
   }
+  var tnow = Date.now();
   for (var j = 0; j < buffs.length && j < bc.children.length; j++) {
     var c = bc.children[j];
-    var left = Math.max(0, (buffs[j].endsAt - now) / 1000);
+    var left = Math.max(0, (buffs[j].endsAt - tnow) / 1000);
     c.lastChild.textContent = Math.ceil(left) + "s";
   }
 }
@@ -568,6 +570,17 @@ function loop(t) {
     // golden expiry check
     if (goldenEl && !NK.goldenActive()) removeGolden(false);
     refreshPanel(currentTab, false);
+    // badges stay live even when their tab is hidden
+    if (currentTab !== "upgrades") {
+      var n = 0, vis = D.UPGRADES.filter(function (u) { return NK.upgradeVisible(u); });
+      for (var i = 0; i < vis.length; i++) if (NK.state.cookies >= vis[i].cost) n++;
+      setBadge("badge-upg", n);
+    }
+    if (currentTab !== "feats") {
+      var m = 0;
+      for (var k in NK.state.achievements) if (NK.state.achievements[k]) m++;
+      setBadge("badge-feats", m);
+    }
   }
   requestAnimationFrame(loop);
 }
