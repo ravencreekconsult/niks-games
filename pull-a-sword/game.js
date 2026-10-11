@@ -61,7 +61,8 @@
       owned: {}, equipped: null,
       pets: [], petCounts: {}, equipPets: [],
       codes: {}, luckBonus: 0,
-      pulls: 0, bestPull: null, pity: 0
+      pulls: 0, bestPull: null, pity: 0,
+      superRebirths: 0, quests: null
     };
   }
   function migrateV1(old) {
@@ -155,7 +156,7 @@
     }
     return b;
   }
-  function rebirthMult() { return Math.pow(1.25, S.rebirths); }
+  function rebirthMult() { return Math.pow(1.25, S.rebirths) * Math.pow(3, S.superRebirths || 0); }
   function tapPower() {
     return (1 + 0.15 * S.level) * swordMult() * petMult() * rebirthMult() * (1 + luckBonus());
   }
@@ -222,6 +223,7 @@
     el.level.textContent = String(S.level);
     el.wins.textContent = fmt(S.wins);
     el.rebirths.textContent = String(S.rebirths);
+    var sc = document.getElementById('superCount'); if (sc) { sc.textContent = String(S.superRebirths || 0); }
     el.world.textContent = curWorld() ? curWorld().name : '—';
     var sw = equippedSword();
     el.equipped.textContent = sw ? sw.n : 'None';
@@ -380,6 +382,7 @@
   }
 
   function applyPull(sw) {
+    bump('pull', 1);
     var ri = rarityIdx(sw.r);
     var col = D.RARITY[ri] ? D.RARITY[ri].c : '#9da7b3';
     var isNew = !S.owned[sw.n];
@@ -525,6 +528,7 @@
     var cost = wd.egg.cost * n;
     if (S.wins < cost) { toast('Not enough wins yet — keep pulling swords!'); return; }
     S.wins -= cost;
+    bump('hatch', n);
     hatching = true;
     el.hatchBtn1.disabled = true;
     el.hatchBtn5.disabled = true;
@@ -710,6 +714,7 @@
     el.bossDps.textContent = 'Your attack per tap: ' + fmt(tapPower()) + ' · Boss hits for ' + fmt(boss.dmg);
   }
   function winBoss() {
+    bump('boss', 1);
     var world = curWorld();
     var winGain = 40 * (world + 1);
     var strGain = tapPower() * 25 + boss.max * 0.5;
@@ -768,6 +773,82 @@
 
   /* ---------- REBIRTH / RESTART ---------- */
   var restartArmed = false;
+
+  /* ---------- DAILY QUESTS + SUPER REBIRTH ---------- */
+  var QUEST_DEFS = [
+    { id: 'train', txt: 'Train {n} times', k: 'train', base: 120 },
+    { id: 'pull',  txt: 'Pull the sword {n} times', k: 'pull', base: 20 },
+    { id: 'hatch', txt: 'Hatch {n} eggs', k: 'hatch', base: 3 },
+    { id: 'boss',  txt: 'Defeat {n} world boss', k: 'boss', base: 1 }
+  ];
+  function dayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function ensureQuests() {
+    if (S.quests && S.quests.day === dayKey()) { return; }
+    var list = [];
+    for (var i = 0; i < QUEST_DEFS.length; i++) {
+      var q = QUEST_DEFS[i];
+      list.push({ id: q.id, need: q.base, have: 0, claimed: false });
+    }
+    S.quests = { day: dayKey(), list: list, streak: (S.quests && S.quests.streak) || 0, bonusClaimed: false, last: (S.quests && S.quests.day) || '' };
+  }
+  function bump(kind, n) {
+    ensureQuests();
+    for (var i = 0; i < S.quests.list.length; i++) {
+      var q = S.quests.list[i];
+      if (QUEST_DEFS[i].k === kind && q.have < q.need) { q.have = Math.min(q.need, q.have + n); }
+    }
+    renderQuests();
+  }
+  function questReward(i) {
+    var base = Math.max(1, S.world + 1);
+    return [{ w: 15 * base, s: tapPower() * 60 }, { w: 25 * base, s: tapPower() * 80 }, { w: 30 * base, s: tapPower() * 100 }, { w: 40 * base, s: tapPower() * 150 }][i];
+  }
+  function claimQuest(i) {
+    ensureQuests();
+    var q = S.quests.list[i];
+    if (q.claimed || q.have < q.need) { return; }
+    q.claimed = true;
+    var r = questReward(i);
+    S.wins += r.w; S.strength += r.s;
+    toast('Quest done! +' + fmt(r.w) + ' wins, +' + fmt(r.s) + ' strength');
+    scene('burst', 0.5, 0.4, '#ffd700', 18);
+    var all = true;
+    for (var j = 0; j < S.quests.list.length; j++) { if (!S.quests.list[j].claimed) { all = false; } }
+    if (all && !S.quests.bonusClaimed) {
+      S.quests.bonusClaimed = true; S.quests.streak = (S.quests.streak || 0) + 1;
+      var luck = 0.02;
+      S.luckBonus = Math.min(1, (S.luckBonus || 0) + luck);
+      toast('ALL DAILIES DONE! +2% permanent luck. Streak: ' + S.quests.streak);
+    }
+    updateHUD(); renderEggs(); renderQuests(); save();
+  }
+  function renderQuests() {
+    var box = document.getElementById('questList'); if (!box) { return; }
+    ensureQuests();
+    var html = '';
+    for (var i = 0; i < S.quests.list.length; i++) {
+      var q = S.quests.list[i], d = QUEST_DEFS[i], r = questReward(i);
+      var pctDone = Math.floor(100 * q.have / q.need);
+      html += '<div class="quest' + (q.claimed ? ' done' : '') + '"><div class="qt"><b>' + d.txt.replace('{n}', q.need) + '</b><span>' + q.have + '/' + q.need + ' &middot; +' + fmt(r.w) + ' wins</span>' +
+        '<div class="bar"><div class="barfill" style="width:' + pctDone + '%;background:linear-gradient(90deg,#3fb950,#ffd700)"></div></div></div>' +
+        '<button class="btn small ' + (q.have >= q.need && !q.claimed ? 'atk' : 'ghost') + '" data-q="' + i + '"' + ((q.have < q.need || q.claimed) ? ' disabled' : '') + '>' + (q.claimed ? 'DONE' : 'CLAIM') + '</button></div>';
+    }
+    box.innerHTML = html;
+    var btns = box.querySelectorAll('button[data-q]');
+    for (var b = 0; b < btns.length; b++) { btns[b].onclick = function () { claimQuest(parseInt(this.getAttribute('data-q'), 10)); }; }
+    var st = document.getElementById('questStreak'); if (st) { st.textContent = 'Daily streak: ' + (S.quests.streak || 0) + ' - finish all 4 for +2% permanent luck'; }
+  }
+  function doSuperRebirth() {
+    if (S.rebirths < 10) { showMsg('Not yet!', 'Super Rebirth needs 10 rebirths. You have ' + S.rebirths + '.'); return; }
+    showMsg('SUPER REBIRTH?', 'Resets your rebirths to 0 plus everything a rebirth resets, but you keep pets, luck and codes, and every Super Rebirth multiplies ALL power by x3 forever. Super Rebirths so far: ' + (S.superRebirths || 0) + '.', 'SUPER REBIRTH!', function () {
+      S.superRebirths = (S.superRebirths || 0) + 1;
+      S.rebirths = 0; S.strength = 0; S.level = 1; S.xp = 0; S.world = 0; S.owned = {}; S.equipped = null; S.pity = 0;
+      toast('SUPER REBIRTH! Total power x' + rebirthMult().toFixed(2));
+      scene('flash', '#ffd700'); scene('burst', 0.5, 0.4, '#ffd700', 40);
+      updateHUD(); renderSwords(); renderEggs(); renderWorlds(); renderQuests(); save();
+    });
+  }
+
   function doRebirth() {
     if (S.level < 10) {
       showMsg('Not yet!', 'You need to be level 10 to rebirth. You are level ' + S.level +
@@ -824,6 +905,7 @@
 
   /* ---------- TRAIN / input ---------- */
   function train() {
+    bump('train', 1);
     addStrength(tapPower(), { col: '#00e5ff' });
     saveSoon();
   }
@@ -865,6 +947,8 @@
   /* ---------- wire up ---------- */
   function bind() {
     el.trainBtn.onclick = train;
+    var sb = document.getElementById('superBtn'); if (sb) { sb.onclick = doSuperRebirth; }
+    renderQuests();
     el.pullBtn.onclick = doPull;
     el.bossBtn.onclick = openBoss;
     el.revealOk.onclick = function () { el.reveal.style.display = 'none'; };
