@@ -226,6 +226,12 @@ function setMenu(items) {
     const b = document.createElement('button');
     b.className = 'mbtn';
     b.textContent = it.label;
+    if (it.sub) {
+      const s = document.createElement('span');
+      s.className = 'sub';
+      s.textContent = it.sub;
+      b.appendChild(s);
+    }
     if (it.disabled) b.disabled = true;
     b.addEventListener('pointerdown', function (e) {
       e.preventDefault();
@@ -286,7 +292,37 @@ function openPartyMenu() {
       cb: function () { openDetailCard(i); },
     });
   });
+  items.push({ label: 'TYPE CHART', cb: function () { openTypeList(); } });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+/* The type-chart screens: one button per type, then that type's matchup rows
+   built live from RULES.TYPE_CHART (a missing entry means x1). */
+function openTypeList() {
+  const items = [{ label: 'TYPES', disabled: true }];
+  RULES.TYPES.forEach(function (t) {
+    items.push({ label: t.toUpperCase(), cb: function () { openTypeDetail(t); } });
+  });
+  items.push({ label: 'BACK', cb: openPartyMenu });
+  setMenu(items);
+}
+
+function openTypeDetail(type) {
+  const row = RULES.TYPE_CHART[type] || {};
+  const strong = [], weak = [], none = [];
+  RULES.TYPES.forEach(function (t) {
+    const m = row[t];
+    if (m === 2) strong.push(t.toUpperCase());
+    else if (m === 0.5) weak.push(t.toUpperCase());
+    else if (m === 0) none.push(t.toUpperCase());
+  });
+  const items = [{ label: type.toUpperCase() + ' MATCHUPS', disabled: true }];
+  items.push({ label: 'STRONG vs: ' + (strong.join('  ') || '—'), disabled: true });
+  items.push({ label: 'WEAK vs: ' + (weak.join('  ') || '—'), disabled: true });
+  if (none.length) items.push({ label: 'NO EFFECT vs: ' + none.join('  '), disabled: true });
+  items.push({ label: 'Everything else: x1', disabled: true });
+  items.push({ label: 'BACK', cb: openTypeList });
   setMenu(items);
 }
 

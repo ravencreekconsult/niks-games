@@ -173,6 +173,10 @@
   body.no-motion .crumb, body.no-motion .float, body.no-motion .golden,
   body.no-motion #bigcookie.pop, body.no-motion.flash { animation:none !important; }
   body.no-motion .toast { animation:none; }
+  #jserr { position:fixed; left:6px; bottom:calc(env(safe-area-inset-bottom) + 4px); z-index:99;
+    font-size:11px; color:#ffb3a0; background:#1d1409dd; border:1px solid #7a3030;
+    border-radius:8px; padding:3px 8px; max-width:96vw; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; pointer-events:none; display:none; }
 </style>
 </head>
 <body>
@@ -254,11 +258,36 @@
     </div>
   </footer>
 
+  <div id="jserr"></div>
+
   <div id="toasts" aria-live="polite"></div>
   <div id="modal" role="dialog" aria-modal="true">
     <div id="modal-body"><div id="modal-text"></div><button id="modal-btn">Got it!</button></div>
   </div>
 
+  <script>
+  /* Visible diagnostics: whoever maintains this page cannot open a console, so a script
+     error must be shown on screen instead of failing silently. */
+  (function () {
+    function show(t) {
+      try {
+        var h = document.getElementById('jserr');
+        if (h) { h.textContent = t; h.style.display = 'block'; }
+      } catch (e) {}
+    }
+    window.addEventListener('error', function (e) {
+      try {
+        var f = (e && e.filename) ? String(e.filename).split('/').pop() : '?';
+        show('JS ERROR: ' + ((e && e.message) || 'unknown') + '  (' + f + ':' + ((e && e.lineno) || 0) + ')');
+      } catch (err) {}
+    });
+    window.addEventListener('load', function () {
+      if (!window.NKData) { show('data.js did not load'); return; }
+      if (!window.NK) { show('engine.js did not load'); return; }
+      if (!window.NK.save) { show('engine.js loaded but has no save()'); }
+    });
+  })();
+  </script>
   <script src="data.js"></script>
   <script src="engine.js"></script>
   <script src="ui.js"></script>

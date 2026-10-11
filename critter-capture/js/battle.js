@@ -399,6 +399,8 @@ function showSwitchMenu() {
 function showMoveMenu() {
   phase = 'menu';
   const me = activeOf(0);
+  const foe = activeOf(1);
+  const foeTypes = (SPECIES[foe.speciesId] || {}).types || [];
   const buttons = [];
   let anyUsable = false;
   for (const slot of me.moves) {
@@ -406,8 +408,13 @@ function showMoveMenu() {
     if (!mv) continue;
     const usable = slot.pp > 0;
     if (usable) anyUsable = true;
+    const eff = getTypeEffect(mv.type, foeTypes);
+    const effTxt = eff !== 1 ? ' x' + (Math.round(eff * 10) / 10) : '';
+    const sub = String(mv.type).toUpperCase() + ' · ' + String(mv.cat).toUpperCase() + ' · ' +
+      (mv.power ? mv.power : '—') + effTxt;
     buttons.push({
       label: mv.name + (usable ? ' (' + slot.pp + ')' : ' (0)'),
+      sub: sub,
       disabled: !usable,
       cb: usable ? () => submit(playerMoveIntent(slot.id)) : null,
     });

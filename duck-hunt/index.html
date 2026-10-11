@@ -75,6 +75,7 @@
     <span class="chip" id="shellChip">SHELLS <b id="shells">6</b></span>
     <span class="chip">GUN <b id="gun">12-Gauge</b></span>
     <span class="chip">MODE <b id="diff">Normal</b></span>
+    <span class="chip" id="errChip" style="display:none;color:#ff8fa3"></span>
   </div>
   <div id="stage">
     <canvas id="cv" width="640" height="400"></canvas>
@@ -95,6 +96,24 @@
     <button id="muteBtn" class="small">SND ON</button>
   </div>
 </div>
+<script>
+/* Visible diagnostics: whoever maintains this page cannot open a console, so a script
+   error must be shown on screen instead of failing silently. */
+(function () {
+  function show(t) {
+    try {
+      var h = document.getElementById('errChip');
+      if (h) { h.textContent = t; h.style.display = ''; }
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    try {
+      var f = (e && e.filename) ? String(e.filename).split('/').pop() : '?';
+      show('JS ERROR: ' + ((e && e.message) || 'unknown') + '  (' + f + ':' + ((e && e.lineno) || 0) + ')');
+    } catch (err) {}
+  });
+})();
+</script>
 <script>
 (function(){
 'use strict';
