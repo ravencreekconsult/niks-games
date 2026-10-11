@@ -258,30 +258,82 @@ menuEl.addEventListener('keydown', function () {}); // no-op; keyboard handled b
 const dlgEl = document.getElementById('dialog');
 const dlgName = document.getElementById('dlgName');
 const dlgText = document.getElementById('dlgText');
-let dlgLines = null, dlgIndex = 0, dlgOpen = false;
+let dlgSteps = null, dlgIndex = 0, dlgOpen = false, dlgChoice = false, dlgTarget = null;
+
+function flagsOf() {
+  if (!Game.save.flags || typeof Game.save.flags !== 'object') Game.save.flags = {};
+  return Game.save.flags;
+}
 
 function openDialog(t) {
   dlgOpen = true;
-  dlgLines = (t && t.lines) || [];
+  dlgTarget = t || null;
+  dlgSteps = (t && t.steps) || [];
   dlgIndex = 0;
+  dlgChoice = false;
   if (dlgName) dlgName.textContent = t.name || '';
-  if (dlgText) dlgText.textContent = dlgLines[0] || '';
   if (dlgEl) dlgEl.style.display = 'flex';
+  showDlgStep();
   input.aQueued = 0; // the press that opened it must not also advance a line
   input.bQueued = 0;
 }
+function showDlgStep() {
+  const step = dlgSteps[dlgIndex];
+  if (step && step.ask) {
+    // a yes/no question: the DOM menu (big 44px+ buttons) takes over here.
+    // Movement is already locked (dlgOpen) and A activates the menu item.
+    dlgChoice = true;
+    if (dlgText) dlgText.textContent = step.ask;
+    setMenu([
+      { label: 'YES', cb: function () { answerDlg(step, true); } },
+      { label: 'NO', cb: function () { answerDlg(step, false); } },
+    ]);
+  } else if (dlgText) {
+    dlgText.textContent = step || '';
+  }
+}
+function answerDlg(step, yes) {
+  setMenu(null); // close the choice before the follow-up line
+  dlgChoice = false;
+  flagsOf()[yes ? step.flagYes : step.flagNo] = true;
+  Game.persist();
+  dlgSteps[dlgIndex] = yes ? step.yesLine : step.noLine; // the follow-up line
+  showDlgStep();
+}
 function advanceDialog() {
+  if (dlgChoice) return; // a pending question must be answered via the menu
   dlgIndex++;
-  if (dlgIndex >= dlgLines.length) closeDialog();
-  else if (dlgText) dlgText.textContent = dlgLines[dlgIndex];
+  if (dlgIndex >= dlgSteps.length) { closeDialog(); return; }
+  showDlgStep();
 }
 function closeDialog() {
   dlgOpen = false;
-  dlgLines = null;
+  dlgChoice = false;
+  // the NPC remembers you: set its visit flag so it says `again` next time
+  if (dlgTarget && dlgTarget.npc && dlgTarget.npc.flag) {
+    flagsOf()[dlgTarget.npc.flag] = true;
+    Game.persist();
+  }
+  dlgSteps = null;
+  dlgTarget = null;
   if (dlgEl) dlgEl.style.display = 'none';
   input.aQueued = 0; // nothing may leak through when the box closes
   input.bQueued = 0;
 }
+
+/* Tap on the canvas: talk to an NPC you touch, or advance the open dialogue.
+   The canvas is integer-scaled, so map client coords back through the scale. */
+canvas.addEventListener('pointerdown', function (e) {
+  e.preventDefault();
+  if (scene !== 'overworld') return;
+  if (menuItems && menuItems.length) return; // a choice menu owns taps right now
+  const r = canvas.getBoundingClientRect();
+  const vx = (e.clientX - r.left) / r.width * 240;
+  const vy = (e.clientY - r.top) / r.height * 160;
+  if (dlgOpen) { advanceDialog(); return; }
+  const t = ow.tapTarget(vx, vy);
+  if (t) openDialog(t);
+});
 
 
 /* ---------------- party screen (overworld) ------------------------------

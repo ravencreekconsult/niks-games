@@ -73,16 +73,32 @@ export const MAPS = {
       { x: 23, y: 14, to: 'route1', tx: 1, ty: 14 },
     ],
     npcs: [
-      { x: 8, y: 7, dir: 'down', sprite: 'npcKid', name: 'Mara', lines: [
+      { x: 8, y: 7, dir: 'down', sprite: 'npcKid', name: 'Mara', flag: 'metMara', lines: [
         'Hi! Welcome to Rivenmoor.',
         'The tall grass on Route 1 is full of wild critters.',
         'A strong team sticks together out there!',
+      ], again: [
+        'Back again! Say hi to a wild critter for me.',
       ] },
-      { x: 16, y: 10, dir: 'down', sprite: 'npcElder', name: 'Old Fen', lines: [
+      { x: 16, y: 10, dir: 'down', sprite: 'npcElder', name: 'Old Fen', flag: 'metFen', lines: [
         'Ah, a new critter catcher!',
         'Stand facing someone or a sign, then press the green button.',
         'The pond is deep. Critters love it — people can\'t swim it.',
-      ] },
+        'Now, one thing every catcher should know...',
+        { ask: 'Want the quick lesson on weakening a critter before you catch it?',
+          flagYes: 'fenCoached', flagNo: 'fenDeclined',
+          yesLine: 'BATTLE it until its HP bar drops low — THEN throw the pouch. A weak critter stays caught!',
+          noLine: 'No rush. Ask me any time and I will gladly repeat it.',
+        },
+      ], again: {
+        check: 'fenCoached',
+        ifTrue: [
+          'My catching student! Weaken first, then throw — you know the way.',
+        ],
+        ifFalse: [
+          'The lesson still stands, whenever you want it: weaken first, then throw.',
+        ],
+      } },
     ],
     signs: [
       { x: 19, y: 13, lines: [
@@ -102,10 +118,12 @@ export const MAPS = {
       { x: 0, y: 14, to: 'town', tx: 22, ty: 14 },
     ],
     npcs: [
-      { x: 3, y: 12, dir: 'down', sprite: 'npcScout', name: 'Scout Pip', lines: [
+      { x: 3, y: 12, dir: 'down', sprite: 'npcScout', name: 'Scout Pip', flag: 'metPip', lines: [
         'Whoa, hi! I\'m counting critters today.',
         'So far: sproutle, cinderpup... and one gloamkitty!',
         'If your team gets hurt, rest up in town first.',
+      ], again: [
+        'The gloamkitty count is up to two! What have YOU caught?',
       ] },
     ],
     signs: [],
