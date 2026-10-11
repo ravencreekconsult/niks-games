@@ -875,20 +875,94 @@ function drawPowerups(){
     ctx.restore();
   }
 }
-function drawDuckBody(cols,headCol,wingbar,gold,flap,beakCol){
-  ctx.lineWidth=2; ctx.lineJoin='round'; ctx.strokeStyle='#0b0f16';
+var glowCv=null;
+function glowSprite(){
+  if(glowCv) return glowCv;
+  var oc=offCanvas(); if(!oc) return null;
+  var c=oc.getContext('2d'); if(!c) return null;
+  var g=c.createRadialGradient(VW/2,VH/2,2,VW/2,VH/2,VW/2);
+  g.addColorStop(0,'rgba(255,236,150,0.95)');
+  g.addColorStop(0.35,'rgba(255,214,90,0.45)');
+  g.addColorStop(1,'rgba(255,200,60,0)');
+  c.fillStyle=g; c.fillRect(0,0,VW,VH);
+  glowCv=oc; return glowCv;
+}
+function drawGlow(x,y,size){
+  var g=glowSprite(); if(!g) return;
+  ctx.save(); ctx.globalAlpha=0.75; ctx.drawImage(g,x-VW/2,y-VH/2,VW,VH); ctx.restore();
+}
+function drawDuckBody(cols,headCol,wingbar,gold,flap,beakCol,bank){
+  var i;
+  ctx.save();
+  ctx.rotate(bank||0);
+  ctx.lineWidth=2; ctx.lineJoin='round'; ctx.strokeStyle='#111a26';
+  // gold bloom, behind the whole bird (shapes only — no shadowBlur)
+  if(gold){
+    ctx.fillStyle='rgba(255,224,113,0.35)';
+    ctx.beginPath(); ctx.ellipse(-1,0,26,11,-0.1,0,6.283); ctx.fill();
+    ctx.strokeStyle='rgba(255,244,190,0.8)'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.ellipse(-1,0,27,12.4,-0.1,0,6.283); ctx.stroke();
+    ctx.lineWidth=2; ctx.strokeStyle='#111a26';
+  }
+  // tail: three nested, slightly fanned wedges
+  for(i=0;i<3;i++){
+    ctx.fillStyle=i===2?cols[0]:cols[1];
+    tri(ctx,-16,2+i*1.6,-33+i*4,-4-i*3.2,-15,6+i*1.2);
+    ctx.fill(); ctx.stroke();
+  }
+  // body
   ctx.fillStyle=cols[0];
-  ctx.beginPath(); ctx.ellipse(0,4,18,11,0,0,6.283); ctx.fill(); ctx.stroke();
-  ctx.fillStyle=wingbar||cols[1];
-  ctx.beginPath(); ctx.ellipse(-4,2,9,5,-0.2,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0,4,20,12,0,0,6.283); ctx.fill(); ctx.stroke();
+  // belly / chest highlight so the body reads round
+  ctx.fillStyle=cols[1]; ctx.globalAlpha=0.55;
+  ctx.beginPath(); ctx.ellipse(2,7,15,7,0.06,0,6.283); ctx.fill();
+  ctx.globalAlpha=1;
+  // folded wing (upper-body feather) + wingbar stripe + primary tips
   ctx.fillStyle=cols[1];
-  ctx.beginPath(); ctx.ellipse(-2,-1-flap*5,10,6,flap*0.7,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-3,0,13,7,-0.22,0,6.283); ctx.fill(); ctx.stroke();
+  if(wingbar){
+    ctx.fillStyle=wingbar;
+    ctx.beginPath(); ctx.ellipse(-3,-1,10,2.6,-0.24,0,6.283); ctx.fill();
+  }
+  ctx.fillStyle=mixHex(cols[0],'#000000',0.25);
+  tri(ctx,-13,3,-20,7,-10,6); ctx.fill(); ctx.stroke();
+  tri(ctx,-10,4,-18,10,-7,8); ctx.fill(); ctx.stroke();
+  // flying wing: sweeps from -0.9 rad (up) to +0.55 rad (down) with squash at the extremes
+  var wf=(Math.sin(flap*Math.PI)+1)/2;
+  var wr=-0.9+wf*1.45;
+  var squash=1-0.15*Math.abs(Math.sin(flap*Math.PI));
+  var wy=-4-wf*3;
+  ctx.save(); ctx.translate(-4,wy); ctx.rotate(wr);
+  ctx.fillStyle=cols[1];
+  ctx.beginPath(); ctx.ellipse(-6,0,17*squash,8*squash,0.1,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle=cols[0];
+  tri(ctx,-20,1,-27,6,-15,5); ctx.fill(); ctx.stroke();
+  tri(ctx,-17,3,-26,9,-12,7); ctx.fill(); ctx.stroke();
+  tri(ctx,-13,4,-22,11,-9,8); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  // neck + head
+  ctx.strokeStyle='#111a26'; ctx.lineWidth=3.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(10,0); ctx.lineTo(13,-6); ctx.stroke();
+  ctx.lineWidth=2; ctx.lineCap='butt';
   ctx.fillStyle=headCol||cols[0];
   ctx.beginPath(); ctx.arc(13,-7,7,0,6.283); ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#0b0f16'; ctx.beginPath(); ctx.arc(15,-9,1.8,0,6.283); ctx.fill();
+  // face: eye patch, pupil with catchlight, bill with midline + nostril
+  ctx.fillStyle='#f6efdd'; ctx.globalAlpha=0.85;
+  ctx.beginPath(); ctx.ellipse(14.5,-9.4,4.6,3.4,0.35,0,6.283); ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#111a26'; ctx.beginPath(); ctx.arc(15.6,-9.6,1.9,0,6.283); ctx.fill();
+  ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.arc(14.9,-10.4,1,0,6.283); ctx.fill();
   ctx.fillStyle=beakCol||cols[2];
-  tri(ctx,19,-7,28,-5,19,-3); ctx.fill(); ctx.stroke();
-  if(gold){ ctx.globalAlpha=0.35; ctx.fillStyle='#fff2b0'; ctx.beginPath(); ctx.ellipse(-2,-2,20,7,-0.15,0,6.283); ctx.fill(); ctx.globalAlpha=1; }
+  tri(ctx,18,-8,29,-5.5,18,-2.5); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle=mixHex(beakCol||cols[2],'#000000',0.45); ctx.lineWidth=1.1;
+  ctx.beginPath(); ctx.moveTo(19,-6.2); ctx.lineTo(27,-5.4); ctx.stroke();
+  ctx.fillStyle='#111a26'; ctx.beginPath(); ctx.arc(20.4,-7.1,0.8,0,6.283); ctx.fill();
+  ctx.strokeStyle='#111a26'; ctx.lineWidth=2;
+  // tucked feet under the rear
+  ctx.fillStyle=mixHex(cols[0],'#000000',0.35);
+  tri(ctx,-6,15,-2,15,-4,19); ctx.fill(); ctx.stroke();
+  tri(ctx,-1,15,3,15,1,19); ctx.fill(); ctx.stroke();
+  ctx.restore();
 }
 function drawDucksAll(){
   var i,j;
