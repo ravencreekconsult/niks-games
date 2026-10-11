@@ -230,7 +230,7 @@ export const MAPS = {
         party: [{ speciesId: 'coalclaw', level: 18 }, { speciesId: 'magmaclaw', level: 19 }], reward: 800,
         lines: [
           'Halt! You stand on ember ground now.',
-          'I\'m Bram, keeper of the Ember Badge. My team burns bright and burns hot.',
+          'I\'m Ash, keeper of the Ember Badge. My team burns bright and burns hot.',
           'If your heart is steady, step forward and battle!',
         ],
         winLine: 'A blaze well earned! Take the EMBER BADGE — carry its fire with you!',
