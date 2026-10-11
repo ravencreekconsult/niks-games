@@ -2,15 +2,47 @@
    is unavailable; the game just runs without persisting. */
 
 const KEY = 'critter-capture-save';
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
+
+/* Deterministic per-critter identity: a tiny 32-bit string hash drives both
+   the IV roll and the nature pick, so the same (speciesId, seed) always
+   yields the same critter. No Math.random — identities must be stable. */
+function hash32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+
+const NATURE_KEYS = ['hardy', 'lonely', 'adamantine', 'modest', 'timid', 'calm'];
+const STAT_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
+
+export function rollIdentity(speciesId, seed) {
+  let h = hash32(String(speciesId) + '|' + String(seed));
+  const ivs = {};
+  for (const k of STAT_KEYS) {
+    h = Math.imul(h ^ (h >>> 13), 0x5bd1e995) >>> 0;
+    ivs[k] = h % 32;
+  }
+  h = Math.imul(h ^ (h >>> 15), 0x2545f491) >>> 0;
+  return { ivs, nature: NATURE_KEYS[h % NATURE_KEYS.length] };
+}
+
+function zeroEvs() {
+  return { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+}
 
 export function newSave() {
+  const start = rollIdentity('sproutle', 'starter');
   return {
     version: SAVE_VERSION,
     map: 'town',
     x: 5, y: 13, dir: 'down',
     party: [
-      { speciesId: 'sproutle', level: 5, xp: 0, hp: null, nature: 'hardy' },
+      { speciesId: 'sproutle', level: 5, xp: 0, hp: null,
+        ivs: start.ivs, evs: zeroEvs(), nature: start.nature },
     ],
     dex: { seen: [], caught: [] },
   };
@@ -20,7 +52,20 @@ export function newSave() {
    migrations here as the schema evolves; older saves are carried forward,
    never wiped. */
 const MIGRATIONS = {
-  // 1 -> 2 placeholder: (data) => { ... return data; }
+  // 1 -> 2: give every party member a real identity (ivs / evs / nature).
+  // Safe to run on a save that already has any of these fields.
+  1: function (data) {
+    if (!data || !Array.isArray(data.party)) return data;
+    data.party.forEach(function (m, i) {
+      if (!m) return;
+      if (!m.ivs || typeof m.ivs !== 'object') {
+        m.ivs = rollIdentity(m.speciesId, 'mig' + i).ivs;
+      }
+      if (!m.evs || typeof m.evs !== 'object') m.evs = zeroEvs();
+      if (!m.nature) m.nature = rollIdentity(m.speciesId, 'mig' + i).nature;
+    });
+    return data;
+  },
 };
 
 export function migrate(data) {
