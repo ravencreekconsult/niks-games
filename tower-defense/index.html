@@ -203,11 +203,14 @@ const ETYPES = {
   boss:   {hp:1200,spd:0.7, reward:220,r:0.46, color:"#ff3b5c", armor:14, boss:true, atk:35}
 };
 /* deployable road units: soldiers hold one enemy at a time, traps hurt/slow/blast */
-const SOL_LV=[{hp:120,dmg:8},{hp:180,dmg:13},{hp:250,dmg:18}]; /* per-level soldier stats */
+const SOL_LV=[{hp:60, dmg:5, rate:1.0, hold:3.5, rec:2.0},  /* Lv1: boss (35/s) flattens it in 60/35 = 1.7s */
+              {hp:110,dmg:9, rate:1.0, hold:5.0, rec:1.6},
+              {hp:180,dmg:15,rate:0.9, hold:7.0, rec:1.2}]; /* per-level soldier stats */
 const SOL_UP=[{cost:40},{cost:65}];                            /* upgrade costs to Lv2/Lv3 */
-const SOLMAX=6, TRAPMAX=12, SOL_COST=50, SPIKE_COST=40, TAR_COST=60, BOMB_COST=80;
-const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"spike",cost:SPIKE_COST,gl:"🔻 Spikes"},
-          {k:"tar",cost:TAR_COST,gl:"🕳 Tar"},{k:"bomb",cost:BOMB_COST,gl:"💣 Bomb"}];
+const SOLMAX=6, TRAPMAX=12, SOL_COST=50, MINE_COST=60, WIRE_COST=50, STICKY_COST=45;
+const HOLD_IMMUNE=2.5; /* seconds a freed enemy cannot be re-grabbed */
+const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"mine",cost:MINE_COST,gl:"🧨 Mine"},
+          {k:"wire",cost:WIRE_COST,gl:"🕸 Wire"},{k:"sticky",cost:STICKY_COST,gl:"🍯 Sticky"}];
 function waveMult(w){ return Math.pow(1.155, w-1); }
 function waveSpec(w){
   const mult=waveMult(w); const list=[];
@@ -559,7 +562,7 @@ function spawn(kind,dist){
   S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying, lane:(Math.random()*2-1)*0.16,
     boss:!!b.boss, slowUntil:0, slowPow:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0,
-    blocked:false, atk:(b.atk||0),
+    blocked:false, atk:(b.atk||0), freeAt:0,
     name: b.boss? bossName(S.wave):"", shielded:false, shieldHp:0, shieldMax:0,
     nextShield: b.boss?0.66:0, sumT: b.boss?3:0 });
 }
