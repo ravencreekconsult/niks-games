@@ -140,7 +140,7 @@ export const MAPS = {
     signs: [],
     trainers: [
       { x: 13, y: 14, dir: 'left', sight: 3, sprite: 'npcScout', name: 'Fenn', flag: 'beatFenn',
-        party: [{ speciesId: 'sproutle', level: 3 }, { speciesId: 'gloamkitty', level: 4 }], reward: 200,
+        party: [{ speciesId: 'cragmite', level: 4 }, { speciesId: 'gloamkitty', level: 4 }], reward: 200,
         lines: [
           'Hold it right there! You walked right into my lookout.',
           'I\'m Fenn, and my two partners never lose on this road.',
