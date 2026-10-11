@@ -210,6 +210,40 @@ function effStats(tw){ const base=lvlStat(tw.type,tw.lvl); let dmg=base.dmg, ran
     if(d<=lvlStat(o.type,o.lvl).range){ const b=0.22+(o.lvl-1)*0.06; dmg*=1+b; range*=1+b*0.5; } } }
   return {...base,dmg,range}; }
 
+/* ---------- abilities ---------- */
+const ABIL={ air:{cd:35,label:"💥 Airstrike"}, frz:{cd:40,label:"❄️ Freeze"}, rep:{cd:60,label:"🔧 Repair"}, ovr:{cd:45,label:"⚡ Overcharge"} };
+ABIL.air.btn=abAir; ABIL.frz.btn=abFrz; ABIL.rep.btn=abRep; ABIL.ovr.btn=abOvr;
+function updateAbil(){
+  const dis = paused||S.over;
+  for(const k in ABIL){ const a=ABIL[k], b=a.btn;
+    const left=Math.max(0,S.cd[k]-S.time);
+    const none=(k==="rep"&&S.repairUses<=0);
+    const p=left>0?Math.round(100*(1-left/a.cd)):100;
+    b.style.background=`linear-gradient(0deg,rgba(0,229,255,.30) ${p}%,rgba(6,10,16,.6) ${p}%)`;
+    b.style.opacity=(dis||none)?".4":"1";
+    b.classList.toggle("armed", k==="air"&&S.armed);
+    const tag= left>0? " "+Math.ceil(left)+"s" : (k==="rep"? " ×"+S.repairUses : (k==="air"? (S.armed?" ✖cancel":"") : " ✔"));
+    b.textContent=a.label+tag; }
+}
+function doAirstrike(gx,gy){
+  const x=gx+0.5, y=gy+0.5, R=2.3;
+  S.shake=Math.max(S.shake,14);
+  for(let i=0;i<3;i++) S.fx.push({x,y,r0:0.2+i*0.3,r1:R*(0.8+i*0.15),life:0.45+i*0.1,ml:0.45+i*0.1,color:i?"#ffd166":"#ffffff",w:4});
+  for(let i=0;i<50;i++){ const a=Math.random()*Math.PI*2,sp=2+Math.random()*4;
+    S.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:.4+Math.random()*.4,color:i%3?"#ffb347":"#ff5a3c",size:2.5}); }
+  if(S.parts.length>250) S.parts.splice(0,S.parts.length-250);
+  addDecal(x,y,R*0.6,"scorch","#150e08");
+  for(const e of S.enemies){ if(e.dead) continue; const d=Math.hypot(e.x-x,e.y-y);
+    if(d<=R){ const f=1-d/R; hurt(e,320*(0.35+0.65*f),true);
+      if(S.nums.length<30) floatTxt(e.x,e.y,320*(0.35+0.65*f),"#ffb347"); } }
+  hud();
+}
+abAir.onclick=()=>{ if(paused||S.over||S.time<S.cd.air) return; S.armed=!S.armed; say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1200); };
+abFrz.onclick=()=>{ if(paused||S.over||S.time<S.cd.frz) return; S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); };
+abRep.onclick=()=>{ if(paused||S.over||S.time<S.cd.rep||S.repairUses<=0) return; S.cd.rep=S.time+ABIL.rep.cd; S.repairUses--;
+  S.lives=Math.min(25,S.lives+3); hud(); say("Repaired +3 lives",1300); };
+abOvr.onclick=()=>{ if(paused||S.over||S.time<S.cd.ovr) return; S.cd.ovr=S.time+ABIL.ovr.cd; S.ocUntil=S.time+6; say("Overcharge! Towers fire faster",1400); };
+
 /* ---------- building ---------- */
 function tap(gx,gy){
   if(S.over) return;
@@ -245,15 +279,23 @@ function startWave(){
   if(spec.boss) say("BOSS WAVE "+S.wave,2200); else say("Wave "+S.wave+" incoming",1400);
   S.running=true; S.qTimer=0; go.disabled=true; hud();
 }
-function spawn(kind){
+const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Storm Titan","Chaos Overlord","Night Emperor","Void Sovereign"];
+function bossName(w){ return BOSS_TIERS[Math.min(BOSS_TIERS.length-1,Math.floor((w-1)/5))]||"Boss"; }
+function spawn(kind,dist){
   const b=ETYPES[kind]; const hp=b.hp*(S.curMult||1);
-  S.enemies.push({ kind, dist:0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
+  S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying,
-    boss:!!b.boss, slowUntil:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0 });
+    boss:!!b.boss, slowUntil:0, slowPow:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0,
+    name: b.boss? bossName(S.wave):"", shielded:false, shieldHp:0, shieldMax:0,
+    nextShield: b.boss?0.66:0, sumT: b.boss?3:0 });
 }
 
 /* ---------- combat ---------- */
 function hurt(e,dmg,ignoreArmor){
+  if(e.boss && e.shieldHp>0){ e.shieldHp-=dmg; e.hit=S.time+0.1;
+    S.fx.push({x:e.x,y:e.y,r0:0.05,r1:0.5,life:0.2,ml:0.2,color:"#00e5ff",w:2});
+    if(S.fx.length>80) S.fx.splice(0,S.fx.length-80);
+    return; }
   const d = ignoreArmor? dmg : Math.max(dmg*0.15, dmg - e.armor);
   e.hp-=d; e.hit=S.time+0.12;
   if(e.hp<=0 && !e.dead){ e.dead=true; S.gold+=e.reward; S.score+=e.reward; hud(); refreshShopAff(); boom(e); }
@@ -307,11 +349,26 @@ function step(dt){
   if(S.running && S.queue.length){ S.qTimer-=dt;
     if(S.qTimer<=0){ const e=S.queue.shift(); spawn(e.t); S.qTimer=e.gap; } }
   for(const e of S.enemies){
-    const slowed = now<e.slowUntil ? 0.45 : 1;
+    let slowed = now<e.slowUntil ? (e.slowPow||0.45) : 1;
+    if(now<S.freezeUntil) slowed=Math.min(slowed,0.08);
+    if(e.shielded) slowed=Math.min(slowed,0.55);
     e.dist += e.spd*slowed*dt;
     const p=pathAt(e.dist); e.x=p.x; e.y=p.y;
     if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.baseFlash=now+0.4;
       hud(); S.shake=Math.max(S.shake,5); } }
+    if(e.boss){
+      if(e.shielded && e.shieldHp<=0){ e.shielded=false; e.shieldHp=0;
+        S.fx.push({x:e.x,y:e.y,r0:0.2,r1:e.r*3,life:0.5,ml:0.5,color:"#00e5ff",w:4});
+        say(e.name+"'s shield broke!",1500); }
+      else if(!e.shielded && e.nextShield && e.hp/e.max<=e.nextShield){
+        e.shielded=true; e.shieldMax=e.shieldHp=e.max*0.18;
+        e.nextShield = e.nextShield>0.5? 0.33 : 0;
+        say(e.name+" raised a shield!",1800); }
+      e.sumT-=dt;
+      if(e.sumT<=0){ e.sumT=6;
+        if(S.enemies.length<120){ const n=2+((Math.random()*2)|0);
+          for(let i=0;i<n;i++) spawn(Math.random()<0.5?"grunt":"runner", Math.max(0,e.dist-0.6*i)); } }
+    }
   }
   for(const e of S.enemies){ if(e.dot>0 && !e.dead){ e.dot-=dt; hurt(e, e.dotAmt*dt, true); } }
   for(const h of S.enemies){ if(h.heal>0 && !h.dead){ for(const o of S.enemies){ if(o===h||o.dead) continue;
@@ -975,6 +1032,7 @@ cv.addEventListener("pointermove",(ev)=>{ const g=posToGrid(ev); if(g.gx>=0&&g.g
 cv.addEventListener("pointerleave",()=>{ S.hover=null; });
 cv.addEventListener("pointerdown",(ev)=>{ ev.preventDefault(); const g=posToGrid(ev);
   if(g.gx<0||g.gx>=COLS||g.gy<0||g.gy>=ROWS) return;
+  if(S.armed){ S.armed=false; doAirstrike(g.gx,g.gy); return; }
   const before=S.towers.find(t=>t.gx===g.gx&&t.gy===g.gy); tap(g.gx,g.gy);
   if(!before){ const now=S.towers.find(t=>t.gx===g.gx&&t.gy===g.gy); if(now){ selTower=now; showInfo(); } } });
 
