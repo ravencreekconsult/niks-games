@@ -230,6 +230,7 @@ const Game = {
     if (Game.save && typeof Game.save.time === 'number') {
       const mins = minutesNow() % 1440;
       Game.save.time = mins;
+      clockLoadedAt = Date.now(); // re-anchor: the elapsed term is now baked into save.time
     }
     saveGame(this.save);
   },
@@ -695,6 +696,8 @@ function frame(ts) {
     // periodic write so a player who never warps or battles keeps their clock
     const mins = minutesNow() % 1440;
     Game.save.time = mins;
+    // the anchor MUST move whenever the base is rewritten, or elapsed time is counted twice
+    clockLoadedAt = Date.now();
   }
   try {
     if (scene === 'battle') {
