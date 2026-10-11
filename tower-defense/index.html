@@ -105,7 +105,7 @@
     <div id="bossbar"><span id="bname"></span><div id="btrack"><div id="bfill"></div><div id="bsh"></div></div></div>
     <div id="over"><div class="card"><h1 id="oT"></h1><p id="oX"></p><button id="oB">Play again</button></div></div>
   </div>
-  <div id="info"><span id="iTxt"></span><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
+  <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
   <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game) &bull; Ability buttons are one-tap powers with cooldowns</div>
 </div>
@@ -180,7 +180,7 @@ const $id=(i)=>document.getElementById(i);
 const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("score"),
   go=$id("go"),shop=$id("shop"),over=$id("over"),oT=$id("oT"),oX=$id("oX"),oB=$id("oB"),
   banner=$id("banner"),spd=$id("spd"),pause=$id("pause"),auto=$id("auto"),
-  info=$id("info"),iTxt=$id("iTxt"),iUp=$id("iUp"),iSell=$id("iSell"),
+  info=$id("info"),iTxt=$id("iTxt"),iUp=$id("iUp"),iSell=$id("iSell"),iTgt=$id("iTgt"),
   abAir=$id("abAir"),abFrz=$id("abFrz"),abRep=$id("abRep"),abOvr=$id("abOvr"),
   bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
   eleft=$id("eleft"),
@@ -274,7 +274,7 @@ function tap(gx,gy){
   if(pathCells.has(gx+","+gy)) return;
   const t=TOWERS[sel];
   if(S.gold<t.cost){ say("Not enough gold"); return; }
-  S.gold-=t.cost; S.towers.push({gx,gy,type:t,lvl:1,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0});
+  S.gold-=t.cost; S.towers.push({gx,gy,type:t,lvl:1,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0,mode:"first"});
   hud(); refreshShopAff();
 }
 function showInfo(){
@@ -291,7 +291,14 @@ function showInfo(){
   iS2.style.display = canSpec? "" : "none";
   if(canSpec){ iS1.textContent=SPECS[tw.type.id][0].name; iS2.textContent=SPECS[tw.type.id][1].name; }
   iSell.textContent = "Sell +"+Math.round(selTower.type.cost*0.75*selTower.lvl)+"g";
+  iTgt.textContent = "🎯 "+(TGT_NAME[tw.mode||"first"]||"First");
 }
+const TGT_ORDER=["first","last","strong","close"];
+const TGT_NAME={first:"First",last:"Last",strong:"Strongest",close:"Closest"};
+iTgt.onclick=()=>{ if(!selTower) return;
+  const cur=selTower.mode||"first";
+  selTower.mode=TGT_ORDER[(TGT_ORDER.indexOf(cur)+1)%TGT_ORDER.length];
+  iTgt.textContent="🎯 "+TGT_NAME[selTower.mode]; };
 iUp.onclick=()=>{ if(!selTower) return; const c=upCost(selTower.type,selTower.lvl);
   if(selTower.lvl>=MAXLV) return; if(S.gold<c){ say("Need "+c+"g"); return; }
   S.gold-=c; selTower.lvl++; hud(); showInfo(); };
@@ -463,9 +470,14 @@ function step(dt){
     if(tw.flash>0) tw.flash-=dt;
     if(tw.kick>0) tw.kick=Math.max(0,tw.kick-dt*5);
     tw.cool-=dt; if(tw.type.dmg<=0) continue;
-    const st=effStats(tw); let best=null,bd=st.range;
-    for(const e of S.enemies){ if(e.dead) continue; const d=Math.hypot(e.x-(tw.gx+0.5),e.y-(tw.gy+0.5));
-      if(d<bd){ bd=d; best=e; } }
+    const st=effStats(tw); const m=tw.mode||"first";
+    let best=null,bv=-Infinity;
+    for(const e of S.enemies){ if(e.dead) continue;
+      const d=Math.hypot(e.x-(tw.gx+0.5),e.y-(tw.gy+0.5));
+      if(d>=st.range) continue;
+      /* first = furthest along the path, last = least far, strong = most hp, close = nearest */
+      const v = m==="last" ? -e.dist : m==="strong" ? e.hp : m==="close" ? -d : e.dist;
+      if(v>bv){ bv=v; best=e; } }
     if(best){ tw.ang=Math.atan2(best.y-(tw.gy+0.5), best.x-(tw.gx+0.5));
       if(tw.spec==="gatling"){ tw.heat=Math.min(2,(tw.heat||0)+0.1); }
       if(tw.cool<=0){ const oc=now<S.ocUntil?1.5:1;
