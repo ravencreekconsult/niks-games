@@ -1117,6 +1117,18 @@ function drawPause(W,H){
 }
 function now_lt(t){ return S.time<t; }
 
+/* ---------- boss health bar ---------- */
+function updateBoss(){
+  let hp=0,max=0,sh=0,shMax=0; const names=[];
+  for(const e of S.enemies){ if(e.boss&&!e.dead){ hp+=Math.max(0,e.hp); max+=e.max; names.push(e.name||"BOSS");
+    if(e.shielded){ sh+=e.shieldHp; shMax+=e.shieldMax; } } }
+  if(max<=0){ bossbar.style.display="none"; return; }
+  bossbar.style.display="block";
+  bname.textContent=names.join(" + ")+(sh>0?" 🛡 SHIELD":"");
+  bfill.style.width=Math.max(0,Math.min(100,100*hp/max))+"%";
+  bsh.style.width=(shMax? Math.max(0,Math.min(100,100*sh/shMax)) : 0)+"%";
+}
+
 /* ---------- input ---------- */
 function posToGrid(ev){ const r=cv.getBoundingClientRect(); const t=ev.touches?ev.touches[0]:ev;
   const x=t.clientX-r.left, y=t.clientY-r.top; return { gx:Math.floor((x-ox)/cell), gy:Math.floor((y-oy)/cell) }; }
@@ -1133,6 +1145,8 @@ spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
 pause.onclick=()=>{ paused=!paused; hud(); };
 auto.onclick=()=>{ autoOn=!autoOn; if(autoOn && !S.running) autoTimer=0.4; hud(); };
 oB.onclick=()=>{ newGame(); };
+gT.onclick=()=>{ goldMode="test"; try{ localStorage.setItem("td_gold","test"); }catch(e){} hud(); };
+gR.onclick=()=>{ goldMode="real"; try{ localStorage.setItem("td_gold","real"); }catch(e){} hud(); say("Real gold next game: 100",1500); };
 banner.style.display="none";
 
 let last=performance.now();
@@ -1141,6 +1155,7 @@ function loop(now){
   if(!paused && !S.over){ for(let i=0;i<speed;i++) step(dt); }
   draw();
   banner.style.display = (S.time<S.banner.until)?"block":"none";
+  safe(updateAbil); safe(updateBoss);
   requestAnimationFrame(loop);
 }
 resize(); newGame(); draw(); requestAnimationFrame(loop);
