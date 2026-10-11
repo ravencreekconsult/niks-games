@@ -267,7 +267,10 @@ export const ITEMS = {
   healsalve:  { name:'Heal Salve',  useHeal:0.5 },
 };
 
-/** Natures: {up, down} stat pair, or null for neutral. */
+/** Natures: {up, down} stat pair, or null for neutral.
+ *  25 entries: every non-HP stat can be raised against every other, plus five
+ *  neutral natures. The first six are the original table and MUST NOT change
+ *  meaning — saved critters already reference those keys. */
 export const NATURES = {
   hardy:     { up:null,  down:null },
   lonely:    { up:'atk', down:'def' },
@@ -275,6 +278,25 @@ export const NATURES = {
   modest:    { up:'spa', down:'atk' },
   timid:     { up:'spe', down:'atk' },
   calm:      { up:'spd', down:'atk' },
+  brash:     { up:'atk', down:'spd' },
+  reckless:  { up:'atk', down:'spe' },
+  stoic:     { up:'def', down:'atk' },
+  stubborn:  { up:'def', down:'spa' },
+  guarded:   { up:'def', down:'spd' },
+  rooted:    { up:'def', down:'spe' },
+  steadfast: { up:'def', down:null },
+  dreamy:    { up:'spa', down:'def' },
+  fervent:   { up:'spa', down:'spd' },
+  deliberate:{ up:'spa', down:'spe' },
+  curious:   { up:'spa', down:null },
+  patient:   { up:'spd', down:'def' },
+  grounded:  { up:'spd', down:'spa' },
+  watchful:  { up:'spd', down:'spe' },
+  placid:    { up:'spd', down:null },
+  skittish:  { up:'spe', down:'def' },
+  lively:    { up:'spe', down:'spa' },
+  restless:  { up:'spe', down:'spd' },
+  eager:     { up:'spe', down:null },
 };
 
 /* =====================================================================

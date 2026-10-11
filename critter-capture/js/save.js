@@ -16,7 +16,7 @@ function hash32(str) {
   return h >>> 0;
 }
 
-const NATURE_KEYS = ['hardy', 'lonely', 'adamantine', 'modest', 'timid', 'calm'];
+const NATURE_KEYS = ['hardy', 'lonely', 'adamantine', 'modest', 'timid', 'calm', 'brash', 'reckless', 'stoic', 'stubborn', 'guarded', 'rooted', 'steadfast', 'dreamy', 'fervent', 'deliberate', 'curious', 'patient', 'grounded', 'watchful', 'placid', 'skittish', 'lively', 'restless', 'eager'];
 const STAT_KEYS = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 
 export function rollIdentity(speciesId, seed) {
