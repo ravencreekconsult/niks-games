@@ -42,12 +42,6 @@ export function enter(game, mapId, tx, ty, newDir) {
   moving = false;
 }
 
-function walkable(x, y) {
-  if (x < 0 || y < 0 || x >= map.w || y >= map.h) return false;
-  const def = grid[y][x];
-  return !def.solid || !!def.encounter === false && false || (!def.solid);
-}
-
 function pickEncounter() {
   const enc = map.encounters;
   if (!enc || !enc.table || !enc.table.length) return null;
