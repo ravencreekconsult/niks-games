@@ -223,9 +223,9 @@ export const ABILITIES = {
 
 /** Critter species. learnset: move ids available from that level on. */
 export const SPECIES = {
-  cinderpup: { name:'Cinderpup', types:['ember'], baseStats:{ hp:45, atk:60, def:40, spa:60, spd:45, spe:65 }, ability:'kindleheart', xpBase:64, catchRate:190,
+  cinderpup: { name:'Cinderpup', types:['ember'], baseStats:{ hp:45, atk:60, def:40, spa:60, spd:45, spe:65 }, ability:'kindleheart', xpBase:64, catchRate:190, evolvesTo:'blazefang', evolveLevel:16,
     learnset:[ { lv:1, id:'emberlash' }, { lv:1, id:'cindercrash' }, { lv:7, id:'focuswill' }, { lv:12, id:'sunspear' } ] },
-  brookfin:  { name:'Brookfin', types:['tide'], baseStats:{ hp:55, atk:50, def:55, spa:60, spd:55, spe:50 }, ability:'riptideheart', xpBase:66, catchRate:180,
+  brookfin:  { name:'Brookfin', types:['tide'], baseStats:{ hp:55, atk:50, def:55, spa:60, spd:55, spe:50 }, ability:'riptideheart', xpBase:66, catchRate:180, evolvesTo:'tidalisk', evolveLevel:16,
     learnset:[ { lv:1, id:'tidepull' }, { lv:1, id:'frostbite' }, { lv:8, id:'riptide' }, { lv:13, id:'dewmist' } ] },
   sproutle:  { name:'Sproutle', types:['verdant'], baseStats:{ hp:60, atk:62, def:55, spa:50, spd:55, spe:55 }, ability:'moonmend', xpBase:64, catchRate:190,
     learnset:[ { lv:1, id:'vinewhip' }, { lv:1, id:'sporecloud' }, { lv:8, id:'bloombarge' }, { lv:12, id:'focuswill' } ] },
