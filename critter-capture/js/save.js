@@ -2,7 +2,7 @@
    is unavailable; the game just runs without persisting. */
 
 const KEY = 'critter-capture-save';
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /* Deterministic per-critter identity: a tiny 32-bit string hash drives both
    the IV roll and the nature pick, so the same (speciesId, seed) always
