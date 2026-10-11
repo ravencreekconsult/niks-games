@@ -156,6 +156,24 @@
   <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; 🛡 Soldier / 🧨 Mine / 🕸 Wire / 🍯 Sticky deploy on the ROAD &bull; tap a soldier to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game)</div>
 </div>
 <script>
+/* Visible diagnostics: whoever maintains this page cannot open a console, so a script
+   error must be shown on screen instead of failing silently. */
+(function () {
+  function show(t) {
+    try {
+      var h = document.getElementById('banner');
+      if (h) { h.textContent = t; h.style.display = 'block'; }
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    try {
+      var f = (e && e.filename) ? String(e.filename).split('/').pop() : '?';
+      show('JS ERROR: ' + ((e && e.message) || 'unknown') + '  (' + f + ':' + ((e && e.lineno) || 0) + ')');
+    } catch (err) {}
+  });
+})();
+</script>
+<script>
 (() => {
 "use strict";
 /* ---------- world ---------- */
