@@ -660,37 +660,57 @@ function step(dt){
          one appears, whatever its speed */
       const sp = ETYPES[e.t]&&ETYPES[e.t].spd||1.3;
       S.qTimer = Math.max(e.gap||0.55, 1.4/sp); } }
-  /* --- soldiers & traps run before enemies so a blocked enemy skips its advance --- */
+  /* --- soldiers & traps run before enemies so a blocked enemy skips its advance ---
+     A hold is a DELAY, not a gate: after holdMax seconds the enemy breaks free,
+     cannot be re-grabbed for HOLD_IMMUNE seconds, and the soldier must recover. */
   for(const e of S.enemies) e.blocked=false;
   for(const s of S.soldiers){
     if(s.dead){ s.deathT-=dt; continue; }
+    if(s.recT>0){ s.recT-=dt; s.tgt=null; s.holdT=0; continue; } /* recovering: cannot block */
     if(s.atkT>0) s.atkT-=dt;
     if(s.swing>0) s.swing-=dt;
-    s.tgt=null; let best=null,bd=-Infinity;
-    for(const e of S.enemies){ if(e.dead||e.flying) continue;
-      const gap=s.d-e.dist;                     /* enemy is BEHIND the soldier on the path */
-      if(gap>=-0.05 && gap<=0.6 && e.dist>bd){ bd=e.dist; best=e; } }
-    if(best){ best.blocked=true; s.tgt=best;
-      if(s.atkT<=0){ s.atkT=0.8; s.swing=0.25; hurt(best,s.dmg,false); floatTxt(best.x,best.y-0.35,s.dmg,"#9ad0ff"); }
-      s.hp-=best.atk*dt;
+    let held = (s.tgt && !s.tgt.dead && !s.tgt.flying && s.tgt.freeAt<=now &&
+                s.tgt.dist>=s.d-0.05 && s.tgt.dist<=s.d+0.6) ? s.tgt : null;
+    if(!held){ s.holdT=0; let best=null,bd=-Infinity;
+      for(const e of S.enemies){ if(e.dead||e.flying||e.freeAt>now) continue;
+        const gap=s.d-e.dist;                     /* enemy is BEHIND the soldier on the path */
+        if(gap>=-0.05 && gap<=0.6 && e.dist>bd){ bd=e.dist; best=e; } }
+      held=best; }
+    if(held){ held.blocked=true; s.tgt=held; s.holdT+=dt;
+      if(s.holdT>=s.holdMax){ /* the enemy BREAKS FREE */
+        held.freeAt=now+HOLD_IMMUNE; s.tgt=null; s.holdT=0; s.recT=s.recMax;
+        floatTxt(held.x,held.y-0.5,"FREE!", "#ffd166");
+        if(S.fx.length<80) S.fx.push({x:held.x,y:held.y,r0:0.1,r1:0.5,life:0.25,ml:0.25,color:"#ffd166",w:2});
+        continue; }
+      if(s.atkT<=0){ s.atkT=s.swingTime; s.swing=0.25; hurt(held,s.dmg,false); floatTxt(held.x,held.y-0.35,s.dmg,"#9ad0ff"); }
+      s.hp-=held.atk*dt;
       if(s.hp<=0){ s.hp=0; s.dead=true; s.deathT=0.7; s.tgt=null;
         if(selSold===s){ selSold=null; info.style.display="none"; resize(); } } }
+    else { s.tgt=null; s.holdT=0; }
   }
   S.soldiers=S.soldiers.filter(s=>!s.dead||s.deathT>0);
+  /* --- traps: deterrence only. hurtTrap() can never take an enemy below 15% max HP,
+        so no trap (mine blast, wire DoT) can ever kill a full-health enemy. --- */
+  const tscale=1+(S.wave-1)*0.07; /* trap damage scales with the wave to stay relevant late */
   for(const tp of S.traps){
-    if(tp.kind==="spike"){
-      if(tp.cd>0) tp.cd-=dt;
-      else { let hitAny=false;
-        for(const e of S.enemies){ if(e.dead||e.flying) continue;
-          if(Math.abs(e.dist-tp.d)<0.5){ hurt(e,12,false); floatTxt(e.x,e.y,12,"#ffb3c0"); hitAny=true; } }
-        if(hitAny){ tp.cd=2.5; tp.pulse=0.3; } }
-      if(tp.pulse>0) tp.pulse-=dt; }
-    else if(tp.kind==="tar"){
+    if(tp.kind==="mine"){
+      if(tp.pulse>0) tp.pulse-=dt;
       for(const e of S.enemies){ if(e.dead||e.flying) continue;
-        if(Math.abs(e.dist-tp.d)<0.55){ e.slowUntil=S.time+0.25; e.slowPow=0.3; } } }
-    else if(tp.kind==="bomb"){
+        if(Math.abs(e.dist-tp.d)<0.5){ detonateMine(tp,tscale); tp.dead=true; break; } } }
+    else if(tp.kind==="wire"){
       for(const e of S.enemies){ if(e.dead||e.flying) continue;
-        if(Math.abs(e.dist-tp.d)<0.5){ detonate(tp); tp.dead=true; break; } } }
+        if(Math.abs(e.dist-tp.d)<0.55){
+          e.slowUntil=S.time+0.25; e.slowPow=0.45;      /* moderate slow */
+          hurtTrap(e, 4*tscale*dt);                      /* light damage over time */
+          if(!tp.seen.has(e)){ tp.seen.add(e); tp.hitsLeft--; } } }
+      if(tp.hitsLeft<=0){ tp.dead=true;
+        if(S.fx.length<80) S.fx.push({x:pathAt(tp.d).x,y:pathAt(tp.d).y,r0:0.2,r1:0.55,life:0.35,ml:0.35,color:"#c9b8a0",w:2}); } }
+    else if(tp.kind==="sticky"){
+      tp.ttl-=dt;
+      if(tp.ttl<=0){ tp.dead=true;
+        if(S.fx.length<80) S.fx.push({x:pathAt(tp.d).x,y:pathAt(tp.d).y,r0:0.2,r1:0.5,life:0.3,ml:0.3,color:"#ffd166",w:2}); }
+      else for(const e of S.enemies){ if(e.dead||e.flying) continue;
+        if(Math.abs(e.dist-tp.d)<0.55){ e.slowUntil=S.time+0.25; e.slowPow=0.12; } } } /* heavy slow, NO damage */
   }
   S.traps=S.traps.filter(t=>!t.dead);
   for(const e of S.enemies){
