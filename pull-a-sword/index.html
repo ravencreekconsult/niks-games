@@ -149,6 +149,25 @@
 
   #victory h1{color:var(--gold);font-size:26px;margin:0 0 10px;text-shadow:0 0 18px rgba(255,215,0,.5);}
 
+
+  /* ===== UI overhaul: tabbed panels, pill HUD, chunky game buttons ===== */
+  header{background:radial-gradient(120% 160% at 50% -40%,#2b2f6b 0%,#141a2b 55%,#0f131c 100%);border-bottom:2px solid #2e3a66;box-shadow:0 2px 14px rgba(124,92,255,.25);position:relative;z-index:3;}
+  .stats{gap:4px;flex-wrap:nowrap;}
+  .stat{flex:1 1 0;min-width:0;align-items:center;text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:3px 2px;}
+  .stat .lbl{font-size:8px;} .stat .val{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-shadow:0 0 10px currentColor;}
+  #tabs{position:sticky;top:-8px;z-index:5;display:flex;gap:6px;margin:-8px -10px 8px;padding:8px 10px 6px;background:linear-gradient(180deg,#0d1117 70%,rgba(13,17,23,0));}
+  #tabs button{flex:1;min-height:40px;border-radius:12px;border:1px solid #2e3a66;background:linear-gradient(180deg,#1c2440,#121828);color:var(--muted);font-weight:800;font-size:12px;letter-spacing:.03em;touch-action:manipulation;}
+  #tabs button .ti{display:block;font-size:15px;line-height:1.1;}
+  #tabs button.on{color:#fff;border-color:var(--gold);background:linear-gradient(180deg,#5b3fd6,#33208a);box-shadow:0 0 12px rgba(124,92,255,.55),inset 0 1px 0 rgba(255,255,255,.25);}
+  .card{background:linear-gradient(180deg,#1b2233,#131925);border:1px solid #2a3350;border-top:2px solid #4a3fa8;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+  details.card > summary{cursor:default;pointer-events:none;min-height:34px;}
+  details.card > summary::after{display:none !important;}
+  h3{color:#c9d3ff;font-size:12px;}
+  .sword{background:#0c111b;border:1px solid #232c44;padding:6px 8px;}
+  .btn{border-bottom:4px solid rgba(0,0,0,.35);border-radius:16px;font-size:15px;text-shadow:0 1px 0 rgba(0,0,0,.35);}
+  .btn:active{transform:translateY(2px);border-bottom-width:2px;}
+  footer{background:linear-gradient(180deg,#171d2c,#0e121a);border-top:2px solid #2e3a66;}
+  .btn.train{color:#04121a;text-shadow:none;}
   #toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#1c2330;border:1px solid var(--border);
     color:var(--text);padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;
     transition:opacity .25s;z-index:60;max-width:90vw;text-align:center;}
@@ -174,7 +193,8 @@
   </div>
 
   <main>
-    <details class="card" id="sec-power" open><summary><h3>Your Power</h3></summary>
+    <nav id="tabs"><button data-tab="power" class="on"><span class="ti">&#9889;</span>Power</button><button data-tab="swords"><span class="ti">&#9876;&#65039;</span>Swords</button><button data-tab="pets"><span class="ti">&#129370;</span>Pets</button><button data-tab="worlds"><span class="ti">&#127757;</span>Worlds</button></nav>
+        <details class="card" id="sec-power" open><summary><h3>Your Power</h3></summary>
       <div class="dim">Tap power: <b id="tapFmt">1</b> &nbsp;|&nbsp; Battle DPS: <b id="dpsFmt">1</b> &nbsp;|&nbsp; Pet mult: <b id="petMultFmt">x1</b></div>
       <div class="dim">Luck: <b id="luckFmt">x1</b> &nbsp;|&nbsp; Rebirth mult: <b id="rebirthFmt">x1</b></div>
       <div class="bar"><div class="barfill" id="pullFill"></div></div>
@@ -301,5 +321,20 @@
 <script src="data.js"></script>
 <script src="scene.js"></script>
 <script src="game.js"></script>
+<script>
+(function(){
+  var TABS={power:['sec-power','sec-rebirth'],swords:['sec-swords'],pets:['sec-eggs','sec-pets','sec-index'],worlds:['sec-worlds','sec-codes']};
+  var all=[].concat.apply([],Object.keys(TABS).map(function(k){return TABS[k];}));
+  function show(t){
+    all.forEach(function(id){ var e=document.getElementById(id); if(e){ e.open=true; e.style.display=TABS[t].indexOf(id)>=0?'':'none'; } });
+    [].forEach.call(document.querySelectorAll('#tabs button'),function(b){ b.classList.toggle('on',b.getAttribute('data-tab')===t); });
+    var m=document.querySelector('main'); if(m) m.scrollTop=0;
+    try{ localStorage.setItem('pas_tab',t); }catch(e){}
+  }
+  [].forEach.call(document.querySelectorAll('#tabs button'),function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-tab')); }); });
+  var t='power'; try{ t=localStorage.getItem('pas_tab')||'power'; }catch(e){}
+  if(!TABS[t]) t='power'; show(t);
+})();
+</script>
 </body>
 </html>
