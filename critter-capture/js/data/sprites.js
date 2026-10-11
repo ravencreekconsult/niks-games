@@ -852,6 +852,25 @@ const npcScout = [
   '................',
 ];
 
+const npcLeader = [
+  '................',
+  '.....tttttt.....',
+  '....tttttttt....',
+  '....ssssssss....',
+  '....skssssks....',
+  '....ssssssss....',
+  '.....ssssss.....',
+  '....tttttttt....',
+  '...ttLwwLttt....',
+  '...tttttttttt...',
+  '....tttttttt....',
+  '....dd....dd....',
+  '....dd....dd....',
+  '...mmm....mmm...',
+  '................',
+  '................',
+];
+
 const npcNurse = [
   '................',
   '.....wwwwww.....',
