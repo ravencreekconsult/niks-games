@@ -104,6 +104,41 @@
   #intro p{margin:6px 0;color:#c7d2e0;font-size:13px;line-height:1.55;text-align:left}
   #intro button{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06110f;border:0;font-weight:800;
     padding:12px 24px;border-radius:13px;font-size:16px;box-shadow:0 0 18px rgba(124,92,255,.4)}
+
+  /* ---- layout pass: phones in portrait AND landscape ---- */
+  #side{display:contents}
+  #hud{flex-wrap:wrap;overflow:visible;row-gap:4px;padding:4px 6px}
+  #hud .chip{font-size:12px;padding:2px 7px}
+  #hud button{padding:5px 8px;min-height:34px}
+  #go{flex:1 1 90px;min-height:38px;font-size:14px;margin-left:0}
+  #abil button{min-height:40px;padding:4px 9px}
+  #preview{min-height:26px;padding:2px 9px}
+  #info{gap:5px;padding:5px 8px;flex-wrap:wrap}
+  #info #iTxt{flex:1 0 100%;line-height:1.3}
+  #info button,#info .track{flex:1 1 0;min-width:0;min-height:40px;padding:4px 5px;font-size:11px}
+  .tcard{min-width:104px;padding:5px 9px}
+  @media (max-height:520px) and (orientation:landscape){
+    #wrap{display:grid;grid-template-columns:minmax(0,1fr) clamp(190px,30vw,260px);grid-template-rows:auto minmax(0,1fr)}
+    #hud{grid-column:1/3;flex-wrap:nowrap;overflow-x:auto;padding:3px 6px}
+    #hud .chip{font-size:11px;padding:1px 6px}
+    #hud button{min-height:30px;padding:3px 8px;font-size:11px}
+    #go{flex:0 0 auto;min-width:96px;min-height:32px}
+    #stage{grid-column:1;grid-row:2}
+    #side{display:flex;flex-direction:column;grid-column:2;grid-row:2;overflow-y:auto;min-height:0;background:rgba(12,17,25,.96);border-left:1px solid var(--line)}
+    #preview{white-space:normal;flex-wrap:wrap;overflow:visible;flex:0 0 auto}
+    #abil{flex-wrap:wrap;overflow:visible;flex:0 0 auto}
+    #abil button{flex:1 1 44%;min-height:34px;font-size:11px;padding:3px 5px}
+    .asep{display:none}
+    #shop{flex-direction:column;overflow:visible;flex:0 0 auto;padding:6px}
+    .tcard{min-width:0;padding:4px 8px}
+    .tcard span{display:inline}
+    #info{flex:0 0 auto}
+    #info button,#info .track{flex:1 1 40%}
+    #nudge{font-size:11px}
+    #intro .card{padding:12px 16px;max-height:92%;overflow-y:auto}
+    #intro p{margin:3px 0;font-size:12px}
+    #intro h1{font-size:20px}
+  }
   @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card,#intro .card{animation:none} }
 </style>
 </head>
@@ -117,25 +152,13 @@
     <span class="chip">★ <b id="score">0</b></span>
     <button id="spd">1x</button>
     <button id="pause">❚❚</button>
+    <button id="mute" title="Sound">🔊</button>
     <button id="auto">Auto</button>
-    <span class="gtog"><span>Gold:</span><button id="gT" class="on">Testing</button><button id="gR">Real</button></span>
     <button id="fitBtn">🎯 Follow</button>
     <button id="hintBtn" title="How to play">❓</button>
     <button id="go">Start Wave</button>
   </div>
-  <div id="preview"><span class="plab">Next:</span><span id="pbody">—</span></div>
-  <div id="abil">
-    <button id="abAir">💥 Airstrike</button>
-    <button id="abFrz">❄️ Freeze</button>
-    <button id="abRep">🔧 Repair</button>
-    <button id="abOvr">⚡ Overcharge</button>
-    <span class="asep" aria-hidden="true"></span>
-    <button id="abSol" class="dep">🛡 Soldier</button>
-    <button id="abSpike" class="dep">🧨 Mine</button>
-    <button id="abTar" class="dep">🕸 Wire</button>
-    <button id="abBomb" class="dep">🍯 Sticky</button>
-  </div>
-  <div id="stage">
+    <div id="stage">
     <canvas id="cv"></canvas>
     <div id="banner"></div>
     <div id="bossbar"><span id="bname"></span><div id="btrack"><div id="bfill"></div><div id="bsh"></div></div></div>
@@ -151,9 +174,23 @@
       <button id="introGo">Build! 🏗</button>
     </div></div>
   </div>
+<div id="side">
+  <div id="preview"><span class="plab">Next:</span><span id="pbody">—</span></div>
+  <div id="abil">
+    <button id="abAir">💥 Airstrike</button>
+    <button id="abFrz">❄️ Freeze</button>
+    <button id="abRep">🔧 Repair</button>
+    <button id="abOvr">⚡ Overcharge</button>
+    <span class="asep" aria-hidden="true"></span>
+    <button id="abSol" class="dep">🛡 Soldier</button>
+    <button id="abSpike" class="dep">🧨 Mine</button>
+    <button id="abTar" class="dep">🕸 Wire</button>
+    <button id="abBomb" class="dep">🍯 Sticky</button>
+  </div>
   <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="track" id="iRng">RNG</button><button class="track" id="iRate">RATE</button><button class="track" id="iDmg">DMG</button><button class="up" id="iUp" style="display:none">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
-  <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; 🛡 Soldier / 🧨 Mine / 🕸 Wire / 🍯 Sticky deploy on the ROAD &bull; tap a soldier to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game)</div>
+  <div class="hint" id="hint"><div class="gtog" style="margin-bottom:6px"><span>Starting gold:</span><button id="gT">Testing (100k)</button><button id="gR">Real (100)</button></div>Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; 🛡 Soldier / 🧨 Mine / 🕸 Wire / 🍯 Sticky deploy on the ROAD &bull; tap a soldier to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game)</div>
+</div><!-- /side -->
 </div>
 <script>
 /* Visible diagnostics: whoever maintains this page cannot open a console, so a script
@@ -259,7 +296,7 @@ function waveSpec(w){
 /* ---------- state ---------- */
 const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
 const $id=(i)=>document.getElementById(i);
-const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("score"),
+const elGold=$id("gold"),mute=$id("mute"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("score"),
   go=$id("go"),shop=$id("shop"),over=$id("over"),oT=$id("oT"),oX=$id("oX"),oB=$id("oB"),
   banner=$id("banner"),spd=$id("spd"),pause=$id("pause"),auto=$id("auto"),
   info=$id("info"),iTxt=$id("iTxt"),iUp=$id("iUp"),iSell=$id("iSell"),iTgt=$id("iTgt"),
@@ -283,10 +320,57 @@ try{
       if(t && t.closest && t.closest("#intro")) intro.style.display="none";
     }catch(e){} },true);
 }catch(e){}
+
+/* ---------- sound: tiny WebAudio synth, no files. Starts on first tap, mute is remembered ---------- */
+const SFX=(function(){
+  let AC=null,master=null,muted=false,last={};
+  try{ muted=localStorage.getItem("td_mute")==="1"; }catch(e){}
+  function init(){ try{ const C=window.AudioContext||window.webkitAudioContext; if(!C) return;
+    if(!AC){ AC=new C(); master=AC.createGain(); master.gain.value=0.22; master.connect(AC.destination); }
+    if(AC.state==="suspended") AC.resume(); }catch(e){ AC=null; } }
+  function ok(k,gap){ const t=performance.now(); if(last[k]&&t-last[k]<gap) return false; last[k]=t; return !muted&&!!AC; }
+  function tone(f0,f1,dur,type,vol,delay){ try{ const t=AC.currentTime+(delay||0), o=AC.createOscillator(), g=AC.createGain();
+    o.type=type||"square"; o.frequency.setValueAtTime(Math.max(20,f0),t);
+    if(f1) o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
+    g.gain.setValueAtTime(vol||0.1,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.02); }catch(e){} }
+  function noise(dur,vol,lp,delay){ try{ const t=AC.currentTime+(delay||0), n=Math.floor(AC.sampleRate*dur), b=AC.createBuffer(1,n,AC.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain(); s.buffer=b; f.type="lowpass"; f.frequency.value=lp||1200;
+    g.gain.value=vol||0.2; s.connect(f); f.connect(g); g.connect(master); s.start(t); }catch(e){} }
+  const api={
+    init, isMuted:()=>muted,
+    toggle(){ muted=!muted; try{ localStorage.setItem("td_mute",muted?"1":"0"); }catch(e){} return muted; },
+    shot(id){ if(!ok("s"+id,id==="blaster"?70:110)) return;
+      if(id==="blaster") tone(900,420,0.07,"square",0.05);
+      else if(id==="cannon") { tone(160,60,0.18,"sawtooth",0.12); noise(0.1,0.1,700); }
+      else if(id==="frost") tone(1400,2100,0.12,"sine",0.07);
+      else if(id==="sniper") { tone(1800,200,0.16,"sawtooth",0.09); noise(0.05,0.12,3000); }
+      else if(id==="tesla"||id==="coil") { tone(300,1500,0.09,"sawtooth",0.06); noise(0.08,0.08,4000); }
+      else if(id==="venom") tone(300,160,0.14,"sine",0.1);
+      else if(id==="missile") { noise(0.22,0.12,900); tone(260,520,0.2,"triangle",0.06); }
+      else tone(600,300,0.08,"square",0.05); },
+    boom(sp){ if(!ok("boom",60)) return; noise(0.3+Math.min(0.3,sp*0.08),0.22,600+sp*120); tone(110,40,0.25,"sine",0.18); },
+    kill(boss){ if(!ok("kill",boss?0:45)) return; if(boss){ noise(0.9,0.3,500); tone(140,30,0.8,"sawtooth",0.2); tone(520,880,0.35,"triangle",0.1,0.35); tone(660,1320,0.4,"triangle",0.1,0.55); }
+      else { tone(520,220,0.1,"triangle",0.07); tone(1100,1500,0.05,"sine",0.04,0.04); } },
+    leak(){ if(!ok("leak",200)) return; tone(220,70,0.35,"sawtooth",0.16); noise(0.2,0.14,500);
+      try{ if(navigator.vibrate) navigator.vibrate(45); }catch(e){} },
+    wave(boss){ if(!ok("wave",300)) return; if(boss){ tone(110,110,0.5,"sawtooth",0.14); tone(165,165,0.5,"sawtooth",0.1,0.15); tone(82,82,0.7,"sawtooth",0.16,0.3); }
+      else { tone(392,392,0.12,"square",0.07); tone(523,523,0.18,"square",0.07,0.12); } },
+    build(){ if(!ok("build",80)) return; tone(300,300,0.06,"square",0.07); tone(600,900,0.1,"square",0.07,0.06); noise(0.06,0.1,2500); },
+    up(){ if(!ok("up",80)) return; tone(520,520,0.08,"triangle",0.09); tone(780,780,0.08,"triangle",0.09,0.08); tone(1040,1040,0.14,"triangle",0.09,0.16); },
+    coin(){ if(!ok("coin",80)) return; tone(1200,1800,0.08,"sine",0.08); tone(1800,1800,0.14,"sine",0.06,0.07); },
+    ab(){ if(!ok("ab",100)) return; tone(200,1200,0.35,"sawtooth",0.08); noise(0.35,0.12,2000); },
+    nope(){ if(!ok("nope",150)) return; tone(160,120,0.12,"square",0.07); },
+    win(){ [523,659,784,1047].forEach((f,i)=>tone(f,f,0.22,"triangle",0.11,i*0.14)); },
+    lose(){ [392,330,262,196].forEach((f,i)=>tone(f,f*0.9,0.3,"sawtooth",0.09,i*0.2)); }
+  };
+  return api; })();
+["pointerdown","touchstart","keydown"].forEach(ev=>window.addEventListener(ev,()=>SFX.init(),{passive:true}));
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, selSold=null, autoTimer=0;
-let goldMode="test"; try{ goldMode=localStorage.getItem("td_gold")==="real"?"real":"test"; }catch(e){}
+let goldMode="real"; try{ goldMode=localStorage.getItem("td_gold")==="test"?"test":"real"; }catch(e){}
 let goTick=0;
 function startGold(){ return goldMode==="real"?100:100000; }
 
@@ -413,6 +497,7 @@ function abilTap(k){
     S.gold-=a.cost; S.abUnlocked[k]=true;
     say("🔓 "+a.label+" UNLOCKED!",1700); hud(); return; }
   if(S.time<S.cd[k]) return;
+  if(k!=="air") SFX.ab();
   if(k==="air"){ S.armed=!S.armed; if(S.armed) S.deploy=null;
     say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1400); return; }
   if(k==="frz"){ S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); }
@@ -449,7 +534,7 @@ abSol.onclick=()=>armDeploy("soldier");
 abSpike.onclick=()=>armDeploy("mine");
 abTar.onclick=()=>armDeploy("wire");
 abBomb.onclick=()=>armDeploy("sticky");
-function doAirstrike(gx,gy){
+function doAirstrike(gx,gy){ SFX.ab();
   const x=gx+0.5, y=gy+0.5, R=1.9;
   S.shake=Math.max(S.shake,14);
   for(let i=0;i<3;i++) S.fx.push({x,y,r0:0.2+i*0.3,r1:R*(0.8+i*0.15),life:0.45+i*0.1,ml:0.45+i*0.1,color:i?"#ffd166":"#ffffff",w:4});
@@ -523,7 +608,7 @@ function tap(gx,gy){
   const t=TOWERS[sel];
   if(!towerUnlocked(t.id)) return;
   if(S.gold<t.cost){ say("Not enough gold"); return; }
-  S.gold-=t.cost; S.towers.push({gx,gy,type:t,rngLv:0,rateLv:0,dmgLv:0,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0,mode:"first"});
+  SFX.build(); S.gold-=t.cost; S.towers.push({gx,gy,type:t,rngLv:0,rateLv:0,dmgLv:0,cool:0,ang:-Math.PI/2,flash:0,kick:0,spec:null,heat:0,mode:"first"});
   hud(); refreshShopAff();
 }
 function showInfo(){
@@ -574,7 +659,7 @@ iTgt.onclick=()=>{ if(!selTower) return;
 function buyTrack(k){ if(!selTower) return; const tw=selTower, lv=tw[k+"Lv"]||0;
   if(lv>=3) return; const c=trackCost(tw.type,k,lv+1);
   if(S.gold<c){ say("Need "+c+"g"); return; }
-  S.gold-=c; tw[k+"Lv"]=lv+1;
+  SFX.up(); S.gold-=c; tw[k+"Lv"]=lv+1;
   say(trackLabel(k)+" upgrade "+(lv+1)+"/3!",1000); hud(); showInfo(); }
 iRng.onclick=()=>buyTrack("range");
 iRate.onclick=()=>buyTrack("rate");
@@ -583,14 +668,14 @@ iUp.onclick=()=>{ if(selSold){ const s=selSold;
     if(s.dead) return;
     if(s.lvl>=3) return; const c=SOL_UP[s.lvl-1];
     if(S.gold<c.cost){ say("Need "+c.cost+"g"); return; }
-    S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
+    SFX.up(); S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
     s.holdMax=L.hold; s.recMax=L.rec; s.swingTime=1/L.rate; s.holdT=0; s.recT=0; s.tgt=null;
     say("Soldier Lv"+s.lvl+"!",1100); hud(); showInfo(); return; }
   if(selTower) buyTrack("range"); };
 iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
-    S.gold+=30*selSold.lvl;
+    S.gold+=30*selSold.lvl; SFX.coin();
     S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
-  if(!selTower) return; S.gold+=sellValue(selTower);
+  if(!selTower) return; SFX.coin(); S.gold+=sellValue(selTower);
   S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
 /* ---------- specializations (gate: all three tracks at max) ---------- */
 const SPECS={
@@ -645,7 +730,7 @@ function startWave(){
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
   say(msg, spec.boss?2600:1800);
-  S.running=true; S.qTimer=0; go.disabled=true; hud();
+  S.running=true; S.qTimer=0; go.disabled=true; SFX.wave(spec.boss); hud();
 }
 const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Storm Titan","Chaos Overlord","Night Emperor","Void Sovereign"];
 function bossName(w){ return BOSS_TIERS[Math.min(BOSS_TIERS.length-1,Math.floor((w-1)/5))]||"Boss"; }
@@ -679,6 +764,7 @@ function hurt(e,dmg,ignoreArmor){
   if(e.hp<=0 && !e.dead){ e.dead=true; S.kills++; S.gold+=e.reward; S.score+=e.reward; hud(); refreshShopAff(); boom(e); }
 }
 function boom(e){
+  SFX.kill(e.boss);
   /* death: the body breaks into a few capped chunks that tumble apart, plus a
      fading goo corpse decal (kept from the old pass) and the shockwave ring */
   const gn=e.boss?9:4;
@@ -700,7 +786,7 @@ function addDecal(x,y,r,kind,color){ S.decals.push({x,y,r,kind,color,life:9,ml:9
   if(S.decals.length>40) S.decals.shift(); }
 
 function fire(tw,st,tgt){
-  tw.flash=0.09; tw.kick=1;
+  tw.flash=0.09; tw.kick=1; SFX.shot(tw.type.id);
   if(tw.type.id==="sniper"){
     S.bolts.push({x:tw.gx+0.5,y:tw.gy+0.5,x2:tgt.x,y2:tgt.y,life:0.12,color:tw.type.color});
     if(tw.spec==="rail"){ /* pierce every enemy along the line */
@@ -727,6 +813,7 @@ function fire(tw,st,tgt){
     sp:tw.spec||"",spin:Math.random()*Math.PI*2});
 }
 function impact(s){
+  if(s.splash>0) SFX.boom(s.splash);
   if(s.splash>0){ for(const e of S.enemies){ if(e.dead) continue;
       const d=Math.hypot(e.x-s.tx,e.y-s.ty); if(d<=s.splash){ const f=1-d/s.splash;
         let dm=s.dmg*(0.4+0.6*f); if(s.sp==="flak"&&e.flying) dm*=2.5;
@@ -829,7 +916,7 @@ function step(dt){
     if(!e.blocked) e.dist += e.spd*slowed*dt;   /* soldiers NEVER block each other — only a soldier holds an enemy */
     const p=pathAt(e.dist); e.x=p.x; e.y=p.y;
     if(e.dist>=PATHLEN){ e.dead=true; if(!e.counted){ e.counted=true; S.lives--; S.leaks++; S.leaksTotal++;
-      S.baseFlash=now+0.4; S.leakPulse=now+0.9; hud(); S.shake=Math.max(S.shake,5); } }
+      S.baseFlash=now+0.4; SFX.leak(); S.leakPulse=now+0.9; hud(); S.shake=Math.max(S.shake,5); } }
     if(e.boss){
       if(e.shielded && e.shieldHp<=0){ e.shielded=false; e.shieldHp=0;
         S.fx.push({x:e.x,y:e.y,r0:0.2,r1:e.r*3,life:0.5,ml:0.5,color:"#00e5ff",w:4});
@@ -908,6 +995,7 @@ function step(dt){
   if(!S.running && autoOn && !S.over && !S.won){ autoTimer-=dt; if(autoTimer<=0) startWave(); }
 }
 function endGame(){ over.style.display="flex";
+  try{ const bw=parseInt(localStorage.getItem("td_best_wave")||"0",10)||0; if(S.wave>bw){ localStorage.setItem("td_best_wave",String(S.wave)); if(bw>0&&!S.won) S.newBest=true; } }catch(e){} if(S.won) SFX.win(); else SFX.lose();
   let best=0; try{ best=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0; }catch(e){}
   const stats="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
     +(best>0? " · Best endless: wave "+best : "");
@@ -918,7 +1006,7 @@ function endGame(){ over.style.display="flex";
     if(S.endless && S.wave>best){ try{ localStorage.setItem("td_best_endless",String(S.wave)); best=S.wave; }catch(e){} }
     const stats2="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
       +(S.endless? " · Best endless: wave "+best : "");
-    oX.textContent="The swarm got through — "+stats2+". Try more towers on the early bends!"; } }
+    oX.textContent="The swarm got through — "+stats2+(S.newBest?" · NEW BEST WAVE! 🏆":"")+". Try more towers on the early bends!"; } }
 oE.onclick=()=>{ if(!S.won) return;
   S.endless=true; S.won=false; S.over=false;
   over.style.display="none"; go.disabled=false;
@@ -2337,6 +2425,8 @@ try{
     hud(); };
 
   go.onclick=startWave;
+  mute.textContent=SFX.isMuted()?"🔇":"🔊";
+  mute.onclick=()=>{ SFX.init(); const m=SFX.toggle(); mute.textContent=m?"🔇":"🔊"; };
   spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
   pause.onclick=()=>{ paused=!paused; hud(); };
   auto.onclick=()=>{ autoOn=!autoOn; if(autoOn && !S.running) autoTimer=0.4; hud(); };
