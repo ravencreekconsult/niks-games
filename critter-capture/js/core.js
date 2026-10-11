@@ -4,6 +4,7 @@
    started on first user gesture here later. */
 
 import { MAPS } from './data/areas.js';
+import { ITEMS } from './data/items.js';
 import { loadSave, saveGame, newSave, SAVE_VERSION, rollIdentity } from './save.js';
 import * as ow from './overworld.js';
 import * as battle from './battle.js';

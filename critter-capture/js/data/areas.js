@@ -223,6 +223,13 @@ export const MAPS = {
       ], again: [
         'Nurse Hazel will patch up your whole team. She never charges a coin.',
       ] },
+      { x: 12, y: 8, dir: 'left', sprite: 'npcScout', name: 'Mira', flag: 'metMira', shop: true, lines: [
+        'Welcome to my little shop!',
+        'I sell supplies for tired critters.',
+        'Take a look — everything heals a hurt friend right up.',
+      ], again: [
+        'Back for more supplies? Take a look!',
+      ] },
     ],
     signs: [
       { x: 17, y: 13, lines: [

@@ -47,6 +47,7 @@ export function newSave() {
     dex: { seen: [], caught: [] },
     flags: {},
     money: 0,
+    bag: {},
   };
 }
 
@@ -74,6 +75,15 @@ const MIGRATIONS = {
     if (!data || typeof data !== 'object') return data;
     if (!data.flags || typeof data.flags !== 'object' || Array.isArray(data.flags)) {
       data.flags = {};
+    }
+    return data;
+  },
+  // 3 -> 4: add the item bag (an { itemId: count } object).
+  // Touches ONLY bag; party, dex, flags, money and position pass through untouched.
+  3: function (data) {
+    if (!data || typeof data !== 'object') return data;
+    if (!data.bag || typeof data.bag !== 'object' || Array.isArray(data.bag)) {
+      data.bag = {};
     }
     return data;
   },
