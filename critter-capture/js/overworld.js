@@ -15,6 +15,17 @@ let ptx = 0, pty = 0;     // player tile
 let fx = 0, fy = 0;       // player pixel position (tweened)
 let dir = 'down';
 let moving = false, mFromX = 0, mFromY = 0, mT = 0;
+let persistTimer = 0;     // debounced position save (see persistSoon)
+
+/* Position changes are worth saving, but a save per tile would fire ~6x a second
+   while walking. Coalesce them: one save shortly after the player stops moving. */
+function persistSoon() {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(function () {
+    persistTimer = 0;
+    if (G && G.persist) G.persist();
+  }, 500);
+}
 
 function prerender() {
   staticCv = document.createElement('canvas');
@@ -74,6 +85,7 @@ function arrive() {
     }
   }
   G.save.x = ptx; G.save.y = pty; G.save.dir = dir;
+  persistSoon();
   // encounter check: once per tile STEPPED ONTO, chance-based
   if (def.encounter && map.encounters && Math.random() < map.encounters.rate) {
     const wild = pickEncounter();
