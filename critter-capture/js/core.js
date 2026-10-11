@@ -4,7 +4,7 @@
    started on first user gesture here later. */
 
 import { MAPS } from './data/areas.js';
-import { loadSave, saveGame, newSave, SAVE_VERSION } from './save.js';
+import { loadSave, saveGame, newSave, SAVE_VERSION, rollIdentity } from './save.js';
 import * as ow from './overworld.js';
 import * as battle from './battle.js';
 import * as RULES from '../rules/battle-rules.js'; // imported to VERIFY it loads
@@ -250,15 +250,28 @@ menuEl.addEventListener('keydown', function () {}); // no-op; keyboard handled b
    the healthy one in, rest the hurt one. */
 
 const partyBtn = document.getElementById('partyBtn');
-const PARTY_IVS = { hp: 10, atk: 12, def: 10, spa: 12, spd: 10, spe: 12 };
+
+/* A party member's identity, from the save when present, rolled otherwise. */
+function identityOf(m) {
+  if (m.ivs && typeof m.ivs === 'object' && m.nature) return { ivs: m.ivs, nature: m.nature };
+  return rollIdentity(m.speciesId, 'fallback' + (m.level || 1));
+}
+
+function statsOf(m) {
+  const sp = RULES.SPECIES[m.speciesId];
+  if (!sp) return null;
+  return RULES.calcStats({
+    baseStats: sp.baseStats,
+    ivs: identityOf(m).ivs,
+    evs: m.evs || { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+    level: Math.max(1, m.level || 1),
+    nature: identityOf(m).nature,
+  });
+}
 
 function maxHpOf(m) {
-  const sp = RULES.SPECIES[m.speciesId];
-  if (!sp) return 1;
-  return RULES.calcStats({
-    baseStats: sp.baseStats, ivs: PARTY_IVS, evs: null,
-    level: Math.max(1, m.level || 1), nature: m.nature || 'hardy',
-  }).hp;
+  const st = statsOf(m);
+  return st ? st.hp : 1;
 }
 
 function openPartyMenu() {
@@ -270,10 +283,37 @@ function openPartyMenu() {
     const hp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, max) : max;
     items.push({
       label: (i === 0 ? '* ' : '') + sp.name + ' Lv' + (m.level || 1) + ' ' + Math.round(hp) + '/' + max,
-      cb: function () { makeLead(i); },
+      cb: function () { openDetailCard(i); },
     });
   });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+/* A member's detail card: identity, ability and real stats. Pure-information
+   lines render as disabled buttons so they cannot be tapped. */
+function openDetailCard(i) {
+  const m = Game.save.party[i];
+  if (!m) { openPartyMenu(); return; }
+  const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
+  const id = identityOf(m);
+  const st = statsOf(m) || { hp: 1, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+  const max = st.hp;
+  const hp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, max) : max;
+  const types = (sp.types || []).map(function (t) { return String(t).toUpperCase(); }).join('/');
+  const natureName = String(id.nature).charAt(0).toUpperCase() + String(id.nature).slice(1);
+  const ab = RULES.ABILITIES[sp.ability] || null;
+  const items = [];
+  items.push({ label: sp.name + ' Lv' + (m.level || 1) + '  ' + types, disabled: true });
+  items.push({ label: 'HP ' + Math.round(hp) + '/' + max, disabled: true });
+  items.push({ label: 'Nature: ' + natureName, disabled: true });
+  if (ab) {
+    items.push({ label: 'Ability: ' + ab.name, disabled: true });
+    items.push({ label: '  ' + ab.desc, disabled: true });
+  }
+  items.push({ label: 'Atk ' + st.atk + '  Def ' + st.def + '  SpA ' + st.spa + '  SpD ' + st.spd + '  Spe ' + st.spe, disabled: true });
+  if (i > 0) items.push({ label: 'MAKE LEAD', cb: function () { makeLead(i); } });
+  items.push({ label: 'BACK', cb: openPartyMenu });
   setMenu(items);
 }
 
