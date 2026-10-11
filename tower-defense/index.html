@@ -609,6 +609,7 @@ const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Stor
 function bossName(w){ return BOSS_TIERS[Math.min(BOSS_TIERS.length-1,Math.floor((w-1)/5))]||"Boss"; }
 function spawn(kind,dist){
   const b=ETYPES[kind]; const hp=b.hp*(S.curMult||1);
+  if(S.seen && !S.seen[kind]) S.seen[kind]=true; /* summoned units count as appeared */
   S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying, lane:(Math.random()*2-1)*0.16,
     boss:!!b.boss, slowUntil:0, slowPow:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0,
@@ -832,10 +833,10 @@ function step(dt){
   S.enemies=S.enemies.filter(e=>!e.dead);
   if(S.running && S.queue.length===0 && S.enemies.length===0){
     S.running=false; S.clearAt=S.time;
-    const bonus=40+S.wave*8;
+    const bonus=30+S.wave*10;
     let extra="";
     if(S.leaks===0){ const nb=20+S.wave*4; S.gold+=nb; extra="  ·  NO LEAK +"+nb+"g"; }
-    const interest=Math.min(200,Math.round(S.gold*0.02));
+    const interest=Math.min(60,Math.round(S.gold*0.05)); /* 5%, hard-capped so hoarding never dominates */
     if(interest>0){ S.gold+=interest; extra+="  ·  interest +"+interest+"g"; }
     S.gold+=bonus; say("Wave "+S.wave+" cleared  +"+bonus+"g"+extra,2600);
     if(S.endless){ try{ const b=parseInt(localStorage.getItem("td_best_endless")||"0",10)||0;
