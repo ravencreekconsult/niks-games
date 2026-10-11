@@ -75,18 +75,28 @@ export function start(game, speciesId, level) {
   G = game;
   wildId = speciesId; wildLevel = level;
   const mon = partyMon();
-  const ivs = { hp: 10, atk: 12, def: 10, spa: 12, spd: 10, spe: 12 };
+  const battleSeed = (Date.now() & 0x7fffffff) | 1;
   // the whole party takes the field: member 0 leads, the others can be switched in
-  const team0 = G.save.party.slice(0, 6).map((m) => ({
-    speciesId: m.speciesId,
-    level: Math.max(1, m.level || 1),
-    pid: 0, ivs,
-    nature: m.nature || 'hardy',
-  }));
-  if (!team0.length) team0.push({ speciesId: mon.speciesId, level: Math.max(1, mon.level || 1), pid: 0, ivs, nature: mon.nature || 'hardy' });
+  const team0 = G.save.party.slice(0, 6).map((m) => {
+    const id = memberIdentity(m);
+    return {
+      speciesId: m.speciesId,
+      level: Math.max(1, m.level || 1),
+      pid: 0,
+      ivs: id.ivs,
+      evs: m.evs || { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      nature: id.nature,
+    };
+  });
+  if (!team0.length) {
+    const id = memberIdentity(mon);
+    team0.push({ speciesId: mon.speciesId, level: Math.max(1, mon.level || 1), pid: 0, ivs: id.ivs, evs: mon.evs || { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, nature: id.nature });
+  }
+  // the wild critter rolls its own identity, deterministic for this encounter
+  wildIdentity = rollIdentity(speciesId, 'wild' + level + battleSeed);
   state = createBattle({
-    seed: (Date.now() & 0x7fffffff) | 1,
-    teams: [ team0, [{ speciesId, level, pid: 1, ivs }] ],
+    seed: battleSeed,
+    teams: [ team0, [{ speciesId, level, pid: 1, ivs: wildIdentity.ivs, nature: wildIdentity.nature }] ],
   });
   // respect the HP each member carried in from the overworld (never start below 1)
   G.save.party.slice(0, 6).forEach((m, i) => {
@@ -100,7 +110,19 @@ export function start(game, speciesId, level) {
   addSeen(speciesId);
   fx = {};
   dispHp = {};
-  queue = buildQueue(beginBattle({ state }).events);
+  const battleEvents = beginBattle({ state }).events;
+  // ability intros lead the very first playback queue, before the engine's own
+  // entry messages — one line per ACTIVE combatant that has an ability
+  const intro = [];
+  const seenIntro = {};
+  for (const c of state.combatants) {
+    if (c.fainted || c.active === false || seenIntro[c.id]) continue;
+    seenIntro[c.id] = true;
+    const ab = ABILITIES[c.ability];
+    if (!ab) continue;
+    intro.push({ ev: { t: 'message', text: c.name + "'s " + ab.name + '!' }, dur: DUR.message });
+  }
+  queue = intro.concat(buildQueue(battleEvents));
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
   caughtFlag = false;
@@ -180,7 +202,10 @@ function buildQueue(events) {
   // level-up messages splice in before the end event
   const levelMsgs = [];
   if (endInfo && endInfo.winnerSide === 0 && endInfo.rewards && endInfo.rewards['0']) {
-    levelMsgs.push.apply(levelMsgs, applyXp(endInfo.rewards['0'].xp));
+    const rew = endInfo.rewards['0'];
+    levelMsgs.push.apply(levelMsgs, applyXp(rew.xp));
+    // EV growth goes to the critter that fought, clamped to a legal spread
+    addEvs(activeMon(), rew.evGains);
   }
   for (const ev of events) {
     if (ev.t === 'end') {
@@ -204,7 +229,9 @@ function applyFx(ev) {
     }
     const party = G.save.party;
     if (sp && party.length < 6) {
-      party.push({ speciesId: sp.speciesId, level: (sp.level || wildLevel || 1), xp: 0, hp: null, nature: 'hardy' });
+      const id = wildIdentity || { ivs: { hp: 10, atk: 10, def: 10, spa: 10, spd: 10, spe: 10 }, nature: 'hardy' };
+      party.push({ speciesId: sp.speciesId, level: (sp.level || wildLevel || 1), xp: 0, hp: null,
+        ivs: id.ivs, evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, nature: id.nature });
       caughtJoinedParty = true;
     }
   }
@@ -228,6 +255,11 @@ function stepPlayback(dtMs) {
   else if (ev.t === 'catch') {
     catchAnim = { targetId: ev.targetId, success: !!ev.success, shakes: ev.shakes || 0, t: 0, total: step.dur };
     msg = 'You threw a Capture Ball!';
+  }
+  else if (ev.t === 'damage' && ev.crit) {
+    // engine sends super-effective lines separately; only call out the crit here
+    const c = combatant(ev.targetId);
+    msg = (c ? c.name : 'It') + ' took ' + ev.amount + ' damage. A critical hit!';
   }
   else if (ev.t === 'heal') {
     const c = combatant(ev.targetId);
