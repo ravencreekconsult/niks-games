@@ -67,6 +67,15 @@ const MIGRATIONS = {
     });
     return data;
   },
+  // 2 -> 3: add the world-flag store NPC dialogue remembers you by.
+  // Touches ONLY flags; party, dex and position pass through untouched.
+  2: function (data) {
+    if (!data || typeof data !== 'object') return data;
+    if (!data.flags || typeof data.flags !== 'object' || Array.isArray(data.flags)) {
+      data.flags = {};
+    }
+    return data;
+  },
 };
 
 export function migrate(data) {

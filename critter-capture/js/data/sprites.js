@@ -394,6 +394,65 @@ const SPRITE_GRIDS = {
     '..kkkkk.',
     '........',
   ],
+  /* ---------------- town NPCs (16x16, one grid each — they do not walk) --- */
+
+  /* Fen — neighbour, green shirt, brown hair */
+  npcFen: [
+    '................',
+    '.....mmmmmm.....',
+    '....mmmmmmmm....',
+    '....mmmmmmmm....',
+    '....ssssssss....',
+    '....skssssks....',
+    '....ssssssss....',
+    '.....ssssss.....',
+    '....gggggggg....',
+    '...gggwwgggg....',
+    '...gggggggggg...',
+    '....gggggggg....',
+    '....nn....nn....',
+    '....nn....nn....',
+    '...mmm....mmm...',
+    '................',
+  ],
+  /* Marlo — field scholar, white hair, navy robe */
+  npcMarlo: [
+    '................',
+    '.....wwwwww.....',
+    '....wwwwwwww....',
+    '....wwwwwwww....',
+    '....ssssssss....',
+    '....skssssks....',
+    '....ssssssss....',
+    '.....ssssss.....',
+    '....nnnnnnnn....',
+    '...nnnwwnnnn....',
+    '...nnnnnnnnnn...',
+    '....nnnnnnnn....',
+    '....dd....dd....',
+    '....dd....dd....',
+    '...mmm....mmm...',
+    '................',
+  ],
+  /* Scout Wren — red cap, teal uniform */
+  npcWren: [
+    '................',
+    '.....rrrrrr.....',
+    '....rrrrrrrr....',
+    '....rrrrrrrr....',
+    '....ssssssss....',
+    '....skssssks....',
+    '....ssssssss....',
+    '.....ssssss.....',
+    '....tttttttt....',
+    '...tttyytttt....',
+    '...tttttttttt...',
+    '....tttttttt....',
+    '....nn....nn....',
+    '....nn....nn....',
+    '...mmm....mmm...',
+    '................',
+  ],
   /* Aurelisse — white and gold with a halo */
   aurelisse: [
     '..yyy...',
@@ -474,6 +533,7 @@ const npcScout = [
 
 export const SPRITES = {
   playerDown, playerUp, playerSide,
+  npcKid, npcElder, npcScout,
 };
 for (const k in SPRITE_GRIDS) SPRITES[k] = SPRITE_GRIDS[k];
 
