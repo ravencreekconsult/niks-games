@@ -98,7 +98,7 @@
   </div>
   <div id="info"><span id="iTxt"></span><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
-  <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; Speed / Auto wave up top</div>
+  <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game) &bull; Ability buttons are one-tap powers with cooldowns</div>
 </div>
 <script>
 (() => {
@@ -171,20 +171,27 @@ const $id=(i)=>document.getElementById(i);
 const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("score"),
   go=$id("go"),shop=$id("shop"),over=$id("over"),oT=$id("oT"),oX=$id("oX"),oB=$id("oB"),
   banner=$id("banner"),spd=$id("spd"),pause=$id("pause"),auto=$id("auto"),
-  info=$id("info"),iTxt=$id("iTxt"),iUp=$id("iUp"),iSell=$id("iSell");
+  info=$id("info"),iTxt=$id("iTxt"),iUp=$id("iUp"),iSell=$id("iSell"),
+  abAir=$id("abAir"),abFrz=$id("abFrz"),abRep=$id("abRep"),abOvr=$id("abOvr"),
+  bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
+  gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2");
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, autoTimer=0;
+let goldMode="test"; try{ goldMode=localStorage.getItem("td_gold")==="real"?"real":"test"; }catch(e){}
+function startGold(){ return goldMode==="real"?100:100000; }
 
 function newGame(){
-  S={ gold:100000, lives:25, score:0, wave:0, running:false, over:false, won:false,
+  S={ gold:startGold(), lives:25, score:0, wave:0, running:false, over:false, won:false,
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[],
-      queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0 };
+      queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
+      freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0} };
   selTower=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
   autoTimer=0; go.disabled=false; buildShop(); hud();
 }
 function hud(){ elGold.textContent=S.gold; elLives.textContent=S.lives; elWave.textContent=S.wave; elScore.textContent=S.score;
-  spd.textContent=speed+"x"; pause.textContent=paused?"▶":"❚❚"; auto.style.borderColor=autoOn?"var(--accent2)":"var(--line)"; }
+  spd.textContent=speed+"x"; pause.textContent=paused?"▶":"❚❚"; auto.style.borderColor=autoOn?"var(--accent2)":"var(--line)";
+  gT.classList.toggle("on",goldMode==="test"); gR.classList.toggle("on",goldMode==="real"); }
 function say(t,ms){ S.banner={until:S.time+(ms||1800)/1000}; banner.textContent=t; banner.style.display="block";
   banner.classList.remove("pop"); void banner.offsetWidth; banner.classList.add("pop"); }
 
