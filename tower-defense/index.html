@@ -76,6 +76,12 @@
   .gtog button{padding:8px 10px;font-size:12px}
   .gtog button.on{color:var(--accent2);border-color:var(--accent2)}
   #hud button.on{color:var(--accent2);border-color:var(--accent2)}
+  #preview{display:flex;gap:8px;align-items:center;padding:4px 9px;background:rgba(10,15,23,.94);border-top:1px solid var(--line);
+    font-size:12px;overflow-x:auto;white-space:nowrap;min-height:30px}
+  #preview .plab{color:var(--dim);font-weight:800;font-size:11px;flex:0 0 auto}
+  #preview .pk{font-weight:800;margin-right:6px}
+  #preview .ptr{color:var(--accent2);font-weight:700;margin-right:6px}
+  #preview .pboss{color:#ff8fa3;font-weight:800}
   .hint{padding:6px 10px 8px;background:rgba(12,17,25,.94);color:#718093;font-size:11px}
   @media (prefers-reduced-motion:reduce){ #banner.pop,#over .card{animation:none} }
 </style>
@@ -85,7 +91,7 @@
   <div id="hud">
     <span class="chip gold">🪙 <b id="gold">0</b></span>
     <span class="chip lives">❤️ <b id="lives">0</b></span>
-    <span class="chip wv">⚔ <b id="wave">0</b>/30</span>
+    <span class="chip wv">⚔ <b id="wave">0</b><span id="wmax">/30</span></span>
     <span class="chip">👾 <b id="eleft">0</b></span>
     <span class="chip">★ <b id="score">0</b></span>
     <button id="spd">1x</button>
@@ -95,6 +101,7 @@
     <button id="fitBtn">🎯 Follow</button>
     <button id="go">Start Wave</button>
   </div>
+  <div id="preview"><span class="plab">Next:</span><span id="pbody">—</span></div>
   <div id="abil">
     <button id="abAir">💥 Airstrike</button>
     <button id="abFrz">❄️ Freeze</button>
@@ -109,7 +116,7 @@
     <canvas id="cv"></canvas>
     <div id="banner"></div>
     <div id="bossbar"><span id="bname"></span><div id="btrack"><div id="bfill"></div><div id="bsh"></div></div></div>
-    <div id="over"><div class="card"><h1 id="oT"></h1><p id="oX"></p><button id="oB">Play again</button></div></div>
+    <div id="over"><div class="card"><h1 id="oT"></h1><p id="oX"></p><button id="oE" style="display:none">Keep going — Endless</button><button id="oB">Play again</button></div></div>
   </div>
   <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
@@ -169,6 +176,7 @@ const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"spike",cost:SPIKE_CO
 function waveMult(w){ return Math.pow(1.155, w-1); }
 function waveSpec(w){
   const mult=waveMult(w); const list=[];
+  const rng=mulberry32(w*7919+1013); /* seeded: wave N always builds the SAME list */
   if(w%5===0){ const cnt=1+Math.floor(w/10);
     for(let i=0;i<cnt;i++) list.push({t:"boss"});
     for(let i=0;i<Math.min(30,6+w);i++) list.push({t:"grunt"});
@@ -180,7 +188,7 @@ function waveSpec(w){
   if(w>=7) pool.push(["flyer",0.4]);
   if(w>=9) pool.push(["healer",0.2]);
   const tot=pool.reduce((s,p)=>s+p[1],0); const n=8+w*2;
-  for(let i=0;i<n;i++){ let r=Math.random(),acc=0,pick="grunt";
+  for(let i=0;i<n;i++){ let r=rng(),acc=0,pick="grunt";
     for(const p of pool){ acc+=p[1]/tot; if(r<=acc){ pick=p[0]; break; } }
     list.push({t:pick}); }
   return {mult, list, boss:false};
@@ -197,7 +205,8 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
   eleft=$id("eleft"),
   gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn"),
-  abSol=$id("abSol"),abSpike=$id("abSpike"),abTar=$id("abTar"),abBomb=$id("abBomb");
+  abSol=$id("abSol"),abSpike=$id("abSpike"),abTar=$id("abTar"),abBomb=$id("abBomb"),
+  pbody=$id("pbody"),wmaxEl=$id("wmax"),oE=$id("oE");
 RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
@@ -212,16 +221,48 @@ function newGame(){
       freezeUntil:0, ocUntil:0, armed:false, repairUses:3, cd:{air:0,frz:0,rep:0,ovr:0},
       soldiers:[], traps:[], deploy:null,
       tw:0, tn:0, bgPhase:0,
+      nextSpec:null, leaks:0, clearAt:0, endless:false,
       cam:{zoom:1.75,tz:1.75,fx:COLS/2,fy:ROWS/2,tx:COLS/2,ty:ROWS/2,follow:true,manual:false,fit:false} };
-  selTower=null; selSold=null; info.style.display="none"; over.style.display="none"; banner.style.display="none";
-  autoTimer=0; go.disabled=false; buildShop(); hud(); applyCam();
+  selTower=null; selSold=null; info.style.display="none"; over.style.display="none"; oE.style.display="none"; banner.style.display="none";
+  autoTimer=0; go.disabled=false; buildShop(); genNextSpec(); hud(); applyCam();
 }
 function hud(){ elGold.textContent=S.gold; elLives.textContent=S.lives; elWave.textContent=S.wave; elScore.textContent=S.score;
   spd.textContent=speed+"x"; pause.textContent=paused?"▶":"❚❚"; auto.style.borderColor=autoOn?"var(--accent2)":"var(--line)";
   gT.classList.toggle("on",goldMode==="test"); gR.classList.toggle("on",goldMode==="real");
   if(fitBtn){ const f=!!(S.cam&&S.cam.fit); fitBtn.classList.toggle("on",f);
     fitBtn.textContent=f?"🗺 Fit":"🎯 Follow"; }
-  eleft.textContent=(S.queue.length||0)+(S.enemies?S.enemies.length:0); }
+  eleft.textContent=(S.queue.length||0)+(S.enemies?S.enemies.length:0);
+  wmaxEl.textContent=S.endless?"/∞":"/30";
+  updateGoLabel(); updatePreview(); }
+/* ---------- next-wave preview + economy helpers ---------- */
+function genNextSpec(){ S.nextSpec=waveSpec(S.wave+1); }
+const ETAG={grunt:"Grunt",runner:"Runner",tank:"Tank",swarm:"Swarm",healer:"Healer",flyer:"Flyer",boss:"BOSS"};
+function updatePreview(){
+  if(!S||!S.nextSpec||!pbody) return;
+  const sp=S.nextSpec, counts={};
+  for(const e of sp.list) counts[e.t]=(counts[e.t]||0)+1;
+  let html="";
+  for(const t in counts) html+=`<span class="pk">${ETAG[t]||t} ×${counts[t]}</span>`;
+  const tr=[];
+  if(sp.list.some(e=>e.t==="flyer")) tr.push("flying");
+  if(sp.list.some(e=>e.t==="tank")) tr.push("armoured");
+  if(sp.list.some(e=>e.t==="healer")) tr.push("healer");
+  if(sp.boss) tr.push("🛡 shields + summons");
+  for(const t of tr) html+=`<span class="ptr">${t}</span>`;
+  if(sp.boss) html+=`<span class="pboss">☠ BOSS</span>`;
+  pbody.innerHTML=html||"—";
+}
+function earlyBonus(){
+  if(!S||S.running||S.over) return 0;
+  const elapsed=Math.max(0,S.time-(S.clearAt||0));
+  return Math.max(0,Math.round(40*Math.max(0,1-elapsed/20)));
+}
+function updateGoLabel(){
+  if(!S) return;
+  if(S.running||S.over){ go.textContent="Start Wave"; return; }
+  const eb=earlyBonus();
+  go.textContent= eb>0? "Start Wave +"+eb+"g" : "Start Wave";
+}
 function say(t,ms){ S.banner={until:S.time+(ms||1800)/1000}; banner.textContent=t; banner.style.display="block";
   banner.classList.remove("pop"); void banner.offsetWidth; banner.classList.add("pop"); }
 
