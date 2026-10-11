@@ -27,6 +27,17 @@
 
   main{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:8px 10px 6px;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:8px 10px;margin-bottom:8px;}
+  details.card { padding: 0; overflow: hidden; }
+  details.card > summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    min-height: 46px; padding: 8px 10px; gap: 8px; }
+  details.card > summary::-webkit-details-marker { display: none; }
+  details.card > summary::after { content: '\25BE'; font-size: 12px; color: var(--muted); transition: transform .15s; }
+  details.card[open] > summary::after { transform: rotate(0deg); }
+  details.card:not([open]) > summary::after { content: '\25B8'; }
+  details.card > summary > h3 { margin: 0; }
+  details.card > *:not(summary) { margin-left: 10px; margin-right: 10px; }
+  details.card > *:not(summary):last-child { margin-bottom: 10px; }
+  details.card > summary:active { background: #1b2230; }
   h3{margin:0 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
   .dim{color:var(--muted);font-size:11px;line-height:1.5;}
   .row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
@@ -146,51 +157,43 @@
   </div>
 
   <main>
-    <div class="card">
-      <h3>Your Power</h3>
+    <details class="card" id="sec-power" open><summary><h3>Your Power</h3></summary>
       <div class="dim">Tap power: <b id="tapFmt">1</b> &nbsp;|&nbsp; Battle DPS: <b id="dpsFmt">1</b> &nbsp;|&nbsp; Pet mult: <b id="petMultFmt">x1</b></div>
       <div class="dim">Luck: <b id="luckFmt">x1</b> &nbsp;|&nbsp; Rebirth mult: <b id="rebirthFmt">x1</b></div>
       <div class="bar"><div class="barfill" id="pullFill"></div></div>
       <div class="dim" id="pullHintTxt">Pull ready.</div>
       <div class="dim" id="pityTxt"></div>
       <div class="dim" id="pullsTxt"></div>
-    </div>
+    </details>
 
-    <div class="card">
-      <h3>Swords &mdash; <span id="worldName2">Castle</span></h3>
+    <details class="card" id="sec-swords" open><summary><h3>Swords &mdash; <span id="worldName2">Castle</span></h3></summary>
       <div id="swordList"></div>
       <div class="dim" id="oddsNote">These percentages are your live chance of pulling each sword &mdash; they improve as your strength and luck grow.</div>
     </div>
 
-    <div class="card">
-      <h3>Eggs</h3>
+    <details class="card" id="sec-eggs" open><summary><h3>Eggs</h3></summary>
       <div class="dim" id="eggWins"></div>
       <div id="eggList"></div>
     </div>
 
-    <div class="card">
-      <h3>Pets &mdash; <span id="petsInfo">equipped 0/3 &middot; indexed 0/27</span></h3>
+    <details class="card" id="sec-pets" open><summary><h3>Pets &mdash; <span id="petsInfo">equipped 0/3 &middot; indexed 0/27</span></h3></summary>
       <div id="petsPanel" class="pets"></div>
     </div>
 
-    <div class="card">
-      <h3>Pet Index &mdash; <span id="indexInfo"></span></h3>
+    <details class="card" id="sec-index"><summary><h3>Pet Index &mdash; <span id="indexInfo"></span></h3></summary>
       <div id="indexGrid" class="index"></div>
       <div class="dim" id="slotInfo"></div>
     </div>
 
-    <div class="card">
-      <h3>Worlds</h3>
+    <details class="card" id="sec-worlds"><summary><h3>Worlds</h3></summary>
       <div id="worldList"></div>
     </div>
 
-    <div class="card">
-      <h3>Codes</h3>
+    <details class="card" id="sec-codes"><summary><h3>Codes</h3></summary>
       <div class="codeRow"><input id="codeInput" placeholder="Enter code..." autocomplete="off"><button class="btn small" id="redeemBtn">REDEEM</button></div>
     </div>
 
-    <div class="card">
-      <h3>Rebirth</h3>
+    <details class="card" id="sec-rebirth"><summary><h3>Rebirth</h3></summary>
       <div class="dim">At level 10+, reset strength/level/world/swords for a permanent <b style="color:var(--cyan)">+25% power</b> (pets are kept).</div>
       <div class="row"><button class="btn small" id="rebirthBtn">REBIRTH</button><button class="btn small ghost" id="restartBtn">RESTART</button></div>
     </div>
