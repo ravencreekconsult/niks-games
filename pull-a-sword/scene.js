@@ -251,6 +251,91 @@
     buildStone();
   }
 
+
+  /* ---------- HERO: original chibi adventurer, drawn from scratch (no image assets) ---------- */
+  var heroFlex = 0;      /* 1 right after a train tap, decays - drives the flex / stomp */
+  var heroLook = 0;
+  function hl(c1, c2, y0, y1) { var g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, c1); g.addColorStop(1, c2); return g; }
+  function limb(x1, y1, x2, y2, w, col, hi) {
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = OUTLINE; ctx.lineWidth = w + 3.2; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    if (hi) { ctx.strokeStyle = hi; ctx.globalAlpha = 0.35; ctx.lineWidth = w * 0.35; ctx.beginPath(); ctx.moveTo(x1, y1 - w * 0.2); ctx.lineTo(x2, y2 - w * 0.2); ctx.stroke(); ctx.globalAlpha = 1; }
+  }
+  /* x,y = feet centre. reach 0..1 = hands on the sword hilt (hx,hy world coords). lean in radians. */
+  function drawHero(x, y, t, flex, reach, hx, hy, lean, jump, capeCol, mood) {
+    var bob = Math.sin(t * 2.2) * 1.0 * (1 - reach), stomp = flex > 0.55 ? Math.sin(flex * 18) * 1.4 : 0;
+    var yy = y - jump + stomp;
+    ctx.save(); ctx.translate(x, yy); ctx.rotate(lean);
+    /* ground shadow (drawn un-rotated so it hugs the floor) */
+    ctx.save(); ctx.rotate(-lean); ctx.translate(0, jump + 1);
+    ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.ellipse(0, 0, 17 - jump * 0.15, 4.2, 0, 0, 6.2832); ctx.fill(); ctx.restore();
+    var top = -52 + bob;
+    /* cape (behind) */
+    var wave = Math.sin(t * 3 + 1) * 3 + (reach * 6) + flex * 3;
+    ctx.fillStyle = hl(capeCol, shade(capeCol, -0.4), top + 14, -4);
+    ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-6, top + 14); ctx.quadraticCurveTo(-24 - wave, top + 26, -22 - wave * 1.4, -6);
+    ctx.lineTo(-6, -9); ctx.closePath(); ctx.fill(); ctx.stroke();
+    /* back arm (left) */
+    var fl = flex;
+    limb(-6, top + 18, -13 - fl * 5, top + 32 - fl * 14, 6.4, '#f2c29b', '#fff');
+    /* legs */
+    var step = Math.sin(t * 2.2) * 0.4 * (1 - reach);
+    limb(-5, -17, -6 - step, -3, 7.6, '#2c3a63', '#6c7fb8');
+    limb(5, -17, 6 + step, -3, 7.6, '#34457a', '#7b90d0');
+    ctx.fillStyle = '#5a3a22'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
+    [[-6 - step, -2], [6 + step, -2]].forEach(function (b) { ctx.beginPath(); ctx.ellipse(b[0] + 1.5, b[1], 7, 4, 0, 0, 6.2832); ctx.fill(); ctx.stroke(); });
+    /* torso */
+    ctx.fillStyle = hl('#e6495d', '#a8283c', top + 14, -14);
+    ctx.beginPath(); ctx.moveTo(-10, top + 16); ctx.quadraticCurveTo(-12, -14, -8, -14); ctx.lineTo(8, -14); ctx.quadraticCurveTo(12, -14, 10, top + 16);
+    ctx.quadraticCurveTo(0, top + 11, -10, top + 16); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3b2a1c'; ctx.fillRect(-10.5, -24, 21, 4);          /* belt */
+    ctx.fillStyle = '#ffd34d'; ctx.fillRect(-2.5, -24.6, 5, 5.2);        /* buckle */
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 1.6;      /* tunic highlight */
+    ctx.beginPath(); ctx.moveTo(-6, top + 20); ctx.lineTo(-6.6, -28); ctx.stroke();
+    /* head */
+    var hy0 = top + 1, nod = flex * -1.5;
+    ctx.fillStyle = hl('#ffd9b5', '#e8aa7e', hy0 - 13, hy0 + 11); ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(1, hy0 + nod, 13.5, 0, 6.2832); ctx.fill(); ctx.stroke();
+    /* hair */
+    ctx.fillStyle = hl('#7a4a2a', '#4a2a16', hy0 - 16, hy0 - 2);
+    ctx.beginPath(); ctx.moveTo(-12.6, hy0 - 1 + nod); ctx.quadraticCurveTo(-15, hy0 - 16, -2, hy0 - 15 + nod);
+    ctx.quadraticCurveTo(8, hy0 - 21 + nod, 14, hy0 - 9 + nod); ctx.lineTo(10, hy0 - 7 + nod); ctx.lineTo(7, hy0 - 11 + nod); ctx.lineTo(2, hy0 - 6 + nod);
+    ctx.lineTo(-3, hy0 - 10 + nod); ctx.lineTo(-8, hy0 - 4 + nod); ctx.closePath(); ctx.fill(); ctx.stroke();
+    /* headband */
+    ctx.fillStyle = '#ffd34d'; ctx.fillRect(-12, hy0 - 8 + nod, 26, 3.4);
+    /* face: eye, brow, mouth, cheek */
+    var strain = reach > 0.3 || flex > 0.4;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(7, hy0 + nod, 3.6, strain ? 2.2 : 3.8, 0, 0, 6.2832); ctx.fill();
+    ctx.fillStyle = '#1a1f33'; ctx.beginPath(); ctx.arc(8.2, hy0 + 0.4 + nod, strain ? 1.6 : 2.1, 0, 6.2832); ctx.fill();
+    ctx.strokeStyle = '#3a2412'; ctx.lineWidth = 2; ctx.beginPath();
+    if (strain) { ctx.moveTo(3, hy0 - 5 + nod); ctx.lineTo(11, hy0 - 3 + nod); } else { ctx.moveTo(3.5, hy0 - 5 + nod); ctx.lineTo(10.5, hy0 - 5.6 + nod); }
+    ctx.stroke();
+    ctx.strokeStyle = '#7a2c2c'; ctx.lineWidth = 1.6; ctx.beginPath();
+    if (strain) { ctx.moveTo(5, hy0 + 8 + nod); ctx.lineTo(11, hy0 + 8 + nod); }
+    else { ctx.arc(7, hy0 + 5 + nod, 3.6, 0.15, 2.7); }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,120,120,0.35)'; ctx.beginPath(); ctx.ellipse(10, hy0 + 6 + nod, 3, 2, 0, 0, 6.2832); ctx.fill();
+    ctx.restore();
+    /* front arm: relaxed / flexing / reaching for the hilt (world coords so the hand really lands on it) */
+    ctx.save(); ctx.translate(x, yy); ctx.rotate(lean);
+    var sx = 8, sy = top + 18;
+    var ex, ey;
+    if (reach > 0.02) {
+      var inv = Math.cos(-lean), sn = Math.sin(-lean), dx = hx - x, dy = hy - yy;
+      var lx = dx * inv - dy * sn, ly = dx * sn + dy * inv;   /* hand target in hero space */
+      ex = sx + (lx - sx) * reach + (1 - reach) * 6; ey = sy + (ly - sy) * reach + (1 - reach) * 14;
+    } else { ex = 13 + flex * 4; ey = top + 34 - flex * 16; }
+    limb(sx, sy, ex, ey, 6.6, '#f2c29b', '#fff');
+    if (flex > 0.3 && reach < 0.1) { /* biceps bulge + fist */
+      ctx.fillStyle = '#ffd9b5'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc((sx + ex) / 2 + 2, (sy + ey) / 2 - 1, 4.2 + flex * 1.5, 0, 6.2832); ctx.fill(); ctx.stroke(); }
+    ctx.fillStyle = '#f2c29b'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(ex, ey, 4.4, 0, 6.2832); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
   /* ---------- scene state ---------- */
   var get = null;
   var safeSnap = { strength: 0, world: 0, worldName: '', sword: null, pets: [], pullT: 1 };
@@ -284,6 +369,7 @@
       if (!isFinite(x)) { x = 0.5; }
       if (!isFinite(y)) { y = 0.5; }
       n = Math.max(1, Math.min(60, Math.round(n || 6)));
+      heroFlex = 1;
       var px = x * LW, py = y * LH;
       for (var i = 0; i < n; i++) {
         if (parts.length >= 200) { break; }
@@ -300,6 +386,7 @@
 
   /* ---------- shake / flash ---------- */
   function shake(mag) {
+    heroFlex = 1;
     try {
       shakeMag = Math.max(shakeMag, Math.max(1, Math.min(30, mag || 4)));
       shakeT0 = tSec;
@@ -645,6 +732,18 @@
         ctx.globalAlpha = 1;
       }
     }
+
+    /* ---- HERO ---- */
+    heroFlex = Math.max(0, heroFlex - dt * 2.6);
+    var reachA = 0, leanA = 0, jumpA = 0, hxx = 0;
+    if (pullingNow) {
+      reachA = Math.min(1, pLocal / 0.25); if (pLocal > 0.8) { reachA = Math.max(0, 1 - (pLocal - 0.8) / 0.2); }
+      leanA = -0.22 * Math.min(1, pLocal / 0.5) * (pLocal > 0.8 ? 1 - (pLocal - 0.8) / 0.2 : 1);
+      if (pLocal > 0.8) { jumpA = Math.sin((pLocal - 0.8) / 0.2 * Math.PI) * 14; }
+      hxx = 28 * reachA;
+    }
+    var heroX = 142 + hxx - (pullingNow ? 0 : 0);
+    drawHero(heroX, GROUND_Y - 2, tSec, heroFlex, reachA, 200 - 4, 174, leanA, jumpA, '#3a7bd5', 0);
 
     /* ---- 8. sword in the stone ---- */
     var bladeX = 200, socketY = 190;
