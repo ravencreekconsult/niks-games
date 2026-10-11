@@ -431,6 +431,26 @@ function drawWaterShimmer(){
     ctx.globalAlpha=1;
   }
 }
+function drawGrassFringe(){
+  var s=SCENES[sceneIndex], i;
+  var col=(sceneIndex===4)?'#dfe9ff':(sceneIndex===3?'#6e2a18':(sceneIndex===1?'#16231a':'#2b6f2b'));
+  ctx.save();
+  ctx.strokeStyle=col; ctx.lineCap='round';
+  for(i=0;i<26;i++){
+    var x=(i*41.7+Math.sin(tG*0.0004+i)*10)% (VW+60) - 30;
+    var h=14+((i*37)%22);
+    var sway=Math.sin(tG*0.0011+i*0.7)*3.2;
+    ctx.lineWidth=2+((i%3)*0.6);
+    ctx.beginPath(); ctx.moveTo(x,VH+2);
+    ctx.quadraticCurveTo(x+sway*0.5, VH-h*0.55, x+sway, VH-h);
+    ctx.stroke();
+  }
+  // a soft darkening right at the bottom edge so the fringe reads as depth
+  var g=ctx.createLinearGradient(0,VH-34,0,VH);
+  g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.30)');
+  ctx.fillStyle=g; ctx.fillRect(0,VH-34,VW,34);
+  ctx.restore();
+}
 
 /* ---------------- weather ---------------- */
 function initWeather(){
@@ -535,6 +555,8 @@ function updateDuckPath(dk,slow,dt){
   else dk.y=dk.baseY+Math.sin(dk.t*1.2)*8;
   if(dk.y<66) dk.y=66; if(dk.y>HORIZON-18) dk.y=HORIZON-18;
   dk.x+=dk.vx*dt*slow*(1+dk.panic*0.9);
+  dk.bank=clamp((dk.y-(dk.lastY===undefined?dk.y:dk.lastY))*0.10,-0.45,0.45);
+  dk.lastY=dk.y;
   dk.wing+=dt*slow*0.017;
   dk.trail.push({x:dk.x,y:dk.y});
   if(dk.trail.length>6) dk.trail.shift();
@@ -834,6 +856,7 @@ function render(){
   drawLayers();
   drawWaterShimmer();
   drawWeatherFx();
+  drawGrassFringe();
   drawPowerups();
   drawFalling();
   drawDucksAll();
@@ -969,33 +992,36 @@ function drawDucksAll(){
   for(i=0;i<ducks.length;i++){
     var dk=ducks[i];
     // motion trail when panicking
+    // speed ghosts: the whole bird, faint, trailing behind a panicking duck
     if(dk.panic>0.3){
-      ctx.globalAlpha=0.22;
-      for(j=0;j<dk.trail.length;j++){
-        var tp=dk.trail[j];
-        ctx.fillStyle=dk.sp.cols[0];
-        ctx.beginPath(); ctx.ellipse(tp.x,tp.y,10*dk.sp.size,6*dk.sp.size,0,0,6.283); ctx.fill();
+      var alphas=[0.20,0.13,0.07];
+      for(j=0;j<dk.trail.length&&j<alphas.length;j++){
+        var tp=dk.trail[dk.trail.length-1-j];
+        ctx.save(); ctx.globalAlpha=alphas[j];
+        ctx.translate(tp.x,tp.y); ctx.scale(dk.sp.size*0.96,dk.sp.size*0.96); ctx.rotate(dk.bank||0);
+        drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,false,Math.sin(dk.wing),dk.sp.cols[2],0);
+        ctx.restore();
       }
-      ctx.globalAlpha=1;
     }
-    // drop shadow
-    ctx.globalAlpha=0.18; ctx.fillStyle='#000';
-    ctx.beginPath(); ctx.ellipse(dk.x+6,dk.y+16*dk.sp.size,16*dk.sp.size,4,0,0,6.283); ctx.fill();
+    // ground shadow: softer, wider and further away the higher the bird flies
+    var alt=clamp((HORIZON-dk.y)/HORIZON,0,1);
+    ctx.globalAlpha=0.20*(1-alt*0.55); ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.ellipse(dk.x+6+alt*14, groundYAt(dk.x)-6, (14+alt*10)*dk.sp.size, 3.5+alt*1.5, 0,0,6.283); ctx.fill();
     ctx.globalAlpha=1;
-    ctx.save(); ctx.translate(dk.x,dk.y); ctx.scale(dk.sp.size,dk.sp.size);
-    if(dk.sp.gold){ ctx.shadowBlur=16; ctx.shadowColor='#ffe071'; }
-    drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,dk.sp.gold,Math.sin(dk.wing),dk.sp.cols[2]);
-    ctx.shadowBlur=0; ctx.restore();
+    if(dk.sp.gold) drawGlow(dk.x,dk.y);
+    ctx.save(); ctx.translate(dk.x,dk.y); ctx.scale(dk.sp.size,dk.sp.size); ctx.rotate(dk.bank||0);
+    drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,dk.sp.gold,Math.sin(dk.wing),dk.sp.cols[2],0);
+    ctx.restore();
   }
 }
 function drawFalling(){
   var i;
   for(i=0;i<falling.length;i++){
     var fd=falling[i];
+    if(fd.sp.gold) drawGlow(fd.x,fd.y);
     ctx.save(); ctx.translate(fd.x,fd.y); ctx.rotate(fd.rot);
-    if(fd.sp.gold){ ctx.shadowBlur=14; ctx.shadowColor='#ffe071'; }
-    drawDuckBody(fd.sp.cols,fd.sp.head,fd.sp.wingbar,fd.sp.gold,0.4,fd.sp.cols[2]);
-    ctx.shadowBlur=0; ctx.restore();
+    drawDuckBody(fd.sp.cols,fd.sp.head,fd.sp.wingbar,fd.sp.gold,-0.85,fd.sp.cols[2],0);
+    ctx.restore();
   }
 }
 function drawDog(){
@@ -1005,50 +1031,94 @@ function drawDog(){
   else if(dog.state==='pop') up=Math.sin(clamp(1-dog.t/1400,0,1)*3.14)*1.1;
   else up=0.10;
   var bounce=dog.state==='laugh'?Math.abs(Math.sin(tG*0.02))*6:0;
+  var laughing=dog.state==='laugh';
+  var retrieving=dog.state==='retrieve';
+  var stunned=dog.state==='stun';
+  // sniff bob when idle
+  var sniff=dog.state==='idle'?Math.sin(tG*0.0022)*1.6:0;
+  // ground shadow first, so the dog is planted, not floating
+  ctx.globalAlpha=0.22; ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.ellipse(gx,base+16,34,7,0,0,6.283); ctx.fill();
+  ctx.globalAlpha=1;
   ctx.save();
-  ctx.translate(gx,base-bounce-up*78);
-  ctx.lineWidth=2.6; ctx.lineJoin='round'; ctx.strokeStyle='#0b0f16';
-  // tail
+  ctx.translate(gx,base-bounce-up*78+sniff);
+  if(laughing) ctx.rotate(-0.10+Math.sin(tG*0.02)*0.04); // mocking head tilt
+  ctx.lineWidth=2.4; ctx.lineJoin='round'; ctx.strokeStyle='#111a26';
+  // tail — wag speed and amplitude up while retrieving
+  var wag= retrieving?Math.sin(tG*0.03)*10:Math.sin(tG*0.008)*5;
   ctx.fillStyle='#8a4f22';
-  ctx.beginPath(); ctx.moveTo(-30,4); ctx.quadraticCurveTo(-48,-6+Math.sin(tG*0.008)*6,-40,-18); ctx.quadraticCurveTo(-34,-6,-24,2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-30,4); ctx.quadraticCurveTo(-48,-8+wag,-40,-20); ctx.quadraticCurveTo(-33,-7,-24,2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // hind legs
+  ctx.fillStyle='#8a4f22';
+  ctx.beginPath(); ctx.ellipse(-22,20,7,10,0.2,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-10,21,7,10,-0.1,0,6.283); ctx.fill(); ctx.stroke();
+  // front legs, one with a visible paw
+  ctx.fillStyle='#b5713a';
+  ctx.beginPath(); ctx.ellipse(16,20,6,10,0.15,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(27,20,6,10,-0.05,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#c8854a';
+  ctx.beginPath(); ctx.ellipse(27,29,6.5,3.4,0,0,6.283); ctx.fill(); ctx.stroke();
   // body
-  ctx.fillStyle='#b5713a'; ctx.beginPath(); ctx.ellipse(0,10,36,21,0,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#b5713a';
+  ctx.beginPath(); ctx.ellipse(0,10,36,21,0,0,6.283); ctx.fill(); ctx.stroke();
+  // chest / neck
+  ctx.fillStyle='#c8854a';
+  ctx.beginPath(); ctx.ellipse(14,4,14,14,0.35,0,6.283); ctx.fill(); ctx.stroke();
   // head
-  ctx.fillStyle='#c8854a'; ctx.beginPath(); ctx.ellipse(27,-8,17,14,0,0,6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#c8854a';
+  ctx.beginPath(); ctx.ellipse(27,-8,17,14,0,0,6.283); ctx.fill(); ctx.stroke();
+  // ear, with a flick when excited
+  var earFlick=(retrieving||laughing)?Math.sin(tG*0.025)*3:0;
+  ctx.fillStyle='#8a4f22';
+  ctx.beginPath(); ctx.moveTo(16,-16); ctx.quadraticCurveTo(4,-34+earFlick,26,-24); ctx.closePath(); ctx.fill(); ctx.stroke();
   // snout
+  ctx.fillStyle='#c8854a';
   ctx.beginPath(); ctx.moveTo(36,-6); ctx.lineTo(54,0); ctx.lineTo(36,10); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.fillStyle='#2a1a0e'; ctx.beginPath(); ctx.arc(53,0,3.4,0,6.283); ctx.fill();
-  // ear
-  ctx.fillStyle='#8a4f22'; ctx.beginPath(); ctx.moveTo(16,-16); ctx.quadraticCurveTo(4,-34,26,-24); ctx.closePath(); ctx.fill(); ctx.stroke();
-  // eyes
-  var stunned=dog.state==='stun';
+  // eyes (stun gets circling stars instead of X eyes)
   ctx.fillStyle='#fff';
   ctx.beginPath(); ctx.arc(31,-11,4.4,0,6.283); ctx.fill();
   ctx.beginPath(); ctx.arc(41,-11,4.4,0,6.283); ctx.fill();
-  ctx.fillStyle='#0b0f16';
+  ctx.fillStyle='#111a26';
+  ctx.beginPath(); ctx.arc(32,-11,2.1,0,6.283); ctx.fill();
+  ctx.beginPath(); ctx.arc(42,-11,2.1,0,6.283); ctx.fill();
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath(); ctx.arc(31.4,-12,0.9,0,6.283); ctx.fill();
+  ctx.beginPath(); ctx.arc(41.4,-12,0.9,0,6.283); ctx.fill();
   if(stunned){
-    ctx.lineWidth=1.6;
-    ctx.beginPath(); ctx.moveTo(28,-14); ctx.lineTo(34,-8); ctx.moveTo(34,-14); ctx.lineTo(28,-8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(38,-14); ctx.lineTo(44,-8); ctx.moveTo(44,-14); ctx.lineTo(38,-8); ctx.stroke();
-    ctx.lineWidth=2.6;
-  } else {
-    ctx.beginPath(); ctx.arc(32,-11,2.1,0,6.283); ctx.fill();
-    ctx.beginPath(); ctx.arc(42,-11,2.1,0,6.283); ctx.fill();
+    // two or three small stars circling the head
+    ctx.fillStyle='#ffe071'; ctx.strokeStyle='#111a26'; ctx.lineWidth=1.2;
+    var n,ns=3;
+    for(n=0;n<ns;n++){
+      var sa=tG*0.005+n*6.283/ns, sx=27+Math.cos(sa)*22, sy=-34+Math.sin(sa)*7;
+      ctx.save(); ctx.translate(sx,sy); ctx.rotate(sa*2);
+      ctx.beginPath();
+      for(var spt=0;spt<10;spt++){
+        var sr=(spt%2===0)?4.2:1.8, sa2=-1.5708+spt*0.6283;
+        var px=Math.cos(sa2)*sr, py=Math.sin(sa2)*sr;
+        if(spt===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.lineWidth=2.4;
   }
   // mouth
-  if(dog.state==='laugh'){
-    ctx.fillStyle='#5a1220'; ctx.beginPath(); ctx.ellipse(43,4,8,6,0,0,6.283); ctx.fill(); ctx.stroke();
+  if(laughing){
+    ctx.fillStyle='#5a1220';
+    ctx.beginPath(); ctx.ellipse(43,4,9,7,0,0,6.283); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#c8787a';
+    ctx.beginPath(); ctx.ellipse(43,7,6,3,0,0,6.283); ctx.fill();
   } else {
     ctx.beginPath(); ctx.arc(41,2,5,0,3.14); ctx.stroke();
   }
-  // duck held aloft
-  if(dog.state==='retrieve'&&dog.duck){
+  // duck held aloft, drawn with the real bird renderer
+  if(retrieving&&dog.duck){
     var dc=dog.duck.sp?dog.duck.sp.cols:['#7a4a1e','#5c3412','#e0a020'];
+    var dh=dog.duck.sp?dog.duck.sp.head:null;
+    var dwb=dog.duck.sp?dog.duck.sp.wingbar:null;
     ctx.save(); ctx.translate(26,-46); ctx.rotate(Math.sin(tG*0.006)*0.08);
-    ctx.fillStyle=dc[0]; ctx.strokeStyle='#0b0f16';
-    ctx.beginPath(); ctx.ellipse(0,0,17,10,-0.25,0,6.283); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(14,-6,6.5,0,6.283); ctx.fill(); ctx.stroke();
-    ctx.fillStyle='#e0a020'; tri(ctx,19,-7,27,-5,19,-3); ctx.fill();
+    drawDuckBody(dc,dh,dwb,false,-0.7,dc[2],0);
     ctx.restore();
   }
   ctx.restore();
