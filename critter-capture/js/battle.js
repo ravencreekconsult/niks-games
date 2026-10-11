@@ -36,6 +36,10 @@ const BALL_END    = { x: 172, y: 42 };
 
 function combatant(id) { return state.combatants.find(c => c.id === id); }
 function activeOf(side) { return state.combatants.find(c => c.side === side && !c.fainted && c.active !== false) || state.combatants.find(c => c.side === side); }
+function partySlotOf(id) { const m = /^c0_(\d+)$/.exec(String(id || '')); return m ? Number(m[1]) : -1; }
+function partyMonOf(id) { const i = partySlotOf(id); return (i >= 0 && G.save.party[i]) ? G.save.party[i] : null; }
+/* the save entry for the critter the player currently has on the field */
+function activeMon() { const a = activeOf(0); return (a && partyMonOf(a.id)) || G.save.party[0]; }
 function partyMon() { return G.save.party[0]; }
 
 function addSeen(sp) {
@@ -49,20 +53,27 @@ export function start(game, speciesId, level) {
   G = game;
   wildId = speciesId; wildLevel = level;
   const mon = partyMon();
-  const level0 = Math.max(1, mon.level);
   const ivs = { hp: 10, atk: 12, def: 10, spa: 12, spd: 10, spe: 12 };
+  // the whole party takes the field: member 0 leads, the others can be switched in
+  const team0 = G.save.party.slice(0, 6).map((m) => ({
+    speciesId: m.speciesId,
+    level: Math.max(1, m.level || 1),
+    pid: 0, ivs,
+    nature: m.nature || 'hardy',
+  }));
+  if (!team0.length) team0.push({ speciesId: mon.speciesId, level: Math.max(1, mon.level || 1), pid: 0, ivs, nature: mon.nature || 'hardy' });
   state = createBattle({
     seed: (Date.now() & 0x7fffffff) | 1,
-    teams: [
-      [{ speciesId: mon.speciesId, level: level0, pid: 0, ivs, nature: mon.nature || 'hardy' }],
-      [{ speciesId, level, pid: 1, ivs }],
-    ],
+    teams: [ team0, [{ speciesId, level, pid: 1, ivs }] ],
   });
-  // respect HP carried over from the overworld (never start below 1)
-  const me = combatant(PLAYER_ID);
-  const carryHp = (typeof mon.hp === 'number' && mon.hp > 0) ? Math.min(mon.hp, me.maxHp) : me.maxHp;
-  me.hp = carryHp;
-  mon.hp = carryHp;
+  // respect the HP each member carried in from the overworld (never start below 1)
+  G.save.party.slice(0, 6).forEach((m, i) => {
+    const c = combatant('c0_' + i);
+    if (!c) return;
+    const carryHp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, c.maxHp) : c.maxHp;
+    c.hp = carryHp;
+    m.hp = carryHp;
+  });
   addSeen(mon.speciesId);
   addSeen(speciesId);
   fx = {};
@@ -211,7 +222,7 @@ function stepPlayback(dtMs) {
 function xpNeed(level) { return 15 + level * 10; }
 
 function applyXp(gain) {
-  const mon = partyMon();
+  const mon = activeMon();
   const msgs = [];
   mon.xp = (mon.xp || 0) + (gain || 0);
   while (mon.xp >= xpNeed(mon.level) && mon.level < 100) {
@@ -226,10 +237,14 @@ function applyXp(gain) {
 /* ---------------- battle end ---------------- */
 
 function finishBattle() {
-  const mon = partyMon();
-  const me = combatant(PLAYER_ID);
-  if (me && !me.caught) mon.hp = Math.max(0, me.hp);
-  if (mon.hp <= 0) { mon.hp = null; resultMsg += ' It was rushed to rest and revived.'; }
+  let revived = false;
+  G.save.party.forEach((m, i) => {
+    const c = combatant('c0_' + i);
+    if (!c || c.caught) return;
+    if (c.hp <= 0) { m.hp = null; revived = true; }   // fainted in battle: back at full outside it
+    else m.hp = Math.max(0, c.hp);
+  });
+  if (revived) resultMsg += ' It was rushed to rest and revived.';
   let outcome;
   if (caughtFlag) {
     if (caughtJoinedParty) outcome = SPECIES[wildId].name + ' was caught and joined your party!';
@@ -250,12 +265,33 @@ function finishBattle() {
 
 function showRootMenu() {
   phase = 'root';
-  msg = 'What will ' + (SPECIES[partyMon().speciesId] || {}).name + ' do?';
-  G.setMenu([
+  msg = 'What will ' + (SPECIES[activeMon().speciesId] || {}).name + ' do?';
+  const buttons = [
     { label: 'FIGHT', cb: showMoveMenu },
     { label: 'CATCH', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'catch', targetId: activeOf(1).id }) },
-    { label: 'RUN', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'run' }) },
-  ]);
+  ];
+  if (switchableMembers().length) buttons.push({ label: 'SWITCH', cb: showSwitchMenu });
+  buttons.push({ label: 'RUN', cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'run' }) });
+  G.setMenu(buttons);
+}
+
+function switchableMembers() {
+  const cur = activeOf(0);
+  if (!cur) return [];
+  return state.combatants.filter((c) => c.side === 0 && c.id !== cur.id && !c.fainted);
+}
+
+function showSwitchMenu() {
+  phase = 'menu';
+  const buttons = switchableMembers().map((c) => {
+    const sp = SPECIES[c.speciesId] || { name: c.name };
+    return {
+      label: sp.name + ' Lv' + c.level + ' ' + Math.max(0, Math.round(c.hp)) + '/' + c.maxHp,
+      cb: () => submit({ pid: 0, actorId: activeOf(0).id, kind: 'switch', toId: c.id }),
+    };
+  });
+  buttons.push({ label: 'BACK', cb: showRootMenu });
+  G.setMenu(buttons);
 }
 
 function showMoveMenu() {
