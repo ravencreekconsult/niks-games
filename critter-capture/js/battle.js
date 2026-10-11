@@ -8,6 +8,7 @@ import {
   createBattle, beginBattle, defaultIntent, resolveTurn,
 } from '../rules/battle-rules.js';
 import { drawSprite, SPRITES, PAL } from './data/sprites.js';
+import { rollIdentity } from './save.js';
 
 let G = null;
 let state = null;          // engine battle state (from createBattle/resolveTurn)
