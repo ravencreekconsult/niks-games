@@ -863,6 +863,9 @@ function step(dt){
   for(const p of S.parts){ p.life-=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vx*=0.94; p.vy*=0.94; }
   S.parts=S.parts.filter(p=>p.life>0);
   if(S.parts.length>250) S.parts.splice(0,S.parts.length-250);
+  for(const g of S.gibs){ g.life-=dt; g.x+=g.vx*dt; g.y+=g.vy*dt; g.vy+=dt*2.2; g.vx*=0.97; g.rot+=g.vr*dt; }
+  S.gibs=S.gibs.filter(g=>g.life>0);
+  if(S.gibs.length>60) S.gibs.splice(0,S.gibs.length-60);
   for(const n of S.nums){ n.life-=dt; n.y-=dt*0.6; }
   S.nums=S.nums.filter(n=>n.life>0);
   for(const d of S.decals) d.life-=dt;
@@ -1153,6 +1156,7 @@ function draw(){
   else safe(()=>{ /* fallback flat board */
     for(let x=0;x<COLS;x++)for(let y=0;y<ROWS;y++){
       ctx.fillStyle=(x+y)%2?"#0c1119":"#0a0e15"; ctx.fillRect(ox+x*cell,oy+y*cell,cell,cell); } });
+  safe(drawMotes);
   safe(()=>{ /* matching per-frame light tint (flat fills, no gradients) */
     if(S.tw>0.004){ ctx.fillStyle=`rgba(255,140,60,${S.tw})`; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); }
     if(S.tn>0.004){ ctx.fillStyle=`rgba(14,22,52,${S.tn})`; ctx.fillRect(ox,oy,COLS*cell,ROWS*cell); }
@@ -1177,6 +1181,7 @@ function draw(){
   safe(drawShots);
   safe(drawBolts);
   safe(drawParts);
+  safe(drawGibs);
   safe(drawNums);
   safe(()=>{ if(paused && !S.over) drawPause(W,H); });
   ctx.restore();
@@ -1299,6 +1304,30 @@ function muzzle(px,py,s,ang,color){
   ctx.beginPath(); ctx.moveTo(s*0.38,0); ctx.lineTo(s*0.58,-s*0.06); ctx.lineTo(s*0.58,s*0.06); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
+/* ---------- art helpers: one consistent light direction (right-down), stronger
+   shadows at night; gibs; drifting ambient motes ---------- */
+function castShadow(px,py,rx,ry){ if(RM) return;
+  const k=1+S.tn*0.5;
+  ctx.fillStyle=`rgba(0,0,0,${(0.16+S.tn*0.18).toFixed(3)})`;
+  ctx.beginPath(); ctx.ellipse(px+rx*0.30,py+ry*0.55,rx*k,ry*0.85,0,0,7); ctx.fill(); }
+function drawGibs(){
+  for(const g of S.gibs){ const px=ox+g.x*cell, py=oy+g.y*cell, rr=g.size*cell;
+    ctx.save(); ctx.translate(px,py); ctx.rotate(g.rot);
+    ctx.globalAlpha=Math.max(0,Math.min(1,g.life*2.2));
+    ctx.fillStyle=g.color; ctx.strokeStyle="#0d1117"; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(rr,-rr*0.6); ctx.lineTo(-rr*0.7,-rr); ctx.lineTo(-rr,rr*0.6);
+    ctx.lineTo(rr*0.6,rr*0.8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle="rgba(255,255,255,.25)"; ctx.beginPath(); ctx.arc(-rr*0.2,-rr*0.3,rr*0.35,0,7); ctx.fill();
+    ctx.restore(); ctx.globalAlpha=1; } }
+function drawMotes(){ if(RM) return;
+  const n=12, night=S.tn>0.5;
+  ctx.fillStyle= night? "rgba(180,200,255,.35)":"rgba(255,235,170,.4)";
+  for(let i=0;i<n;i++){
+    const seed=i*17.3;
+    const x=ox+((seed*2.7 + S.time*(0.25+(i%3)*0.12)*(i%2?1:-0.7))% (COLS*cell) + COLS*cell)%(COLS*cell);
+    const y=oy+((seed*1.9 + Math.sin(S.time*0.7+seed)*0.5 + S.time*0.08)% (ROWS*cell) + ROWS*cell)%(ROWS*cell);
+    const rr=cell*(0.015+0.012*Math.sin(S.time*2+i));
+    ctx.beginPath(); ctx.arc(x,y,Math.max(0.6,rr),0,7); ctx.fill(); } }
 function drawTower(tw){
   const px=CX(tw.gx),py=CY(tw.gy),s=cell,id=tw.type.id,col=tw.type.color;
   const r=drawPad(px,py,s,tw,tw.type.color);
