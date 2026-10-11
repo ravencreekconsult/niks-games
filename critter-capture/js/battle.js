@@ -165,7 +165,7 @@ function stepPlayback(dtMs) {
   }
   const step = queue.shift();
   const ev = step.ev;
-  if (ev.t === 'message') msg = ev.text; else if (ev.text === undefined) msg = '';
+  if (ev.t === 'message') msg = ev.text; // keep the last message otherwise
   applyFx(ev);
   timer = step.dur;
 }

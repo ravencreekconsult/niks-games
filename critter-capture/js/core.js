@@ -204,7 +204,7 @@ function frame(ts) {
   hudTick += dt;
   if (hudTick > 0.25) {
     hudTick = 0;
-    const i = scene === 'battle' ? { map: 'battle' } : ow.info();
+    const i = scene === 'battle' ? { map: 'battle', x: '-', y: '-' } : ow.info();
     hudEl.textContent = scene + ' | ' + i.map + ' | ' + i.x + ',' + i.y +
       ' | party Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length;
   }
