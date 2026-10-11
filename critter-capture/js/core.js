@@ -249,6 +249,41 @@ function highlightMenu() {
 }
 menuEl.addEventListener('keydown', function () {}); // no-op; keyboard handled below
 
+/* ---------------- dialogue box (overworld NPCs + signs) ----------------
+   A real DOM element so it is testable. Only lives while scene==='overworld':
+   A advances line by line, B closes immediately, and while it is open the
+   player cannot walk and A never reaches anything else. The battle's own A
+   handling is untouched — this code sits in the overworld branch of frame(). */
+
+const dlgEl = document.getElementById('dialog');
+const dlgName = document.getElementById('dlgName');
+const dlgText = document.getElementById('dlgText');
+let dlgLines = null, dlgIndex = 0, dlgOpen = false;
+
+function openDialog(t) {
+  dlgOpen = true;
+  dlgLines = (t && t.lines) || [];
+  dlgIndex = 0;
+  if (dlgName) dlgName.textContent = t.name || '';
+  if (dlgText) dlgText.textContent = dlgLines[0] || '';
+  if (dlgEl) dlgEl.style.display = 'flex';
+  input.aQueued = 0; // the press that opened it must not also advance a line
+  input.bQueued = 0;
+}
+function advanceDialog() {
+  dlgIndex++;
+  if (dlgIndex >= dlgLines.length) closeDialog();
+  else if (dlgText) dlgText.textContent = dlgLines[dlgIndex];
+}
+function closeDialog() {
+  dlgOpen = false;
+  dlgLines = null;
+  if (dlgEl) dlgEl.style.display = 'none';
+  input.aQueued = 0; // nothing may leak through when the box closes
+  input.bQueued = 0;
+}
+
+
 /* ---------------- party screen (overworld) ------------------------------
    Opened from the on-screen PARTY button. It lists the party and tapping a
    member makes it the LEAD (swaps it with slot 0). The lead is the critter
@@ -439,7 +474,20 @@ function frame(ts) {
       battle.update(dt);
       battle.draw(ctx);
     } else {
-      if (!(menuItems && menuItems.length)) ow.update(dt); // the party menu pauses walking
+      // dialogue first: while the box is open it owns A and B, and walking is paused
+      if (dlgOpen) {
+        if (input.consumeB()) closeDialog();
+        else {
+          while (dlgOpen && input.aQueued > 0) {
+            input.consumeA();
+            advanceDialog();
+          }
+        }
+      } else if (input.consumeA()) {
+        const t = ow.facingTarget(); // NPC or sign ahead? open the box
+        if (t) openDialog(t);
+      }
+      if (!(menuItems && menuItems.length) && !dlgOpen) ow.update(dt); // menu OR dialogue pauses walking
       ow.draw(ctx);
     }
   } catch (err) {
