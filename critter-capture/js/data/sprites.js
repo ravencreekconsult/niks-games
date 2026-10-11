@@ -415,6 +415,63 @@ const SPRITE_GRIDS = {
   ],
 };
 
+/* ---------------- townsfolk (16x16, drawn on the static map layer) ---------------- */
+
+const npcKid = [
+  '................',
+  '.....mmmmmm.....',
+  '....mmmmmmmm....',
+  '....ssssssss....',
+  '....skssssks....',
+  '....ssssssss....',
+  '.....ssssss.....',
+  '....gggggggg....',
+  '...gggwwgggg....',
+  '...gggggggggg...',
+  '....gggggggg....',
+  '....nn....nn....',
+  '....nn....nn....',
+  '...mmm....mmm...',
+  '................',
+  '................',
+];
+const npcElder = [
+  '................',
+  '.....wwwwww.....',
+  '....wwwwwwww....',
+  '....ssssssss....',
+  '....skssssks....',
+  '....ssssssss....',
+  '.....ssssss.....',
+  '....pppppppp....',
+  '...pppwwpppp....',
+  '...pppppppppp...',
+  '....pppppppp....',
+  '....dd....dd....',
+  '....dd....dd....',
+  '...mmm....mmm...',
+  '................',
+  '................',
+];
+const npcScout = [
+  '................',
+  '.....kkkkkk.....',
+  '....kkkkkkkk....',
+  '....ssssssss....',
+  '....skssssks....',
+  '....ssssssss....',
+  '.....ssssss.....',
+  '....oooooooo....',
+  '...ooowwoooo....',
+  '...oooooooooo...',
+  '....oooooooo....',
+  '....dd....dd....',
+  '....dd....dd....',
+  '...mmm....mmm...',
+  '................',
+  '................',
+];
+
 export const SPRITES = {
   playerDown, playerUp, playerSide,
 };

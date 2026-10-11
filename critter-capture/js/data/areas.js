@@ -72,6 +72,25 @@ export const MAPS = {
     warps: [
       { x: 23, y: 14, to: 'route1', tx: 1, ty: 14 },
     ],
+    npcs: [
+      { x: 8, y: 7, dir: 'down', sprite: 'npcKid', name: 'Mara', lines: [
+        'Hi! Welcome to Rivenmoor.',
+        'The tall grass on Route 1 is full of wild critters.',
+        'A strong team sticks together out there!',
+      ] },
+      { x: 16, y: 10, dir: 'down', sprite: 'npcElder', name: 'Old Fen', lines: [
+        'Ah, a new critter catcher!',
+        'Stand facing someone or a sign, then press the green button.',
+        'The pond is deep. Critters love it — people can\'t swim it.',
+      ] },
+    ],
+    signs: [
+      { x: 19, y: 13, lines: [
+        'RIVENMOOR TOWN',
+        'Small town, big hearts.',
+        'Route 1 is east — watch the tall grass!',
+      ] },
+    ],
     encounters: null,
   },
   route1: {
@@ -82,6 +101,14 @@ export const MAPS = {
     warps: [
       { x: 0, y: 14, to: 'town', tx: 22, ty: 14 },
     ],
+    npcs: [
+      { x: 3, y: 12, dir: 'down', sprite: 'npcScout', name: 'Scout Pip', lines: [
+        'Whoa, hi! I\'m counting critters today.',
+        'So far: sproutle, cinderpup... and one gloamkitty!',
+        'If your team gets hurt, rest up in town first.',
+      ] },
+    ],
+    signs: [],
     encounters: {
       rate: 0.13,
       table: [
