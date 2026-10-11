@@ -23,6 +23,21 @@
   #go{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06110f;border:0;margin-left:auto;
     box-shadow:0 0 14px rgba(124,92,255,.35),inset 0 1px 0 rgba(255,255,255,.3)}
   #go:disabled{opacity:.45;box-shadow:none}
+
+  /* ===== UI overhaul: tabbed build panel (Towers / Defend / Powers), chunkier buttons ===== */
+  #tdtabs{display:flex;gap:6px;padding:6px 8px 4px;background:linear-gradient(0deg,rgba(14,19,29,.96),rgba(22,28,42,.96));border-top:1px solid var(--line)}
+  #tdtabs button{flex:1;min-height:42px;border-radius:12px;border:2px solid #34405c;background:linear-gradient(180deg,#1c2440,#111726);color:#93a0b1;font-weight:800;font-size:12px;letter-spacing:.03em;touch-action:manipulation;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 0 rgba(0,0,0,.4)}
+  #tdtabs button .ti{display:block;font-size:15px;line-height:1.1}
+  #tdtabs button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+  #tdtabs button.on{color:#fff;border-color:var(--gold);background:linear-gradient(180deg,#5b3fd6,#33208a);box-shadow:0 0 12px rgba(124,92,255,.55),inset 0 1px 0 rgba(255,255,255,.25),0 3px 0 rgba(0,0,0,.4)}
+  #side[data-tab=towers] #abil{display:none}
+  #side[data-tab=defend] #shop,#side[data-tab=powers] #shop{display:none}
+  #side[data-tab=defend] #abil button:not(.dep),#side[data-tab=powers] #abil button.dep,#side[data-tab] #abil .asep{display:none}
+  #side[data-tab=defend] #abil,#side[data-tab=powers] #abil{flex-wrap:wrap;justify-content:center;overflow:visible}
+  #side[data-tab=defend] #abil button,#side[data-tab=powers] #abil button{flex:1 1 44%;min-height:50px;font-size:13px}
+  #hud button,#info button,#abil button{border-bottom-width:3px}
+  .tcard{box-shadow:0 3px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.07)}
+  .tcard:active{transform:translateY(2px)}
   #stage{flex:1;position:relative;min-height:0}
   canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
   #banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(8,11,17,.88);border:1px solid rgba(124,92,255,.55);
@@ -176,8 +191,9 @@
       <button id="introSand" style="margin-top:8px;background:linear-gradient(180deg,#8a5cff,#4a2bb8)">🧪 Sandbox: 100,000 gold (test every tower)</button>
     </div></div>
   </div>
-<div id="side">
+<div id="side" data-tab="towers">
   <div id="preview"><span class="plab">Next:</span><span id="pbody">—</span></div>
+  <div id="tdtabs"><button data-tab="towers" class="on"><span class="ti">&#127984;</span>Towers</button><button data-tab="defend"><span class="ti">&#128737;&#65039;</span>Soldiers &amp; Traps</button><button data-tab="powers"><span class="ti">&#9889;</span>Powers</button></div>
   <div id="abil">
     <button id="abAir">💥 Airstrike</button>
     <button id="abFrz">❄️ Freeze</button>
@@ -2517,6 +2533,15 @@ try{ newGame(); }catch(e){}
 try{ applyCam(); }catch(e){}
 try{ draw(); }catch(e){}
 try{ requestAnimationFrame(loop); }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  var side=document.getElementById('side');
+  function show(t){ side.setAttribute('data-tab',t);
+    [].forEach.call(document.querySelectorAll('#tdtabs button'),function(b){ b.classList.toggle('on',b.getAttribute('data-tab')===t); });
+    try{ window.dispatchEvent(new Event('resize')); }catch(e){} }
+  [].forEach.call(document.querySelectorAll('#tdtabs button'),function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-tab')); }); });
 })();
 </script>
 </body>
