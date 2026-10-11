@@ -1343,18 +1343,47 @@ function updateBoss(){
 }
 
 /* ---------- input ---------- */
-function posToGrid(ev){ const r=cv.getBoundingClientRect(); const t=ev.touches?ev.touches[0]:ev;
-  const x=t.clientX-r.left, y=t.clientY-r.top;
-  const c=Math.min(r.width/COLS,r.height/ROWS);
-  const oxx=(r.width-c*COLS)/2, oyy=(r.height-c*ROWS)/2;
-  return { gx:Math.floor((x-oxx)/c), gy:Math.floor((y-oyy)/c) }; }
-cv.addEventListener("pointermove",(ev)=>{ const g=posToGrid(ev); if(g.gx>=0&&g.gx<COLS&&g.gy>=0&&g.gy<ROWS) S.hover=g; else S.hover=null; });
-cv.addEventListener("pointerleave",()=>{ S.hover=null; });
-cv.addEventListener("pointerdown",(ev)=>{ ev.preventDefault(); const g=posToGrid(ev);
+function posToGrid(ev){
+  /* one source of truth: the camera-adjusted cell/ox/oy globals. The live rect only
+     converts screen CSS px to the stored CSS-px space (which was measured at the last
+     resize), so a stale rect or any zoom/pan can never shift a tap. */
+  const r=cv.getBoundingClientRect(); const t=ev.touches?ev.touches[0]:ev;
+  const kx=(cv.width/dpr)/Math.max(1,r.width), ky=(cv.height/dpr)/Math.max(1,r.height);
+  const x=(t.clientX-r.left)*kx, y=(t.clientY-r.top)*ky;
+  return { gx:Math.floor((x-ox)/cell), gy:Math.floor((y-oy)/cell) }; }
+let pDown=null;
+cv.addEventListener("pointermove",(ev)=>{
+  if(pDown && ev.pointerId===pDown.id){
+    const r=cv.getBoundingClientRect(); const kx=(cv.width/dpr)/Math.max(1,r.width);
+    const ddx=ev.clientX-pDown.lx, ddy=ev.clientY-pDown.ly;
+    pDown.lx=ev.clientX; pDown.ly=ev.clientY;
+    if(!pDown.moved && Math.hypot(ev.clientX-pDown.x,ev.clientY-pDown.y)>10){
+      pDown.moved=true; /* it's a pan, not a tap — manual pan wins until the next zoom step or FIT */
+      S.cam.manual=true; S.cam.follow=false; hud(); }
+    if(pDown.moved){ S.cam.fx-=ddx*kx/cell; S.cam.fy-=ddy*kx/cell; }
+    return; }
+  const g=posToGrid(ev); if(g.gx>=0&&g.gx<COLS&&g.gy>=0&&g.gy<ROWS) S.hover=g; else S.hover=null; });
+cv.addEventListener("pointerleave",()=>{ S.hover=null; pDown=null; });
+cv.addEventListener("pointerdown",(ev)=>{ ev.preventDefault();
+  pDown={id:ev.pointerId,x:ev.clientX,y:ev.clientY,lx:ev.clientX,ly:ev.clientY,moved:false};
+  try{ cv.setPointerCapture(ev.pointerId); }catch(e){} });
+cv.addEventListener("pointerup",(ev)=>{
+  if(!pDown||ev.pointerId!==pDown.id) return;
+  const wasDrag=pDown.moved; pDown=null;
+  if(wasDrag) return; /* a drag pans — it must NEVER build or fire */
+  const g=posToGrid(ev);
   if(g.gx<0||g.gx>=COLS||g.gy<0||g.gy>=ROWS) return;
   if(S.armed){ S.armed=false; doAirstrike(g.gx,g.gy); return; }
   const before=S.towers.find(t=>t.gx===g.gx&&t.gy===g.gy); tap(g.gx,g.gy);
   if(!before){ const now=S.towers.find(t=>t.gx===g.gx&&t.gy===g.gy); if(now){ selTower=now; showInfo(); } } });
+cv.addEventListener("pointercancel",()=>{ pDown=null; });
+
+fitBtn.onclick=()=>{ if(!S.cam) return; const c=S.cam;
+  if(c.fit){ c.fit=false; c.follow=true; c.manual=false; c.tz=zoomForWave(S.wave);
+    say("Following the action!",1300); }
+  else { c.fit=true; c.follow=false; c.manual=false; c.tz=1; c.tx=COLS/2; c.ty=ROWS/2;
+    say("Whole valley view!",1300); }
+  hud(); };
 
 go.onclick=startWave;
 spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
@@ -1375,7 +1404,7 @@ function loop(now){
   safe(updateAbil); safe(updateBoss);
   requestAnimationFrame(loop);
 }
-resize(); newGame(); draw(); requestAnimationFrame(loop);
+resize(); newGame(); applyCam(); draw(); requestAnimationFrame(loop);
 })();
 </script>
 </body>
