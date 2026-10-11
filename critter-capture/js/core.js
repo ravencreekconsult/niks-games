@@ -673,7 +673,7 @@ function frame(ts) {
             advanceDialog();
           }
         }
-      } else if (input.consumeA()) {
+      } else if (!(menuItems && menuItems.length) && input.consumeA()) {
         const t = ow.facingTarget(); // NPC or sign ahead? open the box
         if (t) openDialog(t);
       }
