@@ -227,6 +227,7 @@ export const MAPS = {
         { speciesId: 'cragmite', min: 3, max: 5, weight: 2 },
         { speciesId: 'voltling', min: 3, max: 5, weight: 1 },
         { speciesId: 'gloamkitty', min: 4, max: 6, weight: 1 },
+        { speciesId: 'brushbuck', min: 3, max: 5, weight: 1 },
       ],
       // Nocturnal shift: after dark the diurnal critters sleep and the
       // night ones come out. Levels keep each species' daytime range.
@@ -241,6 +242,54 @@ export const MAPS = {
       },
     },
   },
+  route2: {
+    id: 'route2', name: 'Frostwood Route', w: 28, h: 20,
+    rows: ROUTE2_ROWS,
+    legend: LEGEND,
+    spawn: { x: 1, y: 14 },
+    warps: [
+      { x: 0, y: 14, to: 'town2', tx: 22, ty: 14 },
+    ],
+    npcs: [
+      { x: 6, y: 12, dir: 'down', sprite: 'npcScout', name: 'Wren', flag: 'metWren', lines: [
+        'Brrr! Welcome to the Frostwood Route.',
+        'Wild critters up here wear winter coats — they hit hard and cool.',
+        'Rest in Willowbrook if your team gets chilly.',
+      ], again: [
+        'Still cold! The frost critters never mind it.',
+      ] },
+    ],
+    signs: [
+      { x: 5, y: 18, lines: [
+        'FROSTWOOD ROUTE',
+        'Colder than the coast, quieter than town.',
+        'The critters up here wear winter coats.',
+      ] },
+    ],
+    trainers: [],
+    encounters: {
+      rate: 0.13,
+      table: [
+        { speciesId: 'frostfox', min: 3, max: 5, weight: 3 },
+        { speciesId: 'ironmite', min: 3, max: 5, weight: 3 },
+        { speciesId: 'brushbuck', min: 3, max: 5, weight: 2 },
+        { speciesId: 'psykit', min: 4, max: 6, weight: 2 },
+        { speciesId: 'thistlekin', min: 3, max: 5, weight: 2 },
+        { speciesId: 'tidefry', min: 3, max: 5, weight: 1 },
+        { speciesId: 'gravelurk', min: 5, max: 7, weight: 1 },
+      ],
+      night: {
+        rate: 0.17,
+        table: [
+          { speciesId: 'gloamkitty', min: 4, max: 6, weight: 3 },
+          { speciesId: 'gravelurk', min: 5, max: 7, weight: 3 },
+          { speciesId: 'ironmite', min: 3, max: 5, weight: 2 },
+          { speciesId: 'frostfox', min: 3, max: 5, weight: 1 },
+          { speciesId: 'psykit', min: 4, max: 6, weight: 1 },
+        ],
+      },
+    },
+  },
   town2: {
     id: 'town2', name: 'Willowbrook', w: 24, h: 18,
     rows: TOWN2_ROWS,
@@ -249,6 +298,7 @@ export const MAPS = {
     warps: [
       { x: 0, y: 14, to: 'route1', tx: 26, ty: 14 },
       { x: 6, y: 4, to: 'heal_centre', tx: 5, ty: 7 },
+      { x: 23, y: 14, to: 'route2', tx: 1, ty: 14 },
     ],
     npcs: [
       { x: 5, y: 7, dir: 'down', sprite: 'npcKid', name: 'Bram', flag: 'metBram', lines: [
