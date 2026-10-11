@@ -32,13 +32,8 @@ export const CHARMAP = {
   d: 'dark', m: 'brown', s: 'tan',
 };
 
-/* Mirror the left half of every row -> guarantees symmetric, width-exact grids. */
-function mirror(halves) {
-  return halves.map((row) => {
-    if (row.length !== 8) throw new Error('sprite half-row must be 8 chars: "' + row + '"');
-    return row + row.split('').reverse().join('');
-  });
-}
+/* Critter grids are authored as COMPLETE 8-wide sprites (8x16 pixels).
+   Do NOT mirror them — mirroring duplicates the whole critter side by side. */
 
 /** Draw a string-grid sprite. Each cell = 1 unit pixel, scaled by `scale`. */
 export function drawSprite(ctx, grid, pal, x, y, scale) {
@@ -111,11 +106,11 @@ const playerSide = [
   '................',
 ];
 
-/* ---------------- critters (16x16, mirrored halves) ---------------- */
+/* ---------------- critters (8x16 grids, complete sprites) ---------------- */
 
-const SPRITE_HALVES = {
+const SPRITE_GRIDS = {
   /* Cinderpup — orange, pointed ears */
-  cinderpup: mirror([
+  cinderpup: [
     '........',
     '...kk...',
     '..koKk..',
@@ -132,9 +127,9 @@ const SPRITE_HALVES = {
     '...kok..',
     '..kkkkk.',
     '........',
-  ]),
+  ],
   /* Brookfin — blue fish, dorsal fin */
-  brookfin: mirror([
+  brookfin: [
     '........',
     '........',
     '...kk...',
@@ -151,9 +146,9 @@ const SPRITE_HALVES = {
     '...kk...',
     '........',
     '........',
-  ]),
+  ],
   /* Sproutle — green, leaf on head */
-  sproutle: mirror([
+  sproutle: [
     '........',
     '...LL...',
     '..kLLk..',
@@ -170,9 +165,9 @@ const SPRITE_HALVES = {
     '..kgggk.',
     '..kkkk..',
     '........',
-  ]),
+  ],
   /* Cragmite — grey rock body, dark cracks */
-  cragmite: mirror([
+  cragmite: [
     '........',
     '........',
     '..kkkk..',
@@ -189,9 +184,9 @@ const SPRITE_HALVES = {
     '..k..k..',
     '.kk..kk.',
     '........',
-  ]),
+  ],
   /* Zephyrik — sky-blue bird, white wing bars */
-  zephyrik: mirror([
+  zephyrik: [
     '........',
     '...kk...',
     '..kcck..',
@@ -208,9 +203,9 @@ const SPRITE_HALVES = {
     '..kokk..',
     '...kk...',
     '........',
-  ]),
+  ],
   /* Voltling — yellow round body, zigzag mark */
-  voltling: mirror([
+  voltling: [
     '........',
     '...kk...',
     '..kyyk..',
@@ -227,9 +222,9 @@ const SPRITE_HALVES = {
     '..kyky..',
     '..kkkk..',
     '........',
-  ]),
+  ],
   /* Gloamkitty — dark plum cat, yellow eyes */
-  gloamkitty: mirror([
+  gloamkitty: [
     '........',
     '..k..k..',
     '..kpkpk.'.slice(0, 8),
@@ -246,9 +241,9 @@ const SPRITE_HALVES = {
     '..kppk..',
     '..kkkk..',
     '........',
-  ]),
+  ],
   /* Lussette — white with gold trim */
-  lussette: mirror([
+  lussette: [
     '........',
     '...kk...',
     '..kwyk..',
@@ -265,13 +260,13 @@ const SPRITE_HALVES = {
     '..kwkw..',
     '..kkkk..',
     '........',
-  ]),
+  ],
 };
 
 export const SPRITES = {
   playerDown, playerUp, playerSide,
 };
-for (const k in SPRITE_HALVES) SPRITES[k] = SPRITE_HALVES[k];
+for (const k in SPRITE_GRIDS) SPRITES[k] = SPRITE_GRIDS[k];
 
 /* ---------------- tiles (16x16 painters, cached to canvases) ---------------- */
 

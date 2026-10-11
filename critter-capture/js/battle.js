@@ -16,6 +16,7 @@ let queue = [];            // playback queue: {ev, dur}
 let timer = 0;
 let msg = '';
 let fx = {};               // combatantId -> {flash:msLeft, shake:msLeft}
+let dispHp = {};           // combatantId -> eased HP shown on the bar (drains smoothly)
 let wildId = '', wildLevel = 1;
 let endInfo = null;        // {winnerSide, rewards}
 let resultMsg = '';
@@ -56,6 +57,7 @@ export function start(game, speciesId, level) {
   addSeen(mon.speciesId);
   addSeen(speciesId);
   fx = {};
+  dispHp = {};
   queue = [];
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
   resultMsg = '';
