@@ -226,7 +226,7 @@ export const MAPS = {
         ],
         winLine: 'No way... fine, you got me THIS time. Take the prize money — I\'ll get stronger!',
         loseLine: 'See? Told you! I\'m one step closer to being the very best.' },
-      { x: 20, y: 17, dir: 'up', sight: 3, sprite: 'npcLeader', name: 'Ash', flag: 'badgeEmber',
+      { x: 20, y: 17, dir: 'left', sight: 3, sprite: 'npcLeader', name: 'Ash', flag: 'badgeEmber',
         party: [{ speciesId: 'coalclaw', level: 18 }, { speciesId: 'magmaclaw', level: 19 }], reward: 800,
         lines: [
           'Halt! You stand on ember ground now.',
