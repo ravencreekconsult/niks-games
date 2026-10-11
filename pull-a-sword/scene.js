@@ -24,7 +24,7 @@
   function resize() {
     try {
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      cssH = Math.round(Math.max(170, Math.min(380, window.innerHeight * 0.38)));
+      cssH = Math.round(Math.max(140, Math.min(230, window.innerHeight * 0.24)));
       cv.style.height = cssH + 'px';
       cssW = wrap && wrap.clientWidth ? wrap.clientWidth : cv.clientWidth || 300;
       if (cssW < 50) { cssW = 300; }
@@ -614,7 +614,7 @@
         var fx = pn === 1 ? 0.5 : 0.15 + (0.7 / (pn - 1)) * pi;
         var px = fx * LW;
         var py = GROUND_Y + 10 - Math.pow((fx - 0.5) * 2, 2) * 6; /* shallow arc, ends slightly higher */
-        var ps = 16 + (pi % 2) * 2;
+        var ps = 30 + (pi % 2) * 2;
         var look = pullingNow && pLocal < 0.5 ? 1 : 0; /* pets look at the stone during beat 1 */
         drawPet(px + look * (200 - px) * 0.04, py, ps, pets[pi], tSec);
         /* name label */
