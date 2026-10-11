@@ -232,7 +232,32 @@ function gainXp(mon, gain) {
     const spName = (SPECIES[mon.speciesId] || { name: mon.speciesId }).name;
     msgs.push(spName + ' grew to level ' + mon.level + '!');
   }
+  checkEvolution(mon, msgs);
   return msgs;
+}
+
+/* A critter that reaches its species' evolveLevel becomes its evolved form.
+   The change lands in the SAVE; the critter standing on the field is
+   re-skinned so the sprite on screen changes with it. Battle stats stay as
+   they were rolled for this battle, so the new form's stats apply from the
+   next battle on. */
+function checkEvolution(mon, msgs) {
+  const sp = SPECIES[mon.speciesId];
+  if (!sp || !sp.evolvesTo || !sp.evolveLevel) return;
+  if (mon.level < sp.evolveLevel) return;
+  const next = SPECIES[sp.evolvesTo];
+  if (!next) return;
+  const oldName = sp.name;
+  mon.speciesId = sp.evolvesTo;
+  const dex = G.save.dex || (G.save.dex = { seen: [], caught: [] });
+  if (dex.seen.indexOf(mon.speciesId) === -1) dex.seen.push(mon.speciesId);
+  if (dex.caught.indexOf(mon.speciesId) === -1) dex.caught.push(mon.speciesId);
+  const i = G.save.party.indexOf(mon);
+  if (i >= 0) {
+    const c = combatant('c0_' + i);
+    if (c) { c.speciesId = mon.speciesId; c.name = next.name; }
+  }
+  msgs.push('Congratulations! ' + oldName + ' evolved into ' + next.name + '!');
 }
 
 /* On a win, the critter that fought takes the full xp — and so does every
