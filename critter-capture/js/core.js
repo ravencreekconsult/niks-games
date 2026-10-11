@@ -61,30 +61,132 @@ window.addEventListener('keydown', function (e) {
       e.preventDefault();
       return;
     }
-    input.heldDirs[KEYMAP[e.key]] = true; e.preventDefault();
+    input.heldDirs[KEYMAP[e.key]] = true; noteInput('key ' + KEYMAP[e.key]); e.preventDefault();
   }
-  else if (e.key === 'z' || e.key === 'Z' || e.key === ' ') { input.pressA(); e.preventDefault(); }
-  else if (e.key === 'x' || e.key === 'X') { input.pressB(); e.preventDefault(); }
+  else if (e.key === 'z' || e.key === 'Z' || e.key === ' ') { input.pressA(); noteInput('key A'); e.preventDefault(); }
+  else if (e.key === 'x' || e.key === 'X') { input.pressB(); noteInput('key B'); e.preventDefault(); }
 });
 window.addEventListener('keyup', function (e) {
   if (KEYMAP[e.key]) input.heldDirs[KEYMAP[e.key]] = false;
 });
 
-function bindButton(el, onDown, onUp) {
+/* ---------------- touch controls (PRIMARY input path) ----------------
+   The pad is ONE generous touch zone: direction is computed from the finger
+   position relative to the pad centre, updated on pointermove (drag follows
+   the thumb). Per-pointer tracking via pointerId keeps multi-touch working. */
+
+function noteInput(label) {
+  input.lastInput = label;
+  input.lastInputAt = performance.now();
+}
+
+const padEl = document.getElementById('dpad');
+const btnA = document.getElementById('btnA');
+const btnB = document.getElementById('btnB');
+
+function padDir(el, e) {
+  const r = el.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width / 2);
+  const dy = e.clientY - (r.top + r.height / 2);
+  const dead = r.width * 0.12; // dead zone at the pad centre
+  if (Math.abs(dx) < dead && Math.abs(dy) < dead) return null;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'right' : 'left';
+  return dy >= 0 ? 'down' : 'up';
+}
+
+function dirHeldByOther(p, dir) {
+  let still = false;
+  padPointers.forEach(function (o) { if (o !== p && o.dir === dir) still = true; });
+  return still;
+}
+
+const padPointers = new Map(); // pointerId -> { dir, t0, dragged }
+
+padEl.addEventListener('pointerdown', function (e) {
+  e.preventDefault();
+  if (padPointers.has(e.pointerId)) return;
+  if (padEl.setPointerCapture) { try { padEl.setPointerCapture(e.pointerId); } catch (err) {} }
+  padEl.classList.add('pressed');
+  const dir = padDir(padEl, e);
+  const p = { dir: dir, t0: performance.now(), dragged: false };
+  padPointers.set(e.pointerId, p);
+  if (dir) { input.heldDirs[dir] = true; noteInput('hold ' + dir); }
+});
+padEl.addEventListener('pointermove', function (e) {
+  const p = padPointers.get(e.pointerId);
+  if (!p) return; // ignore hover moves from pointers we didn't capture
+  e.preventDefault();
+  const dir = padDir(padEl, e);
+  if (dir === p.dir) return;
+  if (p.dir && !dirHeldByOther(p, p.dir)) input.heldDirs[p.dir] = false;
+  p.dir = dir;
+  if (dir) { p.dragged = true; input.heldDirs[dir] = true; noteInput('drag ' + dir); }
+});
+function padEnd(e) {
+  const p = padPointers.get(e.pointerId);
+  if (!p) return;
+  e.preventDefault();
+  padPointers.delete(e.pointerId);
+  const elapsed = performance.now() - p.t0;
+  const wasTap = !p.dragged && elapsed < 250 && p.dir;
+  if (p.dir && !dirHeldByOther(p, p.dir)) {
+    if (wasTap) {
+      // TAP: guarantee exactly one tile step even for a very fast tap —
+      // keep the direction held briefly so the next update frame starts it,
+      // then release (a 170ms tween completes on its own once started).
+      input.heldDirs[p.dir] = true;
+      const d = p.dir;
+      setTimeout(function () {
+        if (!dirHeldByOther(null, d)) input.heldDirs[d] = false;
+      }, 80);
+      noteInput('tap ' + d);
+    } else {
+      input.heldDirs[p.dir] = false;
+    }
+  }
+  if (!padPointers.size) padEl.classList.remove('pressed');
+}
+padEl.addEventListener('pointerup', padEnd);
+padEl.addEventListener('pointercancel', padEnd);
+padEl.addEventListener('lostpointercapture', padEnd);
+
+function bindButton(el, name, onDown, onUp) {
   if (!el) return;
-  el.addEventListener('pointerdown', function (e) { e.preventDefault(); el.setPointerCapture && el.setPointerCapture(e.pointerId); onDown(); });
-  const up = function (e) { e.preventDefault(); onUp(); };
+  el.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    if (el.setPointerCapture) { try { el.setPointerCapture(e.pointerId); } catch (err) {} }
+    el.classList.add('pressed');
+    noteInput(name);
+    onDown();
+  });
+  const up = function (e) {
+    e.preventDefault();
+    el.classList.remove('pressed');
+    onUp();
+  };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
-  el.addEventListener('pointerleave', up);
-  el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  el.addEventListener('lostpointercapture', up);
 }
-bindButton(document.getElementById('dUp'), () => { input.heldDirs.up = true; }, () => { input.heldDirs.up = false; });
-bindButton(document.getElementById('dDown'), () => { input.heldDirs.down = true; }, () => { input.heldDirs.down = false; });
-bindButton(document.getElementById('dLeft'), () => { input.heldDirs.left = true; }, () => { input.heldDirs.left = false; });
-bindButton(document.getElementById('dRight'), () => { input.heldDirs.right = true; }, () => { input.heldDirs.right = false; });
-bindButton(document.getElementById('btnA'), () => input.pressA(), () => {});
-bindButton(document.getElementById('btnB'), () => input.pressB(), () => {});
+
+bindButton(btnA, 'A', () => input.pressA(), () => {});
+bindButton(btnB, 'B', () => input.pressB(), () => {});
+
+/* Never get stuck walking: release everything on blur / hide / global cancel. */
+function releaseAllTouch() {
+  padPointers.clear();
+  input.heldDirs.up = input.heldDirs.down = input.heldDirs.left = input.heldDirs.right = false;
+  padEl.classList.remove('pressed');
+  [btnA, btnB].forEach(function (b) { if (b) b.classList.remove('pressed'); });
+}
+window.addEventListener('blur', releaseAllTouch);
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) releaseAllTouch();
+});
+
+/* Kill the remaining browser touch annoyances (zoom gestures, long-press menu). */
+document.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
 
 /* ---------------- scene switching ---------------- */
 
@@ -207,8 +309,11 @@ function frame(ts) {
   if (hudTick > 0.25) {
     hudTick = 0;
     const i = scene === 'battle' ? { map: 'battle', x: '-', y: '-' } : ow.info();
+    const inAge = performance.now() - input.lastInputAt;
+    const inLabel = (input.lastInputAt > 0 && inAge < 2000) ? input.lastInput : 'none';
     hudEl.textContent = scene + ' | ' + i.map + ' | ' + i.x + ',' + i.y +
-      ' | party Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length;
+      ' | party Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length +
+      ' | in: ' + inLabel;
   }
   requestAnimationFrame(frame);
 }
