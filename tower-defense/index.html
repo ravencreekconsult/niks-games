@@ -27,7 +27,7 @@
   canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
   #banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:rgba(8,11,17,.88);border:1px solid rgba(124,92,255,.55);
     box-shadow:0 0 22px rgba(124,92,255,.28),0 6px 18px rgba(0,0,0,.5);padding:10px 18px;border-radius:14px;font-weight:800;
-    letter-spacing:.5px;pointer-events:none;display:none;text-align:center;font-size:15px}
+    letter-spacing:.5px;pointer-events:none;display:none;text-align:center;font-size:15px;white-space:pre-line}
   #banner.pop{animation:bpop .28s cubic-bezier(.2,1.6,.4,1)}
   @keyframes bpop{0%{transform:translateX(-50%) scale(.6);opacity:0}100%{transform:translateX(-50%) scale(1);opacity:1}}
   #over{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
@@ -608,12 +608,22 @@ function startWave(){
   const incoming=nextNewKinds(); /* telegraph never-before-seen enemy kinds one wave ahead */
   S.leaks=0;
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
+  /* lanes: reset round-robin so this wave arrives as columns; when the lane count
+     grows, rebuild the pre-rendered road ONCE (same mechanism as the light phase)
+     and announce it on its own banner line — never repeated for the same step */
+  S.laneRR=0;
+  const ln=laneCountFor(S.wave);
+  let laneMsg="";
+  if(ln>S.laneCount){ laneMsg="\n🛣 The road widens — they are coming "+({2:"two",3:"three",4:"four"})[ln]+" abreast!"; }
+  S.laneCount=ln;
+  if(ln!==S.roadLanes){ S.roadLanes=ln; renderBG(); }
   const z=zoomForWave(S.wave);
   let msg = spec.boss? "BOSS WAVE "+S.wave : "Wave "+S.wave+" incoming";
   if(incoming.length) msg += "  ·  ⚠ "+incoming.join(", ")+" coming NEXT wave!";
   if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
     msg = spec.boss? "BOSS WAVE "+S.wave+" — the valley opens up!" : "The valley opens up — view zooms out!"; }
   if(eb>0) msg += "  ·  early call +"+eb+"g";
+  msg += laneMsg;
   S.queue = spec.list.map(e=>({t:e.t,gap:0.55}));
   S.curMult = spec.mult;
   say(msg, spec.boss?2600:1800);
