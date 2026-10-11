@@ -548,6 +548,7 @@ function openPartyMenu() {
     });
   });
   items.push({ label: 'BAG', cb: openBag });
+  items.push({ label: 'DEX', cb: openDex });
   items.push({ label: 'ABILITIES', cb: function () { openAbilityList(); } });
   items.push({ label: 'TYPE CHART', cb: function () { openTypeList(); } });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
@@ -569,6 +570,53 @@ function openAbilityList() {
     items.push({ label: ab.name, sub: ab.desc + (holders.length ? ' — ' + holders.join(', ') : ''), disabled: true });
   });
   items.push({ label: 'BACK', cb: openPartyMenu });
+  setMenu(items);
+}
+
+/* The dex screens: every species in SPECIES order with its seen/caught state. The
+   header count is save.dex.caught.length — the same number the HUD shows as 'dex N'. */
+function openDex() {
+  const dex = Game.save.dex || (Game.save.dex = { seen: [], caught: [] });
+  const ids = Object.keys(RULES.SPECIES);
+  const items = [{ label: 'DEX ' + dex.caught.length + '/' + ids.length, disabled: true }];
+  ids.forEach(function (sid, n) {
+    const sp = RULES.SPECIES[sid];
+    const caught = dex.caught.indexOf(sid) !== -1;
+    const seen = caught || dex.seen.indexOf(sid) !== -1;
+    const num = String(n + 1).padStart(3, '0');
+    if (!seen) {
+      items.push({ label: '#' + num + ' ???', sub: 'Not yet seen', disabled: true });
+    } else {
+      items.push({
+        label: '#' + num + ' ' + sp.name + (caught ? '  CAUGHT' : '  SEEN'),
+        cb: function () { openDexEntry(sid); },
+      });
+    }
+  });
+  items.push({ label: 'BACK', cb: openPartyMenu });
+  setMenu(items);
+}
+
+function openDexEntry(sid) {
+  const sp = RULES.SPECIES[sid];
+  const dex = Game.save.dex || { seen: [], caught: [] };
+  const caught = dex.caught.indexOf(sid) !== -1;
+  const types = (sp.types || []).map(function (t) { return String(t).toUpperCase(); }).join('/');
+  const ab = RULES.ABILITIES[sp.ability] || null;
+  const bs = sp.baseStats || {};
+  const items = [];
+  items.push({ label: '#' + sp.name.toUpperCase() + '  ' + types, disabled: true });
+  items.push({ label: caught ? 'CAUGHT' : 'SEEN', disabled: true });
+  if (ab) {
+    items.push({ label: 'Ability: ' + ab.name, disabled: true });
+    items.push({ label: '  ' + ab.desc, disabled: true });
+  }
+  items.push({ label: 'HP ' + bs.hp + '  Atk ' + bs.atk + '  Def ' + bs.def, disabled: true });
+  items.push({ label: 'SpA ' + bs.spa + '  SpD ' + bs.spd + '  Spe ' + bs.spe, disabled: true });
+  if (sp.evolvesTo && RULES.SPECIES[sp.evolvesTo]) {
+    items.push({ label: 'Evolves into ' + RULES.SPECIES[sp.evolvesTo].name + ' at Lv' + sp.evolveLevel, disabled: true });
+  }
+  items.push({ label: 'BACK', cb: openDex });
   setMenu(items);
 }
 
