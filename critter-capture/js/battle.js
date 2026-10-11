@@ -221,9 +221,10 @@ function stepPlayback(dtMs) {
 
 function xpNeed(level) { return 15 + level * 10; }
 
-function applyXp(gain) {
-  const mon = activeMon();
+/* Add xp to ONE critter and return the level-up messages it earns. */
+function gainXp(mon, gain) {
   const msgs = [];
+  if (!mon) return msgs;
   mon.xp = (mon.xp || 0) + (gain || 0);
   while (mon.xp >= xpNeed(mon.level) && mon.level < 100) {
     mon.xp -= xpNeed(mon.level);
@@ -231,6 +232,24 @@ function applyXp(gain) {
     const spName = (SPECIES[mon.speciesId] || { name: mon.speciesId }).name;
     msgs.push(spName + ' grew to level ' + mon.level + '!');
   }
+  return msgs;
+}
+
+/* On a win, the critter that fought takes the full xp — and so does every
+   other party member still standing, so a benched critter grows with the
+   team (that is what the party screen is for: rest one, train another).
+   A member that fainted in the battle earns nothing. */
+function applyXp(gain) {
+  const msgs = [];
+  const g = gain || 0;
+  const act = activeMon();
+  msgs.push.apply(msgs, gainXp(act, g));
+  G.save.party.forEach(function (m, i) {
+    if (m === act) return;                       // the lead already got it
+    const c = combatant('c0_' + i);
+    if (!c || c.fainted || c.hp <= 0) return;    // downed members don't grow
+    msgs.push.apply(msgs, gainXp(m, g));
+  });
   return msgs;
 }
 
