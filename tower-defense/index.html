@@ -48,6 +48,9 @@
   .tcard.sel{border-color:var(--accent2);box-shadow:0 0 14px rgba(0,229,255,.5),inset 0 0 12px rgba(0,229,255,.14);
     transform:translateY(-2px);background:linear-gradient(180deg,#123240,#0a2430)}
   .tcard.nope{opacity:.45;filter:saturate(.4)}
+  .tcard.locked{opacity:.5;filter:saturate(.25);cursor:default}
+  .tcard.locked .locktxt{color:#ffb3c0;font-weight:700}
+  .tcard.glow{border-color:var(--gold);box-shadow:0 0 16px rgba(255,209,102,.65),inset 0 0 10px rgba(255,209,102,.15)}
   .tcard b{display:block;font-size:14px} .tcard span{font-size:11px;color:var(--dim)}
   #info{display:none;gap:8px;align-items:center;padding:8px 11px;background:rgba(9,13,20,.94);border-top:1px solid var(--line);
     font-size:12px;flex-wrap:wrap;backdrop-filter:blur(6px)}
@@ -56,6 +59,9 @@
     font-weight:700;font-size:12px;transition:transform .08s}
   #info button:active{transform:scale(.94)}
   #info .up{background:linear-gradient(135deg,var(--ok),var(--accent2));color:#06110f;border:0}
+  #info .track{flex:0 0 auto;min-width:64px;min-height:44px;padding:4px 7px;font-size:11px;white-space:nowrap;
+    border-radius:10px;background:linear-gradient(135deg,var(--ok),var(--accent2));color:#06110f;border:0;font-weight:800}
+  #info .track.full{opacity:.45;filter:saturate(.4)}
   #info .sell{background:#2a1418;color:#ff9db0;border-color:#5a2630}
   #abil{display:flex;gap:6px;padding:5px 6px;background:linear-gradient(0deg,rgba(12,17,25,.94),rgba(20,26,37,.94));border-top:1px solid var(--line);
     overflow-x:auto;flex-wrap:nowrap}
@@ -145,7 +151,7 @@
       <button id="introGo">Build! 🏗</button>
     </div></div>
   </div>
-  <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="up" id="iUp">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
+  <div id="info"><span id="iTxt"></span><button id="iTgt">🎯 First</button><button class="track" id="iRng">RNG</button><button class="track" id="iRate">RATE</button><button class="track" id="iDmg">DMG</button><button class="up" id="iUp" style="display:none">Upgrade</button><button class="up" id="iS1" style="display:none">Spec</button><button class="up" id="iS2" style="display:none">Spec</button><button class="sell" id="iSell">Sell</button></div>
   <div id="shop"></div>
   <div class="hint" id="hint">Pick a tower below, tap the map to build &bull; tap a tower to upgrade or sell &bull; 🛡 Soldier / 🔻 / 🕳 / 💣 deploy on the ROAD &bull; tap a soldier to upgrade or sell &bull; Speed / Auto wave up top &bull; Gold: Testing = lots of gold to practise, Real = the real challenge (applies next game)</div>
 </div>
@@ -235,6 +241,7 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   bossbar=$id("bossbar"),bname=$id("bname"),bfill=$id("bfill"),bsh=$id("bsh"),
   eleft=$id("eleft"),
   gT=$id("gT"),gR=$id("gR"),iS1=$id("iS1"),iS2=$id("iS2"),fitBtn=$id("fitBtn"),
+  iRng=$id("iRng"),iRate=$id("iRate"),iDmg=$id("iDmg"),
   abSol=$id("abSol"),abSpike=$id("abSpike"),abTar=$id("abTar"),abBomb=$id("abBomb"),
   pbody=$id("pbody"),wmaxEl=$id("wmax"),oE=$id("oE"),
   hintBtn=$id("hintBtn"),hintEl=$id("hint"),nudgeEl=$id("nudge"),intro=$id("intro");
@@ -254,7 +261,7 @@ function newGame(){
       soldiers:[], traps:[], deploy:null,
       tw:0, tn:0, bgPhase:0,
       nextSpec:null, leaks:0, leaksTotal:0, kills:0, clearAt:0, endless:false,
-      slowmo:0, leakPulse:0, curMult:1,
+      slowmo:0, leakPulse:0, curMult:1, fresh:null,
       cam:{zoom:1.75,tz:1.75,fx:COLS/2,fy:ROWS/2,tx:COLS/2,ty:ROWS/2,follow:true,manual:false,fit:false} };
   selTower=null; selSold=null; info.style.display="none"; over.style.display="none"; oE.style.display="none"; banner.style.display="none";
   autoTimer=0; go.disabled=false; buildShop(); genNextSpec(); hud(); applyCam();
