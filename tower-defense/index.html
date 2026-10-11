@@ -251,6 +251,17 @@ const elGold=$id("gold"),elLives=$id("lives"),elWave=$id("wave"),elScore=$id("sc
   pbody=$id("pbody"),wmaxEl=$id("wmax"),oE=$id("oE"),
   hintBtn=$id("hintBtn"),hintEl=$id("hint"),nudgeEl=$id("nudge"),intro=$id("intro");
 RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
+/* ---------- intro dismiss: wired FIRST and made redundant, so no later error in
+   this script can ever leave the player stuck on the intro card ---------- */
+try{
+  $id("introGo").onclick=()=>{ try{ intro.style.display="none"; }catch(e){} };
+  /* delegated CAPTURE listener: a tap ANYWHERE on the intro card dismisses it,
+     independent of every other handler in the file */
+  document.addEventListener("click",(ev)=>{ try{
+      const t=ev.target;
+      if(t && t.closest && t.closest("#intro")) intro.style.display="none";
+    }catch(e){} },true);
+}catch(e){}
 const RM = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || false;
 let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, selSold=null, autoTimer=0;
@@ -1839,22 +1850,23 @@ cv.addEventListener("pointerup",(ev)=>{
   if(!before){ const now=S.towers.find(t=>t.gx===g.gx&&t.gy===g.gy); if(now){ selTower=now; showInfo(); } } });
 cv.addEventListener("pointercancel",()=>{ pDown=null; });
 
-fitBtn.onclick=()=>{ if(!S.cam) return; const c=S.cam;
-  if(c.fit){ c.fit=false; c.follow=true; c.manual=false; c.tz=zoomForWave(S.wave);
-    say("Following the action!",1300); }
-  else { c.fit=true; c.follow=false; c.manual=false; c.tz=1; c.tx=COLS/2; c.ty=ROWS/2;
-    say("Whole valley view!",1300); }
-  hud(); };
+try{
+  fitBtn.onclick=()=>{ if(!S.cam) return; const c=S.cam;
+    if(c.fit){ c.fit=false; c.follow=true; c.manual=false; c.tz=zoomForWave(S.wave);
+      say("Following the action!",1300); }
+    else { c.fit=true; c.follow=false; c.manual=false; c.tz=1; c.tx=COLS/2; c.ty=ROWS/2;
+      say("Whole valley view!",1300); }
+    hud(); };
 
-go.onclick=startWave;
-spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
-pause.onclick=()=>{ paused=!paused; hud(); };
-auto.onclick=()=>{ autoOn=!autoOn; if(autoOn && !S.running) autoTimer=0.4; hud(); };
-oB.onclick=()=>{ newGame(); };
-hintBtn.onclick=()=>{ hintEl.classList.toggle("open"); hintBtn.classList.toggle("on",hintEl.classList.contains("open")); };
-$id("introGo").onclick=()=>{ intro.style.display="none"; };
-gT.onclick=()=>{ goldMode="test"; try{ localStorage.setItem("td_gold","test"); }catch(e){} hud(); };
-gR.onclick=()=>{ goldMode="real"; try{ localStorage.setItem("td_gold","real"); }catch(e){} hud(); say("Real gold next game: 100",1500); };
+  go.onclick=startWave;
+  spd.onclick=()=>{ speed = speed===1?2: speed===2?3:1; hud(); };
+  pause.onclick=()=>{ paused=!paused; hud(); };
+  auto.onclick=()=>{ autoOn=!autoOn; if(autoOn && !S.running) autoTimer=0.4; hud(); };
+  oB.onclick=()=>{ newGame(); };
+  hintBtn.onclick=()=>{ hintEl.classList.toggle("open"); hintBtn.classList.toggle("on",hintEl.classList.contains("open")); };
+  gT.onclick=()=>{ goldMode="test"; try{ localStorage.setItem("td_gold","test"); }catch(e){} hud(); };
+  gR.onclick=()=>{ goldMode="real"; try{ localStorage.setItem("td_gold","real"); }catch(e){} hud(); say("Real gold next game: 100",1500); };
+}catch(e){} /* one bad handler must never take down the rest — intro dismiss lives above */
 banner.style.display="none";
 
 let last=performance.now();
