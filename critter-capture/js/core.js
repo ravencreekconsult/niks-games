@@ -52,7 +52,7 @@ const KEYMAP = {
 window.addEventListener('keydown', function (e) {
   if (KEYMAP[e.key]) {
     // when a battle menu is open, arrows navigate it instead of walking
-    if (menuItems && menuItems.length && scene === 'battle') {
+    if (menuItems && menuItems.length) {
       if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
         menuIndex = (menuIndex + menuItems.length - 1) % menuItems.length; highlightMenu();
       } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
@@ -243,6 +243,64 @@ function highlightMenu() {
 }
 menuEl.addEventListener('keydown', function () {}); // no-op; keyboard handled below
 
+/* ---------------- party screen (overworld) ------------------------------
+   Opened from the on-screen PARTY button. It lists the party and tapping a
+   member makes it the LEAD (swaps it with slot 0). The lead is the critter
+   that walks out first in a battle, so reordering is the whole point: send
+   the healthy one in, rest the hurt one. */
+
+const partyBtn = document.getElementById('partyBtn');
+const PARTY_IVS = { hp: 10, atk: 12, def: 10, spa: 12, spd: 10, spe: 12 };
+
+function maxHpOf(m) {
+  const sp = RULES.SPECIES[m.speciesId];
+  if (!sp) return 1;
+  return RULES.calcStats({
+    baseStats: sp.baseStats, ivs: PARTY_IVS, evs: null,
+    level: Math.max(1, m.level || 1), nature: m.nature || 'hardy',
+  }).hp;
+}
+
+function openPartyMenu() {
+  const party = Game.save.party;
+  const items = [{ label: 'PARTY (' + party.length + ')', disabled: true }];
+  party.forEach(function (m, i) {
+    const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
+    const max = maxHpOf(m);
+    const hp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, max) : max;
+    items.push({
+      label: (i === 0 ? '* ' : '') + sp.name + ' Lv' + (m.level || 1) + ' ' + Math.round(hp) + '/' + max,
+      cb: function () { makeLead(i); },
+    });
+  });
+  items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+/* Swap a party member into slot 0. HP travels with the critter, never the slot. */
+function makeLead(i) {
+  const party = Game.save.party;
+  if (i > 0 && i < party.length) {
+    const lead = party[0];
+    party[0] = party[i];
+    party[i] = lead;
+    Game.persist();
+  }
+  openPartyMenu(); // re-render so the * lead marker moves
+}
+
+if (partyBtn) {
+  partyBtn.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    partyBtn.classList.add('pressed');
+    if (menuItems && menuItems.length) setMenu(null); // tapping it again closes
+    else openPartyMenu();
+  });
+  partyBtn.addEventListener('pointerup', function () { partyBtn.classList.remove('pressed'); });
+  partyBtn.addEventListener('pointercancel', function () { partyBtn.classList.remove('pressed'); });
+  partyBtn.addEventListener('lostpointercapture', function () { partyBtn.classList.remove('pressed'); });
+}
+
 /* ---------------- resize: integer pixel scale ---------------- */
 
 function resize() {
@@ -286,7 +344,7 @@ function frame(ts) {
       battle.update(dt);
       battle.draw(ctx);
     } else {
-      ow.update(dt);
+      if (!(menuItems && menuItems.length)) ow.update(dt); // the party menu pauses walking
       ow.draw(ctx);
     }
   } catch (err) {
@@ -308,6 +366,7 @@ function frame(ts) {
   hudTick += dt;
   if (hudTick > 0.25) {
     hudTick = 0;
+    if (partyBtn) partyBtn.style.display = (scene === 'overworld') ? 'flex' : 'none';
     const i = scene === 'battle' ? { map: 'battle', x: '-', y: '-' } : ow.info();
     const inAge = performance.now() - input.lastInputAt;
     const inLabel = (input.lastInputAt > 0 && inAge < 2000) ? input.lastInput : 'none';
