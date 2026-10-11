@@ -338,6 +338,8 @@ function closeDialog() {
   }
   // a healing-centre nurse restores the party as the conversation ends
   if (dlgTarget && dlgTarget.npc && dlgTarget.npc.heal) healParty();
+  // a shopkeeper opens the shop as the conversation ends
+  if (dlgTarget && dlgTarget.npc && dlgTarget.npc.shop) openShop();
   dlgSteps = null;
   dlgTarget = null;
   if (dlgEl) dlgEl.style.display = 'none';
@@ -407,6 +409,99 @@ function healParty() {
   return party.length;
 }
 
+/* ---- The shop and the item bag ---------------------------------------
+   An NPC carrying `shop: true` (the shopkeeper in Willowbrook) opens the
+   shop when its conversation ends. Items heal a fixed amount of HP; the
+   bag lives in the save as { itemId: count }. */
+
+function bagCount(id) {
+  const bag = (Game.save.bag && typeof Game.save.bag === 'object' && !Array.isArray(Game.save.bag))
+    ? Game.save.bag : (Game.save.bag = {});
+  return bag[id] || 0;
+}
+
+function openShop() {
+  const items = [{ label: 'WILLOWBROOK SHOP   $' + (Game.save.money || 0), disabled: true }];
+  Object.keys(ITEMS).forEach(function (id) {
+    const item = ITEMS[id];
+    items.push({
+      label: item.name + '  $' + item.price,
+      sub: item.desc + '   (you have ' + bagCount(id) + ')',
+      cb: function () { buyItem(id); },
+    });
+  });
+  items.push({ label: 'LEAVE', cb: function () { setMenu(null); } });
+  setMenu(items);
+}
+
+function buyItem(id) {
+  const item = ITEMS[id];
+  if (Game.save.money < item.price) {
+    setMenu([
+      { label: 'Not enough money — you need $' + item.price + '.', disabled: true },
+      { label: 'BACK', cb: openShop },
+    ]);
+    return;
+  }
+  Game.save.money -= item.price;
+  Game.save.bag[id] = bagCount(id) + 1;
+  Game.persist();
+  openShop();
+}
+
+function openBag() {
+  const items = [{ label: 'BAG', disabled: true }];
+  let owned = false;
+  Object.keys(ITEMS).forEach(function (id) {
+    if (bagCount(id) <= 0) return;
+    owned = true;
+    const item = ITEMS[id];
+    items.push({
+      label: item.name + ' x' + bagCount(id),
+      sub: item.desc,
+      cb: function () { openBagTarget(id); },
+    });
+  });
+  if (!owned) items.push({ label: '(empty — the shop in Willowbrook sells supplies)', disabled: true });
+  items.push({ label: 'BACK', cb: openPartyMenu });
+  setMenu(items);
+}
+
+function openBagTarget(id) {
+  const item = ITEMS[id];
+  const items = [{ label: 'USE ' + item.name, disabled: true }];
+  (Game.save.party || []).forEach(function (m, i) {
+    const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
+    const max = maxHpOf(m);
+    const hp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, max) : max;
+    items.push({
+      label: sp.name + ' Lv' + (m.level || 1) + ' ' + Math.round(hp) + '/' + max,
+      cb: function () { useItem(id, i); },
+    });
+  });
+  items.push({ label: 'BACK', cb: openBag });
+  setMenu(items);
+}
+
+function useItem(id, i) {
+  const m = (Game.save.party || [])[i];
+  if (!m) { openBagTarget(id); return; }
+  const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
+  const max = maxHpOf(m);
+  const cur = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, max) : max;
+  if (cur >= max) {
+    setMenu([
+      { label: sp.name + ' is already at full HP.', disabled: true },
+      { label: 'BACK', cb: function () { openBagTarget(id); } },
+    ]);
+    return;
+  }
+  m.hp = Math.min(max, cur + ITEMS[id].heal);
+  Game.save.bag[id] = Math.max(0, bagCount(id) - 1);
+  Game.persist();
+  openBagTarget(id);
+}
+
 function openPartyMenu() {
   const party = Game.save.party;
   const items = [{ label: 'PARTY (' + party.length + ')  $' + (Game.save.money || 0), disabled: true }];
@@ -419,6 +514,7 @@ function openPartyMenu() {
       cb: function () { openDetailCard(i); },
     });
   });
+  items.push({ label: 'BAG', cb: openBag });
   items.push({ label: 'ABILITIES', cb: function () { openAbilityList(); } });
   items.push({ label: 'TYPE CHART', cb: function () { openTypeList(); } });
   items.push({ label: 'CLOSE', cb: function () { setMenu(null); } });
