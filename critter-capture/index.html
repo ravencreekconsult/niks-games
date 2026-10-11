@@ -2,19 +2,79 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Critter Capture</title>
 <style>
-  body { font-family: system-ui, sans-serif; background:#1b1f2a; color:#e8e8f0; display:flex; min-height:100vh; margin:0; align-items:center; justify-content:center; text-align:center; }
-  a { color:#8fd0ff; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1a1c2c; touch-action: none;
+    -webkit-user-select: none; user-select: none; overscroll-behavior: none; }
+  #wrap { height: 100%; display: flex; flex-direction: column; }
+  #errbar { display: none; background: #b13e53; color: #f4f4f4; font: 12px monospace;
+    padding: 6px 8px; white-space: pre-wrap; z-index: 30; }
+  #stage { flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
+    position: relative; min-height: 0; }
+  canvas#game { image-rendering: pixelated; image-rendering: crisp-edges;
+    background: #1a1c2c; touch-action: none; }
+  #hud { position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+    color: #94b0c2; font: 10px monospace; background: rgba(26,28,44,0.7);
+    padding: 2px 6px; border-radius: 4px; pointer-events: none; z-index: 10; }
+  #menu { position: absolute; right: 8px; bottom: 8px; display: none;
+    flex-direction: column; gap: 6px; z-index: 15; }
+  .mbtn { min-width: 120px; min-height: 44px; padding: 8px 14px; font: bold 14px monospace;
+    color: #f4f4f4; background: #29366f; border: 2px solid #73eff7; border-radius: 6px; }
+  .mbtn.sel { background: #3b5dc9; outline: 2px solid #ffcd75; }
+  .mbtn:disabled { opacity: 0.45; }
+  #controls { flex: 0 0 auto; display: flex; justify-content: space-between;
+    align-items: center; padding: 10px 14px 16px; background: #333c57; }
+  #dpad { position: relative; width: 150px; height: 150px; }
+  .dbtn { position: absolute; width: 50px; height: 50px; background: rgba(244,244,244,0.25);
+    border: 2px solid rgba(244,244,244,0.5); border-radius: 8px; color: #f4f4f4;
+    font: bold 18px monospace; display: flex; align-items: center; justify-content: center;
+    touch-action: none; }
+  .dbtn:active { background: rgba(115,239,247,0.5); }
+  #dUp { left: 50px; top: 0; } #dDown { left: 50px; top: 100px; }
+  #dLeft { left: 0; top: 50px; } #dRight { left: 100px; top: 50px; }
+  #abBtns { display: flex; gap: 14px; align-items: flex-end; }
+  #btnB, #btnA { width: 64px; height: 64px; border-radius: 50%; font: bold 20px monospace;
+    color: #1a1c2c; border: 3px solid #1a1c2c; touch-action: none; }
+  #btnB { background: #ef7d57; margin-bottom: 18px; }
+  #btnA { background: #a7f070; }
+  #btnB:active, #btnA:active { filter: brightness(1.2); }
 </style>
 </head>
 <body>
-<div>
-  <h1>Critter Capture</h1>
-  <p>A creature-battling adventure set in the region of Rivenmoor.</p>
-  <p><strong>This game is in development.</strong> Come back soon!</p>
-  <p>Curious about the engine? <a href="rules/selftest.html">Open the battle-rules self-test page</a>.</p>
-</div>
+  <div id="wrap">
+    <div id="errbar"></div>
+    <div id="stage">
+      <canvas id="game" width="240" height="160"></canvas>
+      <div id="hud">starting...</div>
+      <div id="menu"></div>
+    </div>
+    <div id="controls">
+      <div id="dpad">
+        <div class="dbtn" id="dUp">&#9650;</div>
+        <div class="dbtn" id="dLeft">&#9664;</div>
+        <div class="dbtn" id="dRight">&#9654;</div>
+        <div class="dbtn" id="dDown">&#9660;</div>
+      </div>
+      <div id="abBtns">
+        <div id="btnB">B</div>
+        <div id="btnA">A</div>
+      </div>
+    </div>
+  </div>
+  <p style="display:none"><a href="rules/selftest.html">battle-rules self-test</a></p>
+  <script>
+    /* Watchdog: if the game module never boots, say so on screen. */
+    setTimeout(function () {
+      if (!window.__CC_OK) {
+        var eb = document.getElementById('errbar');
+        eb.style.display = 'block';
+        eb.textContent = 'ERROR: the game did not finish starting. ' +
+          'A script file may have failed to load. Check the address and reload.';
+      }
+    }, 4000);
+  </script>
+  <script type="module" src="js/core.js"></script>
 </body>
 </html>
