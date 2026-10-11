@@ -213,6 +213,23 @@ const Game = {
     setMenu(null);
     ow.enter(Game, this.save.map, this.save.x, this.save.y, this.save.dir);
   },
+  onTrainer(t) {
+    // a trainer target deliberately has NO `npc` field: closeDialog() sets
+    // `npc.flag` for npc-kind targets, and that would mark the trainer beaten
+    const target = { kind: 'trainer', name: t.name, steps: t.lines, trainer: t };
+    openDialog(target, function () {
+      scene = 'battle';
+      try { battle.startTrainer(Game, t); }
+      catch (err) { showError('battle start: ' + err.message); scene = 'overworld'; }
+    });
+  },
+  onTrainerResult(result, t) {
+    if (result !== 'win' || !t) return;
+    if (typeof this.save.money !== 'number') this.save.money = 0;
+    this.save.money += t.reward || 0;
+    flagsOf()[t.flag] = true;
+    this.persist();
+  },
 };
 
 function setMenu(items) {
@@ -376,7 +393,7 @@ function maxHpOf(m) {
 
 function openPartyMenu() {
   const party = Game.save.party;
-  const items = [{ label: 'PARTY (' + party.length + ')', disabled: true }];
+  const items = [{ label: 'PARTY (' + party.length + ')  $' + (Game.save.money || 0), disabled: true }];
   party.forEach(function (m, i) {
     const sp = RULES.SPECIES[m.speciesId] || { name: m.speciesId };
     const max = maxHpOf(m);
@@ -576,7 +593,7 @@ function frame(ts) {
     const inLabel = (input.lastInputAt > 0 && inAge < 2000) ? input.lastInput : 'none';
     hudEl.textContent = scene + ' | ' + i.map + ' | ' + i.x + ',' + i.y +
       ' | party ' + Game.save.party.length + ' Lv' + Game.save.party[0].level + ' | dex ' + Game.save.dex.caught.length +
-      ' | in: ' + inLabel;
+      ' | $' + (Game.save.money || 0) + ' | in: ' + inLabel;
   }
   requestAnimationFrame(frame);
 }
@@ -587,6 +604,7 @@ try {
   window.__CC_OK = false;
   if (!selfCheck()) throw new Error('self-check failed');
   Game.save = loadSave() || newSave();
+  if (typeof Game.save.money !== 'number') Game.save.money = 0;
   saveGame(Game.save);
   ow.enter(Game, Game.save.map, Game.save.x, Game.save.y, Game.save.dir);
   setMenu(null);

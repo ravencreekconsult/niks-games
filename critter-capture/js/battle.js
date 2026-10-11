@@ -26,6 +26,8 @@ let caughtFlag = false;
 let caughtJoinedParty = false;
 let catchAnim = null;      // {targetId, success, shakes, t, total} — the ball throw + shakes
 let wildIdentity = null;   // the rolled {ivs, nature} of this wild critter
+let trainerInfo = null;    // set only for a trainer battle (startTrainer)
+let trainerResultFired = false; // onTrainerResult may fire at most once per battle
 const PLAYER_ID = 'c0_0';
 
 /* Real identity for a party member from the save; never undefined. */
@@ -73,6 +75,8 @@ function addSeen(sp) {
 
 export function start(game, speciesId, level) {
   G = game;
+  trainerInfo = null; // a later wild battle is never treated as a trainer battle
+  trainerResultFired = false;
   wildId = speciesId; wildLevel = level;
   const mon = partyMon();
   const battleSeed = (Date.now() & 0x7fffffff) | 1;
@@ -128,6 +132,83 @@ export function start(game, speciesId, level) {
   }
   queue = intro.concat(buildQueue(battleEvents));
   msg = 'A wild ' + SPECIES[speciesId].name + ' appeared!';
+  resultMsg = '';
+  caughtFlag = false;
+  caughtJoinedParty = false;
+  catchAnim = null;
+  endInfo = null;
+  overTimer = 0;
+  phase = 'playback';
+  timer = 1100;
+  G.setMenu(null);
+}
+
+/* ---------------- trainer battles: same engine, different framing ----------------
+   A trainer battle is the SAME createBattle/resolveTurn machinery with a
+   multi-member foe team and different menus/wording. trainerInfo is the only
+   switch; nothing in the engine event stream changes. */
+
+export function startTrainer(game, trainer) {
+  G = game;
+  trainerInfo = trainer;
+  trainerResultFired = false;
+  wildId = ''; wildLevel = 1;
+  const mon = partyMon();
+  const battleSeed = (Date.now() & 0x7fffffff) | 1;
+  // the player's party takes the field exactly as in a wild battle
+  const team0 = G.save.party.slice(0, 6).map((m) => {
+    const id = memberIdentity(m);
+    return {
+      speciesId: m.speciesId,
+      level: Math.max(1, m.level || 1),
+      pid: 0,
+      ivs: id.ivs,
+      evs: m.evs || { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      nature: id.nature,
+    };
+  });
+  if (!team0.length) {
+    const id = memberIdentity(mon);
+    team0.push({ speciesId: mon.speciesId, level: Math.max(1, mon.level || 1), pid: 0, ivs: id.ivs, evs: mon.evs || { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, nature: id.nature });
+  }
+  // each trainer critter rolls its own deterministic identity
+  const team1 = (trainer.party || []).map((e) => {
+    const id = rollIdentity(e.speciesId, 'trainer' + e.level + battleSeed);
+    return {
+      speciesId: e.speciesId,
+      level: Math.max(1, e.level || 1),
+      pid: 1,
+      ivs: id.ivs,
+      evs: { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 },
+      nature: id.nature,
+    };
+  });
+  state = createBattle({ seed: battleSeed, teams: [team0, team1] });
+  // carry the party's HP in from the overworld (never below 1)
+  G.save.party.slice(0, 6).forEach((m, i) => {
+    const c = combatant('c0_' + i);
+    if (!c) return;
+    const carryHp = (typeof m.hp === 'number' && m.hp > 0) ? Math.min(m.hp, c.maxHp) : c.maxHp;
+    c.hp = carryHp;
+    m.hp = carryHp;
+  });
+  addSeen(mon.speciesId);
+  for (const e of team1) addSeen(e.speciesId);
+  fx = {};
+  dispHp = {};
+  endInfo = null;
+  const battleEvents = beginBattle({ state }).events;
+  const intro = [];
+  const seenIntro = {};
+  for (const c of state.combatants) {
+    if (c.fainted || c.active === false || seenIntro[c.id]) continue;
+    seenIntro[c.id] = true;
+    const ab = ABILITIES[c.ability];
+    if (!ab) continue;
+    intro.push({ ev: { t: 'message', text: c.name + "'s " + ab.name + '!' }, dur: DUR.message });
+  }
+  queue = intro.concat(buildQueue(battleEvents));
+  msg = trainer.name + ' wants to battle!';
   resultMsg = '';
   caughtFlag = false;
   caughtJoinedParty = false;
