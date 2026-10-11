@@ -149,10 +149,10 @@ export const MAPS = {
         winLine: 'That was awesome! You beat BOTH of us — here\'s your prize.',
         loseLine: 'My team pulled through! Rest up and try me again soon.' },
       { x: 8, y: 10, dir: 'down', sight: 2, sprite: 'npcElder', name: 'Roz', flag: 'beatRoz',
-        party: [{ speciesId: 'cragmite', level: 7 }], reward: 150,
+        party: [{ speciesId: 'gloamkitty', level: 5 }], reward: 150,
         lines: [
           'A keen eye! You spotted me before I spotted you... almost.',
-          'I\'m Roz. I raise one patient little cragmite.',
+          'I\'m Roz. I raise one patient little gloamkitty.',
           'Care to test your team against mine?',
         ],
         winLine: 'Splendid! Patience and kindness — that\'s a real catcher. Your prize.',
