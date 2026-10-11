@@ -727,7 +727,7 @@ function endRound(){
     if(mode==='endless'){
       showPanel('WAVE CLEAR','WAVE '+round+' CLEARED \u00b7 ENDLESS',rows,medal,
         [{label:'NEXT WAVE',primary:true,fn:function(){ advanceRound(); }},
-         {label:'STOP HERE',fn:function(){ newGame('hunt'); }}]);
+         {label:'STOP HERE',fn:function(){ gotoTitle(); }}]);
     } else {
       showPanel('AREA CLEAR','ROUND '+round+' OF '+ROUNDS_TO_WIN,rows,medal,
         [{label:'NEXT AREA',primary:true,fn:function(){ advanceRound(); }}]);
@@ -762,12 +762,15 @@ function advanceRound(){
   setScene(sceneForRound(round));
   startRound();
 }
+function pauseMenu(){
+  showPanel('PAUSED','TAKE A BREATH',[['VIBRATION',haptics?'ON':'OFF']],'',
+    [{label:'RESUME',primary:true,fn:function(){ state='playing'; hidePanel(); }},
+     {label:'RESTART',fn:function(){ newGame(); }},
+     {label:'VIBRATION '+(haptics?'ON':'OFF'),fn:function(){ setHaptics(!haptics); pauseMenu(); }},
+     {label:'MAIN MENU',fn:function(){ gotoTitle(); }}]);
+}
 function togglePause(){
-  if(state==='playing'){ prevState='playing'; state='paused';
-    showPanel('PAUSED','TAKE A BREATH',[],'',
-      [{label:'RESUME',primary:true,fn:function(){ state='playing'; hidePanel(); }},
-       {label:'RESTART',fn:function(){ newGame(); }},
-       {label:'MAIN MENU',fn:function(){ gotoTitle(); }}]);
+  if(state==='playing'){ prevState='playing'; state='paused'; pauseMenu();
   } else if(state==='paused'){ state='playing'; hidePanel(); }
 }
 
@@ -801,6 +804,10 @@ function cycleGun(){
   updateHud();
 }
 function cycleDiff(){ diffIndex=(diffIndex+1)%DIFFS.length; updateHud(); }
+function setHaptics(v){
+  haptics=v;
+  try{ if(typeof localStorage!=='undefined'&&localStorage) localStorage.setItem('duckhunt_haptics',v?'1':'0'); }catch(e){}
+}
 function toggleMute(){
   muted=!muted;
   try{ if(typeof localStorage!=='undefined'&&localStorage) localStorage.setItem('duckhunt_muted',muted?'1':'0'); }catch(e){}
@@ -1342,7 +1349,8 @@ function gotoTitle(){
      ['ARSENAL',arsenal]],
     '',
     [{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame('hunt'); }},
-     {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }}]);
+     {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }},
+     {label:'VIBRATION '+(haptics?'ON':'OFF'),fn:function(){ setHaptics(!haptics); gotoTitle(); }}]);
 }
 function boot(){
   loadSave(); best=save.best||0;
