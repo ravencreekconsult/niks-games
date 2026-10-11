@@ -354,9 +354,10 @@ export function stageMult(n) {
  *   { speciesId, level, pid?, ivs?, evs?, nature?, moves?, ability?, item?, name? }
  * Moves default to the species learnset moves available at that level,
  * capped at 4. The first member of each side starts active.
- * NOTE: onEntry abilities do NOT fire at creation (they fire when a
- * critter becomes active during resolveTurn); fire them client-side if
- * you want entry announcements before turn 1.
+ * NOTE: onEntry abilities do NOT fire at creation. Call the exported
+ * beginBattle({ state }) immediately after createBattle to fire them
+ * for the starting active critters (they also fire on switch-ins inside
+ * resolveTurn).
  */
 export function createBattle({ seed = 1, teams = [] }) {
   const combatants = [];
@@ -390,6 +391,79 @@ export function createBattle({ seed = 1, teams = [] }) {
     });
   });
   return { turn: 0, rngState: seed, seed, field: { weather: null, turnCount: 0 }, combatants };
+}
+
+/**
+ * beginBattle({ state })
+ * Purely ADDITIVE post-creation step: fires the onEntry ability hook of
+ * every ACTIVE, non-fainted combatant (createBattle deliberately does
+ * not). Does not change resolveTurn or any existing export/behaviour.
+ * Returns { state, events }; NEVER throws — an ability error is swallowed.
+ */
+export function beginBattle({ state } = {}) {
+  const s = state;
+  if (!s || !Array.isArray(s.combatants)) return { state: s, events: [] };
+  const ev = [];
+  let rng = (typeof s.rngState === 'number') ? s.rngState : (s.seed || 1);
+  const roll = () => { const r = nextRandom(rng); rng = r.state; return r.value; };
+  const msg = (text) => ev.push({ t:'message', text });
+  const applyStatus = (target, status) => {
+    if (!target || target.fainted || !status) return false;
+    if (target.status) return false; // only one major status at a time
+    const ab = ABILITIES[target.ability];
+    if (ab && ab.blockStatus) { msg(target.name + ' shrugged it off!'); return false; }
+    target.status = status;
+    target.statusTurns = (status === 'slumber') ? 1 + Math.floor(roll() * 3) : 0;
+    ev.push({ t:'status', targetId:target.id, status });
+    const verb = { scorch:'was scorched!', blight:'was blighted!', static:'went static!', slumber:'fell into a deep slumber!', chill:'was chilled to the bone!' };
+    msg(target.name + ' ' + (verb[status] || 'was afflicted!'));
+    return true;
+  };
+  const raiseStages = (target, stages) => {
+    for (const k of Object.keys(stages)) {
+      const before = target.stages[k] || 0;
+      const after = Math.max(-6, Math.min(6, before + stages[k]));
+      if (after !== before) {
+        target.stages[k] = after;
+        ev.push({ t:'stage', targetId:target.id, stat:k, delta:after - before });
+        msg(target.name + "'s " + k + (stages[k] > 0 ? ' rose!' : ' fell!'));
+      }
+    }
+  };
+  const heal = (target, amount) => {
+    if (!target || target.fainted) return 0;
+    amount = Math.floor(Number(amount) || 0);
+    if (!(amount > 0)) return 0;
+    const before = target.hp;
+    target.hp = Math.min(target.maxHp, before + amount);
+    const gained = target.hp - before;
+    if (gained > 0) ev.push({ t:'heal', targetId:target.id, amount: gained, hpAfter: target.hp });
+    return gained;
+  };
+  const setWeather = (id, turns) => {
+    if (!s.field) s.field = { weather: null, turnCount: 0 };
+    s.field.weather = { id, turnsLeft: turns };
+    ev.push({ t:'weather', weather:id, turnsLeft:turns });
+    msg(id === 'heatshimmer' ? 'Heat shimmer fills the air!' : 'Clouds burst and rain pours down!');
+  };
+  const clearWeather = () => {
+    if (s.field && s.field.weather) { s.field.weather = null; ev.push({ t:'weather', weather:null }); msg('The weather calmed.'); }
+  };
+  const ctxFor = (extra) => Object.assign({
+    s, ev, msg, roll, applyStatus, raiseStages, heal, setWeather, clearWeather,
+  }, extra || {});
+  try {
+    for (const c of s.combatants) {
+      if (!c || c.active === false || c.fainted) continue;
+      const ab = ABILITIES[c.ability];
+      if (ab && ab.hooks && ab.hooks.onEntry) {
+        try { ab.hooks.onEntry(ctxFor({ self:c })); }
+        catch (e) { /* an ability must never break a battle */ }
+      }
+    }
+  } catch (e) { /* swallow — beginBattle must never throw */ }
+  s.rngState = rng;
+  return { state: s, events: ev };
 }
 
 /* =====================================================================
