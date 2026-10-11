@@ -591,15 +591,12 @@ function startWave(){
   /* CONSUME the stored spec — the wave that runs IS the wave the preview showed */
   const spec=S.nextSpec||waveSpec(S.wave);
   genNextSpec(); /* pre-generate wave+1 so the preview stays truthful */
+  const incoming=nextNewKinds(); /* telegraph never-before-seen enemy kinds one wave ahead */
   S.leaks=0;
   if(lightPhase(S.wave)!==S.bgPhase){ S.bgPhase=lightPhase(S.wave); renderBG(); }
   const z=zoomForWave(S.wave);
-  /* announce towers that unlock THIS wave, and light their shop cards up briefly */
-  const fresh=TOWERS.filter(t=>UNLOCK_WAVE[t.id]===S.wave);
-  if(fresh.length){ S.fresh={ids:fresh.map(t=>t.id),until:S.time+7}; buildShop();
-    try{ setTimeout(()=>{ if(S&&!S.over&&S.fresh&&S.fresh.until<=S.time) buildShop(); },7300); }catch(e){} }
   let msg = spec.boss? "BOSS WAVE "+S.wave : "Wave "+S.wave+" incoming";
-  if(fresh.length) msg="🔓 NEW TOWER UNLOCKED — "+fresh.map(t=>t.name).join(", ")+"!";
+  if(incoming.length) msg += "  ·  ⚠ "+incoming.join(", ")+" coming NEXT wave!";
   if(S.cam && z<S.cam.tz-0.001){ S.cam.tz=z; S.cam.follow=true; S.cam.manual=false; S.cam.fit=false;
     msg = spec.boss? "BOSS WAVE "+S.wave+" — the valley opens up!" : "The valley opens up — view zooms out!"; }
   if(eb>0) msg += "  ·  early call +"+eb+"g";
