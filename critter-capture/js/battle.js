@@ -399,7 +399,7 @@ function showSwitchMenu() {
 function showMoveMenu() {
   phase = 'menu';
   const me = activeOf(0);
-  const foe = activeOf(1);
+  const foe = activeOf(1) || {};
   const foeTypes = (SPECIES[foe.speciesId] || {}).types || [];
   const buttons = [];
   let anyUsable = false;
