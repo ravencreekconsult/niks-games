@@ -304,7 +304,7 @@ export function draw(ctx) {
   ctx.fillStyle = PAL.ice; ctx.fillRect(0, 0, VIEW_W, 96);
   ctx.fillStyle = PAL.lgrn; ctx.fillRect(0, 96, VIEW_W, VIEW_H - 96);
   ctx.fillStyle = PAL.teal;
-  ctx.beginPath(); ctx.ellipse(64, 108, 46, 13, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(64, 98, 46, 13, 0, 0, Math.PI * 2); ctx.fill();
   ctx.beginPath(); ctx.ellipse(172, 56, 42, 12, 0, 0, Math.PI * 2); ctx.fill();
 
   const me = activeOf(0), foe = activeOf(1);
