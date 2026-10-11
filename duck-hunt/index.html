@@ -126,18 +126,34 @@ function mixHex(a,b,t){
 }
 
 /* ---------------- save (v2, migrates v1) ---------------- */
-var SAVE_KEY='duckhunt_save_v2', OLD_KEY='duckhunt_save_v1';
-var save={ best:0, goldUnlocked:false };
+var SAVE_KEY='duckhunt_save_v3', V2_KEY='duckhunt_save_v2', OLD_KEY='duckhunt_save_v1';
+var save={ best:0, goldUnlocked:false, stars:{}, endlessBest:0 };
 function loadSave(){
   try{
     if(typeof localStorage==='undefined'||!localStorage) return;
     var raw=localStorage.getItem(SAVE_KEY);
-    if(!raw){ raw=localStorage.getItem(OLD_KEY); if(raw){ try{ var o1=JSON.parse(raw); if(o1&&typeof o1.best==='number') save.best=o1.best; }catch(e){} } return; }
-    var o=JSON.parse(raw);
-    if(o&&typeof o==='object'){
-      if(typeof o.best==='number'&&isFinite(o.best)) save.best=o.best;
-      save.goldUnlocked=!!o.goldUnlocked;
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o&&typeof o==='object'){
+        if(typeof o.best==='number'&&isFinite(o.best)) save.best=o.best;
+        if(typeof o.endlessBest==='number'&&isFinite(o.endlessBest)) save.endlessBest=o.endlessBest;
+        save.goldUnlocked=!!o.goldUnlocked;
+        save.stars={};
+        if(o.stars&&typeof o.stars==='object'){ for(var k in o.stars){ var v=Math.floor(Number(o.stars[k])); if(v>0&&v<=3) save.stars[k]=v; } }
+      }
+      return;
     }
+    var raw2=localStorage.getItem(V2_KEY);
+    if(raw2){
+      var o2=JSON.parse(raw2);
+      if(o2&&typeof o2==='object'){
+        if(typeof o2.best==='number'&&isFinite(o2.best)) save.best=o2.best;
+        save.goldUnlocked=!!o2.goldUnlocked;
+      }
+      return;
+    }
+    var raw1=localStorage.getItem(OLD_KEY);
+    if(raw1){ var o1=JSON.parse(raw1); if(o1&&typeof o1.best==='number'&&isFinite(o1.best)) save.best=o1.best; }
   }catch(e){}
 }
 function writeSave(){ try{ if(typeof localStorage!=='undefined'&&localStorage) localStorage.setItem(SAVE_KEY,JSON.stringify(save)); }catch(e){} }
@@ -202,10 +218,10 @@ function sndTrophy(){ var n=[523,659,784,1046,1318],i; for(i=0;i<n.length;i++) t
 
 /* ---------------- config ---------------- */
 var GUNS=[
-  { name:'12-Gauge', mag:6, spread:30, pellets:6, pts:100, rate:340, body:'#8a5a2b', metal:'#c9d2dd', flash:'#ffd27a' },
-  { name:'Rifle',    mag:4, spread:6,  pellets:1, pts:320, rate:800, body:'#6b3f1d', metal:'#e6eef7', flash:'#fff1c0' },
-  { name:'Auto-12',  mag:8, spread:44, pellets:9, pts:60,  rate:150, body:'#2f3138', metal:'#9aa4b2', flash:'#ffbe63' },
-  { name:'Golden Gun',mag:6, spread:14, pellets:7, pts:220, rate:300, body:'#d4af37', metal:'#fff2b0', flash:'#ffe071', gold:true }
+  { name:'12-Gauge', mag:6, spread:30, pellets:6, pts:100, rate:340, req:0,  body:'#8a5a2b', metal:'#c9d2dd', flash:'#ffd27a' },
+  { name:'Rifle',    mag:4, spread:6,  pellets:1, pts:320, rate:800, req:3,  body:'#6b3f1d', metal:'#e6eef7', flash:'#fff1c0' },
+  { name:'Auto-12',  mag:8, spread:44, pellets:9, pts:60,  rate:150, req:8,  body:'#2f3138', metal:'#9aa4b2', flash:'#ffbe63' },
+  { name:'Golden Gun',mag:6, spread:14, pellets:7, pts:220, rate:300, req:20, body:'#d4af37', metal:'#fff2b0', flash:'#ffe071', gold:true }
 ];
 var DIFFS=[
   { name:'Easy',   spd:0.82, thr:6, mul:1.0 },
@@ -239,6 +255,8 @@ var SCENES=[
 /* ---------------- state ---------------- */
 var state='title'; // title|playing|paused|results|gameover|win
 var prevState='playing';
+var mode='hunt';   // 'hunt' (15-area campaign) | 'endless'
+var areaStars=0;
 var score=0, best=0, round=1, gunIndex=0, diffIndex=1, sceneIndex=0;
 var ducks=[], falling=[], particles=[], popups=[], powerups=[], weather=[], casings=[];
 var ducksDown=0, attempts=0, shellsLeft=MAG, reloading=false, reloadT=0;
@@ -287,7 +305,7 @@ function toLocal2(cx,cy){
 function updateHud(){
   if(elScore) elScore.textContent=String(score);
   if(elBest) elBest.textContent=String(best);
-  if(elRound) elRound.textContent=round+'/'+ROUNDS_TO_WIN;
+  if(elRound) elRound.textContent=(mode==='endless'?('WAVE '+round):(round+'/'+ROUNDS_TO_WIN));
   if(elQuota) elQuota.textContent=ducksDown+'/'+quota();
   if(elShells) elShells.textContent=reloading?'…':String(shellsLeft);
   if(elGun) elGun.textContent=GUNS[gunIndex].name;
@@ -525,6 +543,11 @@ function popText(x,y,txt,col){ popups.push({ x:x,y:y,txt:txt,t:0,life:900,col:co
 
 /* ---------------- ducks ---------------- */
 function quota(){ return DIFFS[diffIndex].thr; }
+function starsForAcc(acc){ return acc>=90?3:(acc>=70?2:1); }
+function starsText(n){ var s=''; for(var q=0;q<3;q++) s+=(q<n?'\u2605':'\u2606'); return s; }
+function totalStars(){ var t=0,k; for(k in save.stars) t+=save.stars[k]||0; return t; }
+function maxStars(){ return ROUNDS_TO_WIN*3; }
+function gunUnlocked(i){ if(i===3&&save.goldUnlocked) return true; return totalStars()>=(GUNS[i].req||0); }
 function spawnDuck(forceSpecies){
   var fromLeft=Math.random()<0.5;
   var y=80+Math.random()*(HORIZON-44);
@@ -670,8 +693,10 @@ function startRound(){
   state='playing';
   updateHud();
 }
-function newGame(){
+function newGame(m){
+  if(m==='hunt'||m==='endless') mode=m;
   score=0; round=1; slowT=0; dblT=0; shake=0; particles=[]; popups=[]; casings=[];
+  bestCombo=0; areaStars=0; clutchShown=false;
   hidePanel();
   setScene(sceneForRound(1));
   startRound();
@@ -692,25 +717,40 @@ function endRound(){
     state='results'; sndJingle();
     var acc=shots>0?Math.round(hits/shots*100):0;
     var medal = acc>=80?'GOLD MEDAL':(acc>=55?'SILVER MEDAL':'BRONZE MEDAL');
-    showPanel('AREA CLEAR','ROUND '+round+' OF '+ROUNDS_TO_WIN,
-      [['DUCKS HIT',hits+' / '+attempts],['ESCAPED',String(escapes)],['SHOTS FIRED',String(shots)],
-       ['ACCURACY',acc+'%'],['BEST COMBO','x'+(1+Math.floor(bestCombo/3))],['ROUND SCORE',String(score)]],
-      medal,[{label:'NEXT AREA',primary:true,fn:function(){ advanceRound(); }}]);
+    areaStars=starsForAcc(acc);
+    var prev=save.stars[round]||0;
+    if(areaStars>prev){ save.stars[round]=areaStars; writeSave(); }
+    var rows=[['DUCKS HIT',hits+' / '+attempts],['ESCAPED',String(escapes)],['SHOTS FIRED',String(shots)],
+      ['ACCURACY',acc+'%'],['BEST COMBO','x'+(1+Math.floor(bestCombo/3))],['ROUND SCORE',String(score)],
+      ['STARS EARNED',starsText(areaStars)],['AREA BEST',starsText(Math.max(prev,areaStars))],
+      ['TOTAL STARS',totalStars()+' / '+maxStars()]];
+    if(mode==='endless'){
+      showPanel('WAVE CLEAR','WAVE '+round+' CLEARED \u00b7 ENDLESS',rows,medal,
+        [{label:'NEXT WAVE',primary:true,fn:function(){ advanceRound(); }},
+         {label:'STOP HERE',fn:function(){ newGame('hunt'); }}]);
+    } else {
+      showPanel('AREA CLEAR','ROUND '+round+' OF '+ROUNDS_TO_WIN,rows,medal,
+        [{label:'NEXT AREA',primary:true,fn:function(){ advanceRound(); }}]);
+    }
   } else {
     state='gameover'; sndSting();
-    if(score>best){ best=score; save.best=best; } writeSave();
+    if(score>best){ best=score; save.best=best; }
+    if(mode==='endless'&&round>(save.endlessBest||0)) save.endlessBest=round;
+    writeSave();
     var acc2=shots>0?Math.round(hits/shots*100):0;
-    showPanel('GAME OVER','QUOTA MISSED — '+ducksDown+' / '+quota()+' DUCKS',
-      [['SCORE',String(score)],['BEST',String(best)],['ACCURACY',(shots>0?Math.round(hits/shots*100):0)+'%']],
-      '',[{label:'RETRY AREA',primary:true,fn:function(){ retryArea(); }},
-          {label:'NEW GAME',fn:function(){ newGame(); }}]);
+    var rows2=[['SCORE',String(score)],['BEST',String(best)],['ACCURACY',acc2+'%']];
+    if(mode==='endless') rows2.push(['WAVE REACHED',String(round)],['BEST WAVE',String(save.endlessBest||0)]);
+    rows2.push(['TOTAL STARS',totalStars()+' / '+maxStars()]);
+    showPanel('GAME OVER','QUOTA MISSED \u2014 '+ducksDown+' / '+quota()+' DUCKS',rows2,'',
+      [{label:'RETRY AREA',primary:true,fn:function(){ retryArea(); }},
+       {label:'MAIN MENU',fn:function(){ gotoTitle(); }}]);
     updateHud();
   }
 }
 function advanceRound(){
   if(state!=='results') return;
   round++;
-  if(round>ROUNDS_TO_WIN){
+  if(mode!=='endless'&&round>ROUNDS_TO_WIN){
     state='win'; sndTrophy();
     if(score>best){ best=score; save.best=best; } writeSave();
     showPanel('TROPHY!','ALL '+ROUNDS_TO_WIN+' AREAS CLEARED',
@@ -726,7 +766,8 @@ function togglePause(){
   if(state==='playing'){ prevState='playing'; state='paused';
     showPanel('PAUSED','TAKE A BREATH',[],'',
       [{label:'RESUME',primary:true,fn:function(){ state='playing'; hidePanel(); }},
-       {label:'RESTART',fn:function(){ newGame(); }}]);
+       {label:'RESTART',fn:function(){ newGame(); }},
+       {label:'MAIN MENU',fn:function(){ gotoTitle(); }}]);
   } else if(state==='paused'){ state='playing'; hidePanel(); }
 }
 
@@ -752,7 +793,7 @@ function cycleGun(){
   var n=GUNS.length, i;
   for(i=1;i<=n;i++){
     var idx=(gunIndex+i)%n;
-    if(idx===3&&!save.goldUnlocked) continue;
+    if(!gunUnlocked(idx)) continue;
     gunIndex=idx; break;
   }
   shellsLeft=GUNS[gunIndex].mag; reloading=false;
@@ -1283,6 +1324,26 @@ function loop(ts){
 }
 
 /* ---------------- boot ---------------- */
+function gotoTitle(){
+  state='title';
+  mode='hunt';
+  ducks=[]; falling=[]; powerups=[]; particles=[]; popups=[]; casings=[];
+  setScene(0);
+  updateHud();
+  var arsenal='';
+  for(var i=0;i<GUNS.length;i++){
+    arsenal+=(gunUnlocked(i)?'\u2714 ':'\uD83D\uDD12 ')+GUNS[i].name;
+    if(!gunUnlocked(i)) arsenal+=' ('+GUNS[i].req+'\u2605)';
+    if(i<GUNS.length-1) arsenal+='  \u00b7  ';
+  }
+  showPanel('DUCK HUNT','TAP THE FIELD TO SHOOT \u00b7 HIT DUCKS REFUND A SHELL',
+    [['QUOTA',quota()+' DUCKS PER ROUND'],['AREAS',String(ROUNDS_TO_WIN)],['BEST SCORE',String(best)],
+     ['STARS',totalStars()+' / '+maxStars()],['ENDLESS BEST','WAVE '+(save.endlessBest||0)],
+     ['ARSENAL',arsenal]],
+    '',
+    [{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame('hunt'); }},
+     {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }}]);
+}
 function boot(){
   loadSave(); best=save.best||0;
   try{ if(typeof localStorage!=='undefined'&&localStorage&&localStorage.getItem('duckhunt_muted')==='1') muted=true; }catch(e){}
@@ -1306,10 +1367,7 @@ function boot(){
   if(bPause) bPause.onclick=function(){ togglePause(); };
   if(bMute) bMute.onclick=function(){ toggleMute(); };
   setScene(0);
-  updateHud();
-  showPanel('DUCK HUNT','TAP THE FIELD TO SHOOT · HIT DUCKS REFUND A SHELL',
-    [['QUOTA',quota()+' DUCKS PER ROUND'],['AREAS',String(ROUNDS_TO_WIN)],['BEST SCORE',String(best)]],
-    '',[{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame(); }}]);
+  gotoTitle();
   requestAnimationFrame(loop);
 }
 boot();
