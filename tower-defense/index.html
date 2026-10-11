@@ -210,7 +210,7 @@ function buildShop(){
   TOWERS.forEach((t,i)=>{ const d=document.createElement("div");
     d.className="tcard"+(i===sel?" sel":"")+(S.gold<t.cost?" nope":"");
     d.innerHTML=`<span class="gl" style="color:${t.color}">${GLYPHS[t.id]||"◆"}</span><b style="color:${t.color}">${t.name}</b><span>${t.cost}g · ${t.desc}<br>rng ${t.range} · ${t.rate}/s</span>`;
-    d.onclick=()=>{ sel=i; selTower=null; info.style.display="none"; buildShop(); }; shop.appendChild(d); });
+    d.onclick=()=>{ sel=i; selTower=null; info.style.display="none"; resize(); buildShop(); }; shop.appendChild(d); });
 }
 function refreshShopAff(){ [...shop.children].forEach((c,i)=>{ c.classList.toggle("nope",S.gold<TOWERS[i].cost);
   c.classList.toggle("sel", i===sel && !selTower); }); }
@@ -275,11 +275,11 @@ function tap(gx,gy){
   hud(); refreshShopAff();
 }
 function showInfo(){
-  if(!selTower){ info.style.display="none"; return; }
+  if(!selTower){ info.style.display="none"; resize(); return; }
   const tw=selTower, st=effStats(tw);
   const canSpec = tw.lvl>=MAXLV && !tw.spec && !!SPECS[tw.type.id];
   const c=upCost(tw.type,tw.lvl);
-  info.style.display="flex";
+  info.style.display="flex"; resize();
   iTxt.innerHTML=`<b>${tw.type.name}</b> Lv${tw.lvl}`+(tw.spec?` · <span style="color:var(--gold)">${specName(tw)}</span>`:"")
     + ` · dmg ${st.dmg|0} · rng ${st.range.toFixed(1)}`
     + (tw.lvl<MAXLV? ` · <span style="color:var(--gold)">upgrade ${c}g</span>` : (canSpec? " · pick a special:" : ""));
@@ -293,7 +293,7 @@ iUp.onclick=()=>{ if(!selTower) return; const c=upCost(selTower.type,selTower.lv
   if(selTower.lvl>=MAXLV) return; if(S.gold<c){ say("Need "+c+"g"); return; }
   S.gold-=c; selTower.lvl++; hud(); showInfo(); };
 iSell.onclick=()=>{ if(!selTower) return; S.gold+=Math.round(selTower.type.cost*0.75*selTower.lvl);
-  S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; hud(); refreshShopAff(); };
+  S.towers=S.towers.filter(t=>t!==selTower); selTower=null; info.style.display="none"; resize(); hud(); refreshShopAff(); };
 /* ---------- level-6 specializations ---------- */
 const SPECS={
  blaster:[{id:"minigun",name:"Minigun"},{id:"gatling",name:"Gatling"}],
@@ -501,6 +501,7 @@ function resize(){ const st=document.getElementById("stage").getBoundingClientRe
   cell=Math.min(st.width/COLS,st.height/ROWS); ox=(st.width-cell*COLS)/2; oy=(st.height-cell*ROWS)/2;
   renderBG(); }
 window.addEventListener("resize",resize);
+if(typeof ResizeObserver!=="undefined"){ try{ new ResizeObserver(()=>resize()).observe(document.getElementById("stage")); }catch(e){} }
 const CX=(gx)=>ox+(gx+0.5)*cell, CY=(gy)=>oy+(gy+0.5)*cell;
 
 /* seeded pseudo-random so scatter detail never jitters between frames */
@@ -1283,7 +1284,10 @@ function updateBoss(){
 
 /* ---------- input ---------- */
 function posToGrid(ev){ const r=cv.getBoundingClientRect(); const t=ev.touches?ev.touches[0]:ev;
-  const x=t.clientX-r.left, y=t.clientY-r.top; return { gx:Math.floor((x-ox)/cell), gy:Math.floor((y-oy)/cell) }; }
+  const x=t.clientX-r.left, y=t.clientY-r.top;
+  const c=Math.min(r.width/COLS,r.height/ROWS);
+  const oxx=(r.width-c*COLS)/2, oyy=(r.height-c*ROWS)/2;
+  return { gx:Math.floor((x-oxx)/c), gy:Math.floor((y-oyy)/c) }; }
 cv.addEventListener("pointermove",(ev)=>{ const g=posToGrid(ev); if(g.gx>=0&&g.gx<COLS&&g.gy>=0&&g.gy<ROWS) S.hover=g; else S.hover=null; });
 cv.addEventListener("pointerleave",()=>{ S.hover=null; });
 cv.addEventListener("pointerdown",(ev)=>{ ev.preventDefault(); const g=posToGrid(ev);
