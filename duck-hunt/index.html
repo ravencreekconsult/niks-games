@@ -138,7 +138,10 @@
 
 var VW=640, VH=400, HORIZON=240, ROUNDS_TO_WIN=15, ROUND_TARGET=10, MAG=6;
 var RELOAD_MS=1200, reloadMax=1200;
-function magNow(){ return GUNS[gunIndex].mag+Math.floor((save.gear?save.gear.pocket:0)/2); }
+var RNG=Math.random, challenge=null;
+function mulb(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function gearOf(k){ return (challenge||!save.gear)?0:save.gear[k]; }
+function magNow(){ return GUNS[gunIndex].mag+Math.floor(gearOf('pocket')/2); }
 
 function E(id){ return document.getElementById(id); }
 var cv=E('cv'), ctx=cv?cv.getContext('2d'):null;
@@ -611,12 +614,12 @@ function totalStars(){ var t=0,k; for(k in save.stars) t+=save.stars[k]||0; retu
 function maxStars(){ return ROUNDS_TO_WIN*3; }
 function gunUnlocked(i){ if(i===3&&save.goldUnlocked) return true; return totalStars()>=(GUNS[i].req||0); }
 function spawnDuck(forceSpecies){
-  var fromLeft=Math.random()<0.5;
-  var y=80+Math.random()*(HORIZON-44);
+  var fromLeft=RNG()<0.5;
+  var y=80+RNG()*(HORIZON-44);
   var sp;
   if(forceSpecies!=null) sp=SPECIES[forceSpecies];
   else {
-    var roll=Math.random();
+    var roll=RNG();
     if(roll<0.05) sp=SPECIES[5];
     else if(round>=4&&roll<0.14) sp=SPECIES[4];
     else if(round>=2&&roll<0.26) sp=SPECIES[3];
@@ -624,12 +627,13 @@ function spawnDuck(forceSpecies){
     else if(roll<0.74) sp=SPECIES[1];
     else sp=SPECIES[0];
   }
-  var baseSpd=0.098*DIFFS[diffIndex].spd*(1+(round-1)*0.055)*sp.spd*(0.85+Math.random()*0.3);
+  var baseSpd=0.098*DIFFS[diffIndex].spd*(1+(round-1)*0.055)*sp.spd*(0.85+RNG()*0.3);
   var d={
     sp:sp, x:fromLeft?-26:VW+26, y:y, baseY:y,
-    vx:(fromLeft?1:-1)*baseSpd, t:Math.random()*4, phase:Math.random()*6.28,
-    wing:Math.random()*6.28, panic:0, dead:false, esc:false, gone:false, trail:[]
+    vx:(fromLeft?1:-1)*baseSpd, t:RNG()*4, phase:RNG()*6.28,
+    wing:RNG()*6.28, panic:0, dead:false, esc:false, gone:false, trail:[]
   };
+  if(window.__dhlog) window.__dhlog.push(sp.name+':'+Math.round(y)+':'+(fromLeft?'L':'R'));
   lodgeSeen(sp);
   return d;
 }
@@ -655,7 +659,7 @@ function updateDuckPath(dk,slow,dt){
 function startReload(){
   if(reloading||state!=='playing') return;
   if(shellsLeft>=magNow()) return;
-  reloadMax=RELOAD_MS*(1-0.1*(save.gear?save.gear.hands:0)); reloading=true; reloadT=reloadMax; sndReloadStart(); updateHud();
+  reloadMax=RELOAD_MS*(1-0.1*gearOf('hands')); reloading=true; reloadT=reloadMax; sndReloadStart(); updateHud();
 }
 function finishReload(){
   reloading=false; shellsLeft=magNow(); sndReloadDone(); updateHud();
@@ -672,7 +676,7 @@ function fire(lx,ly){
   muzzle=1; recoil=1; shake=Math.min(9,2.2+g.pellets*0.5); cross.pulse=1; hitFlash=0.25;
   sndShot(); ejectCasing();
   var pts=[{x:lx,y:ly}], i;
-  var spr=g.spread*(1-0.07*(save.gear?save.gear.aim:0));
+  var spr=g.spread*(1-0.07*gearOf('aim'));
   for(i=0;i<g.pellets;i++) pts.push({ x:lx+(Math.random()+Math.random()-1)*spr, y:ly+(Math.random()+Math.random()-1)*spr*0.72 });
   var hitAny=false, k, q;
   for(k=0;k<pts.length;k++){
@@ -742,10 +746,10 @@ function onPowerup(pu){
 }
 function spawnPowerup(){
   var types=['slow','shells','dbl','bonus','flock'];
-  var type=types[(Math.random()*types.length)|0];
+  var type=types[(RNG()*types.length)|0];
   var col=type==='slow'?'#8ad4ff':type==='shells'?'#6dffa1':type==='dbl'?'#ffd34d':type==='flock'?'#ff9ad4':'#ffe071';
-  powerups.push({ x:VW*(0.2+Math.random()*0.6), y:Math.max(90,HORIZON*0.35)+Math.random()*HORIZON*0.3, age:0, life:8000,
-    vx:(Math.random()<0.5?1:-1)*0.02, type:type, col:col, dead:false, t:Math.random()*6.28 });
+  powerups.push({ x:VW*(0.2+RNG()*0.6), y:Math.max(90,HORIZON*0.35)+RNG()*HORIZON*0.3, age:0, life:8000,
+    vx:(RNG()<0.5?1:-1)*0.02, type:type, col:col, dead:false, t:RNG()*6.28 });
 }
 
 /* ---------------- round flow ---------------- */
@@ -780,6 +784,7 @@ function setScene(idx){
   initWeather();
 }
 function endRound(){
+  if(challenge){ challengeDone(); return; }
   if(ducksDown>=quota()){
     state='results'; sndJingle();
     var acc=shots>0?Math.round(hits/shots*100):0;
@@ -914,7 +919,7 @@ function update(dt){
     var maxConc=1+Math.floor((round-1)/3); if(maxConc>3) maxConc=3;
     if(spawnTimer<=0&&attempts<ROUND_TARGET&&ducks.length<maxConc){
       attempts++; ducks.push(spawnDuck(null));
-      if(Math.random()<0.15) spawnPowerup();
+      if(RNG()<0.15) spawnPowerup();
       spawnTimer=Math.max(360,1350-round*52);
     }
     var i, escAny=false;
@@ -1489,6 +1494,7 @@ function loop(ts){
 
 /* ---------------- boot ---------------- */
 function gotoTitle(){
+  if(challenge) endChallenge();
   state='title';
   mode='hunt';
   ducks=[]; falling=[]; powerups=[]; particles=[]; popups=[]; casings=[];
@@ -1507,6 +1513,7 @@ function gotoTitle(){
     '',
     [{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame('hunt'); }},
      {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }},
+     {label:'CHALLENGE CODE',fn:function(){ unlockAudio(); challengeMenu(); }},
      {label:'RANGER LODGE',fn:function(){ unlockAudio(); lodge('dex'); }},
      {label:'VIBRATION '+(haptics?'ON':'OFF'),fn:function(){ setHaptics(!haptics); gotoTitle(); }}]);
 }
@@ -1527,11 +1534,12 @@ var GEAR=[
 ];
 var DOGSK=[ [2,'SNIFF','Golden ducks glow with a ring'],[4,'BARK','New BARK button: slows every duck'],[6,'FETCH+','20% chance a hit refunds a shell'],[8,'KEEN NOSE','Bark recharges faster'],[10,'ALPHA','+10% score on every hit'] ];
 var barkCd=0;
-function dogLevel(){ return Math.min(10,1+Math.floor(Math.sqrt((save.dogXp||0)/8))); }
+function dogLevel(){ if(challenge) return 1; return Math.min(10,1+Math.floor(Math.sqrt((save.dogXp||0)/8))); }
 function dogNextXp(){ var L=dogLevel(); return L>=10?null:Math.pow(L,2)*8; }
 function dexEntry(n){ if(!save.dex[n]) save.dex[n]={seen:0,hit:0}; return save.dex[n]; }
-function lodgeSeen(sp){ dexEntry(sp.name).seen++; }
+function lodgeSeen(sp){ if(!challenge) dexEntry(sp.name).seen++; }
 function lodgeHit(dk){
+  if(challenge) return;
   var e=dexEntry(dk.sp.name), first=(e.hit===0); e.hit++;
   var f=Math.max(1,Math.floor(dk.sp.pts/100)); var lk=(save.gear.lucky||0)*0.2;
   f=Math.floor(f*(1+lk)+Math.random()); save.feathers+=f;
@@ -1567,6 +1575,43 @@ function lodge(tab){
   rows.push(['DOG LEVEL',L+' / 10'],['XP',(save.dogXp||0)+(nx?(' / '+nx):' MAX')]);
   for(i=0;i<DOGSK.length;i++) rows.push([DOGSK[i][1]+' (lvl '+DOGSK[i][0]+') - '+DOGSK[i][2], L>=DOGSK[i][0]?'UNLOCKED':'LOCKED']);
   showPanel('YOUR DOG PARTNER','HITS EARN XP - GOLDEN DUCKS EARN 4X',rows,'',nav);
+}
+
+/* ---------------- CHALLENGE CODES: same ducks for everyone, compare scores ---------------- */
+var ALPHA='23456789ABCDEFGHJKMNPQRSTVWXYZ';
+function seedToCode(n){ var o='',i; for(i=0;i<4;i++){ o=ALPHA[n%30]+o; n=Math.floor(n/30); } return o; }
+function codeToSeed(c){ var n=0,i; for(i=0;i<4;i++){ var k=ALPHA.indexOf(c[i]); if(k<0) return -1; n=n*30+k; } return n; }
+function parseCode(t){ t=String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,''); if(t.indexOf('DUCK')===0) t=t.slice(4); t=t.replace(/O/g,'0').replace(/I/g,'1').replace(/L/g,'1'); if(t.length<4) return null;
+  var head=t.slice(0,4).replace(/0/g,'D').replace(/1/g,'J'); var seed=codeToSeed(head); if(seed<0) return null; var sc=t.length>4?parseInt(t.slice(4),10):null; return { seed:seed, score:isNaN(sc)?null:sc }; }
+var chPrevGun=0, chPrevDiff=1;
+function startChallenge(seed,friendScore){
+  unlockAudio();
+  challenge={ seed:seed, code:seedToCode(seed), friend:friendScore };
+  RNG=mulb(seed*7919+13);
+  chPrevGun=gunIndex; chPrevDiff=diffIndex; gunIndex=0; diffIndex=1;
+  mode='hunt'; score=0; round=1+seed%9; slowT=0; dblT=0; shake=0; particles=[]; popups=[]; casings=[];
+  bestCombo=0; areaStars=0; clutchShown=false; hidePanel();
+  setScene(sceneForRound(round)); startRound();
+  popText(VW/2,110,'CHALLENGE DUCK-'+challenge.code,'#8ad4ff');
+}
+function endChallenge(){ challenge=null; RNG=Math.random; gunIndex=chPrevGun; diffIndex=chPrevDiff; }
+function challengeDone(){
+  state='results'; sndJingle();
+  var c=challenge, tag='DUCK-'+c.code+'-'+score, rows=[['CHALLENGE','DUCK-'+c.code],['YOUR SCORE',String(score)],['DUCKS HIT',ducksDown+' / '+quota()]];
+  var verdict='';
+  if(c.friend!=null){ rows.push(['FRIEND SCORE',String(c.friend)]); verdict=score>c.friend?'YOU WIN!':(score===c.friend?'TIE!':'FRIEND WINS'); }
+  rows.push(['SHARE THIS CODE',tag]);
+  showPanel('CHALLENGE DONE','SEND THE CODE TO A FRIEND. SAME DUCKS, YOUR SCORES COMPARED.',rows,verdict,
+    [{label:'COPY / SHARE',primary:true,fn:function(){ var txt='Beat my Duck Hunt score! Code: '+tag; try{ if(navigator.share){ navigator.share({text:txt}); return; } }catch(e){} try{ navigator.clipboard.writeText(txt); popText(VW/2,150,'COPIED','#6dffa1'); }catch(e2){ prompt('Copy this code:',tag); } }},
+     {label:'PLAY AGAIN',fn:function(){ var s0=challenge.seed,f=challenge.friend; endChallenge(); startChallenge(s0,f); }},
+     {label:'MAIN MENU',fn:function(){ endChallenge(); gotoTitle(); }}]);
+}
+function challengeMenu(){
+  state='title';
+  showPanel('CHALLENGE CODES','PLAY THE EXACT SAME DUCKS AS A FRIEND',[['HOW','Start a challenge, finish the round, send your code.'],['FRIEND CODE','Enter it to play their ducks and compare scores.']],'',
+    [{label:'NEW CHALLENGE',primary:true,fn:function(){ startChallenge(Math.floor(Math.random()*810000)); }},
+     {label:'ENTER A CODE',fn:function(){ var t=prompt('Enter a challenge code (like DUCK-7K2Q or DUCK-7K2Q-5200):',''); var p=parseCode(t); if(!p){ popText(VW/2,150,'BAD CODE','#ff5a5a'); challengeMenu(); return; } startChallenge(p.seed,p.score); }},
+     {label:'BACK',fn:function(){ gotoTitle(); }}]);
 }
 function boot(){
   loadSave(); best=save.best||0;
