@@ -104,6 +104,7 @@
     <button id="gunBtn">GUN</button>
     <button id="diffBtn">MODE</button>
     <button id="reloadBtn">RELOAD</button>
+    <button id="barkBtn" class="small" style="display:none">BARK</button>
     <button id="pauseBtn" class="small">II</button>
     <button id="muteBtn" class="small">SND ON</button>
   </div>
@@ -136,7 +137,8 @@
    ========================================================================= */
 
 var VW=640, VH=400, HORIZON=240, ROUNDS_TO_WIN=15, ROUND_TARGET=10, MAG=6;
-var RELOAD_MS=1200;
+var RELOAD_MS=1200, reloadMax=1200;
+function magNow(){ return GUNS[gunIndex].mag+Math.floor((save.gear?save.gear.pocket:0)/2); }
 
 function E(id){ return document.getElementById(id); }
 var cv=E('cv'), ctx=cv?cv.getContext('2d'):null;
@@ -158,7 +160,7 @@ function mixHex(a,b,t){
 
 /* ---------------- save (v2, migrates v1) ---------------- */
 var SAVE_KEY='duckhunt_save_v3', V2_KEY='duckhunt_save_v2', OLD_KEY='duckhunt_save_v1';
-var save={ best:0, goldUnlocked:false, stars:{}, endlessBest:0 };
+var save={ best:0, goldUnlocked:false, stars:{}, endlessBest:0, feathers:0, gear:{aim:0,hands:0,pocket:0,lucky:0}, dex:{}, dogXp:0 };
 function loadSave(){
   try{
     if(typeof localStorage==='undefined'||!localStorage) return;
@@ -169,6 +171,9 @@ function loadSave(){
         if(typeof o.best==='number'&&isFinite(o.best)) save.best=o.best;
         if(typeof o.endlessBest==='number'&&isFinite(o.endlessBest)) save.endlessBest=o.endlessBest;
         save.goldUnlocked=!!o.goldUnlocked;
+        save.feathers=Math.max(0,Math.floor(Number(o.feathers))||0); save.dogXp=Math.max(0,Math.floor(Number(o.dogXp))||0);
+        if(o.gear&&typeof o.gear==='object'){ for(var gk in save.gear){ save.gear[gk]=clamp(Math.floor(Number(o.gear[gk]))||0,0,5); } }
+        if(o.dex&&typeof o.dex==='object'){ for(var dk2 in o.dex){ var dv=o.dex[dk2]; if(dv&&typeof dv==='object') save.dex[dk2]={seen:Math.max(0,Math.floor(Number(dv.seen))||0),hit:Math.max(0,Math.floor(Number(dv.hit))||0)}; } }
         save.stars={};
         if(o.stars&&typeof o.stars==='object'){ for(var k in o.stars){ var v=Math.floor(Number(o.stars[k])); if(v>0&&v<=3) save.stars[k]=v; } }
       }
@@ -263,6 +268,8 @@ var SPECIES=[
   { name:'Mallard', pts:100, size:1.0,  spd:1.0,  path:'weave',   r:23, cols:['#6a7f4a','#3d5230','#e0a020'], head:'#3f5a2e', wingbar:'#3b4f8a' },
   { name:'Pintail', pts:150, size:0.92, spd:1.15, path:'zigzag',  r:21, cols:['#9a8a72','#5c5142','#e8b23a'], head:'#5c4a34', wingbar:'#c8b28a' },
   { name:'Teal',    pts:200, size:0.78, spd:1.5,  path:'erratic', r:19, cols:['#5a7684','#31454f','#e07a30'], head:'#2e5a52', wingbar:'#6ab4d4' },
+  { name:'Wood Duck', pts:175, size:0.9,  spd:1.25, path:'weave',  r:21, cols:['#2f7a5a','#1a4a38','#e0603a'], head:'#1f5a48', wingbar:'#e8d9a0' },
+  { name:'Mandarin', pts:260, size:0.85, spd:1.4,  path:'zigzag', r:20, cols:['#c85a2a','#7a3418','#ffcf5a'], head:'#2a8a8a', wingbar:'#fff0c0' },
   { name:'Golden',  pts:500, size:1.0,  spd:1.2,  path:'weave',   r:23, cols:['#ffe071','#d4a017','#8a6410'], head:'#e8b62a', wingbar:'#fff2b0', gold:true }
 ];
 var SCENES=[
@@ -353,6 +360,7 @@ function updateHud(){
   if(bGun) bGun.textContent=GUNS[gunIndex].name;
   if(bDiff) bDiff.textContent=DIFFS[diffIndex].name;
   if(bMute) bMute.textContent=muted?'SND OFF':'SND ON';
+  var bk=E('barkBtn'); if(bk){ bk.style.display=(dogLevel()>=4&&state==='playing')?'':'none'; bk.textContent=barkCd>0?(Math.ceil(barkCd/1000)+'s'):'BARK'; }
 }
 function showPanel(title,sub,stats,medal,btns){
   if(pTitle) pTitle.textContent=title;
@@ -609,9 +617,11 @@ function spawnDuck(forceSpecies){
   if(forceSpecies!=null) sp=SPECIES[forceSpecies];
   else {
     var roll=Math.random();
-    if(roll<0.06) sp=SPECIES[3];
-    else if(roll<0.34) sp=SPECIES[2];
-    else if(roll<0.62) sp=SPECIES[1];
+    if(roll<0.05) sp=SPECIES[5];
+    else if(round>=4&&roll<0.14) sp=SPECIES[4];
+    else if(round>=2&&roll<0.26) sp=SPECIES[3];
+    else if(roll<0.50) sp=SPECIES[2];
+    else if(roll<0.74) sp=SPECIES[1];
     else sp=SPECIES[0];
   }
   var baseSpd=0.098*DIFFS[diffIndex].spd*(1+(round-1)*0.055)*sp.spd*(0.85+Math.random()*0.3);
@@ -620,6 +630,7 @@ function spawnDuck(forceSpecies){
     vx:(fromLeft?1:-1)*baseSpd, t:Math.random()*4, phase:Math.random()*6.28,
     wing:Math.random()*6.28, panic:0, dead:false, esc:false, gone:false, trail:[]
   };
+  lodgeSeen(sp);
   return d;
 }
 function updateDuckPath(dk,slow,dt){
@@ -643,13 +654,13 @@ function updateDuckPath(dk,slow,dt){
 /* ---------------- ammo ---------------- */
 function startReload(){
   if(reloading||state!=='playing') return;
-  if(shellsLeft>=GUNS[gunIndex].mag) return;
-  reloading=true; reloadT=RELOAD_MS; sndReloadStart(); updateHud();
+  if(shellsLeft>=magNow()) return;
+  reloadMax=RELOAD_MS*(1-0.1*(save.gear?save.gear.hands:0)); reloading=true; reloadT=reloadMax; sndReloadStart(); updateHud();
 }
 function finishReload(){
-  reloading=false; shellsLeft=GUNS[gunIndex].mag; sndReloadDone(); updateHud();
+  reloading=false; shellsLeft=magNow(); sndReloadDone(); updateHud();
 }
-function refundShell(){ shellsLeft=Math.min(GUNS[gunIndex].mag, shellsLeft+1); }
+function refundShell(){ shellsLeft=Math.min(magNow(), shellsLeft+1); }
 
 /* ---------------- firing ---------------- */
 function fire(lx,ly){
@@ -661,7 +672,8 @@ function fire(lx,ly){
   muzzle=1; recoil=1; shake=Math.min(9,2.2+g.pellets*0.5); cross.pulse=1; hitFlash=0.25;
   sndShot(); ejectCasing();
   var pts=[{x:lx,y:ly}], i;
-  for(i=0;i<g.pellets;i++) pts.push({ x:lx+(Math.random()+Math.random()-1)*g.spread, y:ly+(Math.random()+Math.random()-1)*g.spread*0.72 });
+  var spr=g.spread*(1-0.07*(save.gear?save.gear.aim:0));
+  for(i=0;i<g.pellets;i++) pts.push({ x:lx+(Math.random()+Math.random()-1)*spr, y:ly+(Math.random()+Math.random()-1)*spr*0.72 });
   var hitAny=false, k, q;
   for(k=0;k<pts.length;k++){
     var p=pts[k];
@@ -704,7 +716,7 @@ function onDuckHit(dk){
   combo++; comboTimer=2800; if(combo>bestCombo) bestCombo=combo;
   var mult=1+Math.floor(combo/3); if(mult>5) mult=5;
   var base=dk.sp.pts;
-  var ptsV=Math.round(base*DIFFS[diffIndex].mul*mult*(dblT>0?2:1));
+  var ptsV=Math.round(base*DIFFS[diffIndex].mul*mult*(dblT>0?2:1)*(dogLevel()>=10?1.1:1));
   score+=ptsV; hits++; ducksDown++; refundShell();
   if(score>best){ best=score; save.best=best; if(best>=25000) save.goldUnlocked=true; writeSave(); }
   hitMark={ x:dk.x, y:dk.y, t:0, gold:!!dk.sp.gold };
@@ -714,11 +726,12 @@ function onDuckHit(dk){
   if(SCENES[sceneIndex].water) splashFx(dk.x,dk.y);
   if(dk.sp.gold){ sndSparkle(); dog.state='stun'; dog.t=1600; }
   else sndQuack();
+  lodgeHit(dk);
 }
 function onPowerup(pu){
   sndPower(); sparkles(pu.x,pu.y,'#ffe071');
   if(pu.type==='slow'){ slowT=4200; popText(pu.x,pu.y,'SLOW-MO','#8ad4ff'); }
-  else if(pu.type==='shells'){ shellsLeft=Math.min(GUNS[gunIndex].mag+2,shellsLeft+3); reloading=false; popText(pu.x,pu.y,'+3 SHELLS','#6dffa1'); }
+  else if(pu.type==='shells'){ shellsLeft=Math.min(magNow()+2,shellsLeft+3); reloading=false; popText(pu.x,pu.y,'+3 SHELLS','#6dffa1'); }
   else if(pu.type==='dbl'){ dblT=10000; popText(pu.x,pu.y,'DOUBLE PTS','#ffd34d'); }
   else if(pu.type==='flock'){
     popText(pu.x,pu.y,'FLOCK!','#ff9ad4');
@@ -739,7 +752,7 @@ function spawnPowerup(){
 function sceneForRound(r){ return Math.floor((r-1)/3)%SCENES.length; }
 function startRound(){
   ducksDown=0; attempts=0; shots=0; hits=0; escapes=0; bestCombo=0; combo=0; comboTimer=0;
-  shellsLeft=GUNS[gunIndex].mag; reloading=false; reloadT=0;
+  shellsLeft=magNow(); reloading=false; reloadT=0;
   spawnTimer=700; introT=1600; fireCd=0;
   ducks=[]; falling=[]; powerups=[];
   dog.state='pop'; dog.t=1400; dog.duck=null; dog.misses=0;
@@ -774,7 +787,8 @@ function endRound(){
     areaStars=starsForAcc(acc);
     var prev=save.stars[round]||0;
     if(areaStars>prev){ save.stars[round]=areaStars; writeSave(); }
-    var rows=[['DUCKS HIT',hits+' / '+attempts],['ESCAPED',String(escapes)],['SHOTS FIRED',String(shots)],
+    var fb=5+areaStars*3; save.feathers+=fb; writeSave();
+    var rows=[['FEATHER BONUS','+'+fb+' (total '+save.feathers+')'],['DUCKS HIT',hits+' / '+attempts],['ESCAPED',String(escapes)],['SHOTS FIRED',String(shots)],
       ['ACCURACY',acc+'%'],['BEST COMBO','x'+(1+Math.floor(bestCombo/3))],['ROUND SCORE',String(score)],
       ['STARS EARNED',starsText(areaStars)],['AREA BEST',starsText(Math.max(prev,areaStars))],
       ['TOTAL STARS',totalStars()+' / '+maxStars()]];
@@ -853,7 +867,7 @@ function cycleGun(){
     if(!gunUnlocked(idx)) continue;
     gunIndex=idx; break;
   }
-  shellsLeft=GUNS[gunIndex].mag; reloading=false;
+  shellsLeft=magNow(); reloading=false;
   popText(VW/2,130,GUNS[gunIndex].name.toUpperCase(),'#ffd34d');
   updateHud();
 }
@@ -871,7 +885,7 @@ function toggleMute(){
 
 /* ---------------- update ---------------- */
 function update(dt){
-  tG+=dt;
+  tG+=dt; if(barkCd>0) barkCd-=dt;
   updateFever(dt); drawFeverTrails();
   if(fireCd>0) fireCd-=dt;
   if(shake>0) shake=Math.max(0,shake-dt*0.03);
@@ -1191,6 +1205,7 @@ function drawDucksAll(){
     ctx.beginPath(); ctx.ellipse(dk.x+6+alt*14, groundYAt(dk.x)-6, (14+alt*10)*dk.sp.size, 3.5+alt*1.5, 0,0,6.283); ctx.fill();
     ctx.globalAlpha=1;
     if(dk.sp.gold) drawGlow(dk.x,dk.y);
+    if(dk.sp.gold&&dogLevel()>=2){ ctx.save(); ctx.strokeStyle='rgba(255,224,113,'+(0.5+0.4*Math.sin(tG*0.008))+')'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(dk.x,dk.y,dk.sp.r+10+Math.sin(tG*0.008)*3,0,6.283); ctx.stroke(); ctx.restore(); }
     ctx.save(); ctx.translate(dk.x,dk.y); ctx.scale(dk.sp.size*(dk.vx<0?-1:1),dk.sp.size); ctx.rotate(dk.bank||0);
     drawDuckBody(dk.sp.cols,dk.sp.head,dk.sp.wingbar,dk.sp.gold,Math.sin(dk.wing),dk.sp.cols[2],0);
     ctx.restore();
@@ -1415,7 +1430,7 @@ function drawComboBar(){
 }
 function drawReloadUI(){
   if(!reloading) return;
-  var frac=clamp(1-reloadT/RELOAD_MS,0,1);
+  var frac=clamp(1-reloadT/reloadMax,0,1);
   ctx.save();
   ctx.fillStyle='rgba(10,13,19,0.75)'; rr(ctx,VW/2-70,VH-40,140,18,6); ctx.fill();
   ctx.fillStyle='#ffcf8a'; rr(ctx,VW/2-67,VH-37,134*frac,12,4); ctx.fill();
@@ -1487,12 +1502,71 @@ function gotoTitle(){
   }
   showPanel('DUCK HUNT','TAP THE FIELD TO SHOOT \u00b7 HIT DUCKS REFUND A SHELL',
     [['QUOTA',quota()+' DUCKS PER ROUND'],['AREAS',String(ROUNDS_TO_WIN)],['BEST SCORE',String(best)],
-     ['STARS',totalStars()+' / '+maxStars()],['ENDLESS BEST','WAVE '+(save.endlessBest||0)],
+     ['STARS',totalStars()+' / '+maxStars()],['FEATHERS / DOG LV',save.feathers+' / '+dogLevel()],['ENDLESS BEST','WAVE '+(save.endlessBest||0)],
      ['ARSENAL',arsenal]],
     '',
     [{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame('hunt'); }},
      {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }},
+     {label:'RANGER LODGE',fn:function(){ unlockAudio(); lodge('dex'); }},
      {label:'VIBRATION '+(haptics?'ON':'OFF'),fn:function(){ setHaptics(!haptics); gotoTitle(); }}]);
+}
+/* ---------------- RANGER LODGE: Duckdex + feathers + gear + dog partner ---------------- */
+var LORE={
+  'Mallard':'Common marsh regular. Steady wingbeat, easy to read.',
+  'Pintail':'Long neck, zigzags when spooked. Worth a lead shot.',
+  'Teal':'Tiny and fast. Rangers call them the fighter jets.',
+  'Wood Duck':'Shy forest flyer with a painted crest. Shows up from Area 2.',
+  'Mandarin':'Rare, bright, and twitchy. Shows up from Area 4.',
+  'Golden':'A legend of the lake. Hit one and the whole pond stops.'
+};
+var GEAR=[
+  { k:'aim',    name:'Steady Aim',   desc:'tighter spread',        base:10 },
+  { k:'hands',  name:'Quick Hands',  desc:'faster reload',         base:12 },
+  { k:'pocket', name:'Big Pockets',  desc:'+1 shell every 2 lvls', base:16 },
+  { k:'lucky',  name:'Lucky Feather',desc:'+20% feathers per lvl', base:14 }
+];
+var DOGSK=[ [2,'SNIFF','Golden ducks glow with a ring'],[4,'BARK','New BARK button: slows every duck'],[6,'FETCH+','20% chance a hit refunds a shell'],[8,'KEEN NOSE','Bark recharges faster'],[10,'ALPHA','+10% score on every hit'] ];
+var barkCd=0;
+function dogLevel(){ return Math.min(10,1+Math.floor(Math.sqrt((save.dogXp||0)/8))); }
+function dogNextXp(){ var L=dogLevel(); return L>=10?null:Math.pow(L,2)*8; }
+function dexEntry(n){ if(!save.dex[n]) save.dex[n]={seen:0,hit:0}; return save.dex[n]; }
+function lodgeSeen(sp){ dexEntry(sp.name).seen++; }
+function lodgeHit(dk){
+  var e=dexEntry(dk.sp.name), first=(e.hit===0); e.hit++;
+  var f=Math.max(1,Math.floor(dk.sp.pts/100)); var lk=(save.gear.lucky||0)*0.2;
+  f=Math.floor(f*(1+lk)+Math.random()); save.feathers+=f;
+  var before=dogLevel(); save.dogXp+=dk.sp.gold?4:1;
+  if(first) popText(dk.x,dk.y-58,'NEW DUCKDEX CARD: '+dk.sp.name.toUpperCase(),'#8ad4ff');
+  if(dogLevel()>before){ var L=dogLevel(),sk=''; for(var i=0;i<DOGSK.length;i++) if(DOGSK[i][0]===L) sk=' - '+DOGSK[i][1]+' UNLOCKED';
+    popText(VW/2,150,'DOG LEVEL '+L+sk,'#ffd34d'); sndSparkle(); }
+  if(dogLevel()>=6&&Math.random()<0.2){ refundShell(); popText(dk.x+20,dk.y-30,'FETCH!','#6dffa1'); }
+  writeSave();
+}
+function bark(){
+  if(state!=='playing'||dogLevel()<4||barkCd>0) return;
+  slowT=Math.max(slowT,2600); barkCd=dogLevel()>=8?11000:16000; sndPower(); buzz(40);
+  dog.state='stun'; dog.t=900; popText(VW/2,150,'BARK! DUCKS SLOWED','#8ad4ff'); updateHud();
+}
+function gearCost(g){ var lv=save.gear[g.k]; return lv>=5?null:g.base*(lv+1); }
+function lodge(tab){
+  state='title'; tab=tab||'dex';
+  var nav=[{label:'DUCKDEX',primary:tab==='dex',fn:function(){ lodge('dex'); }},{label:'GEAR',primary:tab==='gear',fn:function(){ lodge('gear'); }},{label:'DOG',primary:tab==='dog',fn:function(){ lodge('dog'); }},{label:'BACK',fn:function(){ gotoTitle(); }}];
+  var rows=[], btns=[], i;
+  if(tab==='dex'){
+    var got=0; for(i=0;i<SPECIES.length;i++){ var e=save.dex[SPECIES[i].name]; if(e&&e.hit>0) got++; }
+    for(i=0;i<SPECIES.length;i++){ var sp=SPECIES[i], en=save.dex[sp.name]; var has=en&&en.hit>0;
+      rows.push([has?(sp.name.toUpperCase()+' - '+LORE[sp.name]):((en&&en.seen>0)?(sp.name.toUpperCase()+' - seen, not hit yet'):'??? - undiscovered'), has?('x'+en.hit):'-']); }
+    showPanel('DUCKDEX',got+' / '+SPECIES.length+' CARDS COLLECTED',rows,'',nav); return;
+  }
+  if(tab==='gear'){
+    for(i=0;i<GEAR.length;i++){ (function(g){ var c=gearCost(g); rows.push([g.name.toUpperCase()+' LV '+save.gear[g.k]+'/5 - '+g.desc, c==null?'MAX':(c+' feathers')]);
+      btns.push({label:c==null?(g.name+' MAX'):('BUY '+g.name+' ('+c+')'),fn:function(){ var cc=gearCost(g); if(cc!=null&&save.feathers>=cc){ save.feathers-=cc; save.gear[g.k]++; writeSave(); sndPower(); } else sndClick(); lodge('gear'); }}); })(GEAR[i]); }
+    showPanel('GEAR','YOUR FEATHERS: '+save.feathers+'  (earn them by hitting ducks)',rows,'',btns.concat(nav)); return;
+  }
+  var L=dogLevel(), nx=dogNextXp();
+  rows.push(['DOG LEVEL',L+' / 10'],['XP',(save.dogXp||0)+(nx?(' / '+nx):' MAX')]);
+  for(i=0;i<DOGSK.length;i++) rows.push([DOGSK[i][1]+' (lvl '+DOGSK[i][0]+') - '+DOGSK[i][2], L>=DOGSK[i][0]?'UNLOCKED':'LOCKED']);
+  showPanel('YOUR DOG PARTNER','HITS EARN XP - GOLDEN DUCKS EARN 4X',rows,'',nav);
 }
 function boot(){
   loadSave(); best=save.best||0;
@@ -1516,6 +1590,7 @@ function boot(){
   if(bReload) bReload.onclick=function(){ unlockAudio(); startReload(); };
   if(bPause) bPause.onclick=function(){ togglePause(); };
   if(bMute) bMute.onclick=function(){ toggleMute(); };
+  var bBark=E('barkBtn'); if(bBark) bBark.onclick=function(){ unlockAudio(); bark(); };
   setScene(0);
   gotoTitle();
   requestAnimationFrame(loop);
@@ -1536,7 +1611,7 @@ if(typeof location!=='undefined'&&/[?&]debug=1/.test(location.search)) window.__
   spawn:function(){
     if(state==='results'){ advanceRound(); }
     if(state!=='playing'){ state='playing'; hidePanel(); introT=0; }
-    reloading=false; shellsLeft=GUNS[gunIndex].mag;
+    reloading=false; shellsLeft=magNow();
     if(attempts<ROUND_TARGET) attempts++;
     ducks.push(spawnDuck(0));
     updateHud();
