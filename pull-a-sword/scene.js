@@ -263,80 +263,7 @@
     if (hi) { ctx.strokeStyle = hi; ctx.globalAlpha = 0.35; ctx.lineWidth = w * 0.35; ctx.beginPath(); ctx.moveTo(x1, y1 - w * 0.2); ctx.lineTo(x2, y2 - w * 0.2); ctx.stroke(); ctx.globalAlpha = 1; }
   }
   /* x,y = feet centre. reach 0..1 = hands on the sword hilt (hx,hy world coords). lean in radians. */
-  function drawHero(x, y, t, flex, reach, hx, hy, lean, jump, capeCol, mood) {
-    var bob = Math.sin(t * 2.2) * 1.0 * (1 - reach), stomp = flex > 0.55 ? Math.sin(flex * 18) * 1.4 : 0;
-    var yy = y - jump + stomp;
-    ctx.save(); ctx.translate(x, yy); ctx.rotate(lean);
-    /* ground shadow (drawn un-rotated so it hugs the floor) */
-    ctx.save(); ctx.rotate(-lean); ctx.translate(0, jump + 1);
-    ctx.fillStyle = 'rgba(0,0,0,0.38)'; ctx.beginPath(); ctx.ellipse(0, 0, 17 - jump * 0.15, 4.2, 0, 0, 6.2832); ctx.fill(); ctx.restore();
-    var top = -52 + bob;
-    /* cape (behind) */
-    var wave = Math.sin(t * 3 + 1) * 3 + (reach * 6) + flex * 3;
-    ctx.fillStyle = hl(capeCol, shade(capeCol, -0.4), top + 14, -4);
-    ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-6, top + 14); ctx.quadraticCurveTo(-24 - wave, top + 26, -22 - wave * 1.4, -6);
-    ctx.lineTo(-6, -9); ctx.closePath(); ctx.fill(); ctx.stroke();
-    /* back arm (left) */
-    var fl = flex;
-    limb(-6, top + 18, -13 - fl * 5, top + 32 - fl * 14, 6.4, '#f2c29b', '#fff');
-    /* legs */
-    var step = Math.sin(t * 2.2) * 0.4 * (1 - reach);
-    limb(-5, -17, -6 - step, -3, 7.6, '#2c3a63', '#6c7fb8');
-    limb(5, -17, 6 + step, -3, 7.6, '#34457a', '#7b90d0');
-    ctx.fillStyle = '#5a3a22'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
-    [[-6 - step, -2], [6 + step, -2]].forEach(function (b) { ctx.beginPath(); ctx.ellipse(b[0] + 1.5, b[1], 7, 4, 0, 0, 6.2832); ctx.fill(); ctx.stroke(); });
-    /* torso */
-    ctx.fillStyle = hl('#e6495d', '#a8283c', top + 14, -14);
-    ctx.beginPath(); ctx.moveTo(-10, top + 16); ctx.quadraticCurveTo(-12, -14, -8, -14); ctx.lineTo(8, -14); ctx.quadraticCurveTo(12, -14, 10, top + 16);
-    ctx.quadraticCurveTo(0, top + 11, -10, top + 16); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3b2a1c'; ctx.fillRect(-10.5, -24, 21, 4);          /* belt */
-    ctx.fillStyle = '#ffd34d'; ctx.fillRect(-2.5, -24.6, 5, 5.2);        /* buckle */
-    ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 1.6;      /* tunic highlight */
-    ctx.beginPath(); ctx.moveTo(-6, top + 20); ctx.lineTo(-6.6, -28); ctx.stroke();
-    /* head */
-    var hy0 = top + 1, nod = flex * -1.5;
-    ctx.fillStyle = hl('#ffd9b5', '#e8aa7e', hy0 - 13, hy0 + 11); ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2.2;
-    ctx.beginPath(); ctx.arc(1, hy0 + nod, 13.5, 0, 6.2832); ctx.fill(); ctx.stroke();
-    /* hair */
-    ctx.fillStyle = hl('#7a4a2a', '#4a2a16', hy0 - 16, hy0 - 2);
-    ctx.beginPath(); ctx.moveTo(-12.6, hy0 - 1 + nod); ctx.quadraticCurveTo(-15, hy0 - 16, -2, hy0 - 15 + nod);
-    ctx.quadraticCurveTo(8, hy0 - 21 + nod, 14, hy0 - 9 + nod); ctx.lineTo(10, hy0 - 7 + nod); ctx.lineTo(7, hy0 - 11 + nod); ctx.lineTo(2, hy0 - 6 + nod);
-    ctx.lineTo(-3, hy0 - 10 + nod); ctx.lineTo(-8, hy0 - 4 + nod); ctx.closePath(); ctx.fill(); ctx.stroke();
-    /* headband */
-    ctx.fillStyle = '#ffd34d'; ctx.fillRect(-12, hy0 - 8 + nod, 26, 3.4);
-    /* face: eye, brow, mouth, cheek */
-    var strain = reach > 0.3 || flex > 0.4;
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(7, hy0 + nod, 3.6, strain ? 2.2 : 3.8, 0, 0, 6.2832); ctx.fill();
-    ctx.fillStyle = '#1a1f33'; ctx.beginPath(); ctx.arc(8.2, hy0 + 0.4 + nod, strain ? 1.6 : 2.1, 0, 6.2832); ctx.fill();
-    ctx.strokeStyle = '#3a2412'; ctx.lineWidth = 2; ctx.beginPath();
-    if (strain) { ctx.moveTo(3, hy0 - 5 + nod); ctx.lineTo(11, hy0 - 3 + nod); } else { ctx.moveTo(3.5, hy0 - 5 + nod); ctx.lineTo(10.5, hy0 - 5.6 + nod); }
-    ctx.stroke();
-    ctx.strokeStyle = '#7a2c2c'; ctx.lineWidth = 1.6; ctx.beginPath();
-    if (strain) { ctx.moveTo(5, hy0 + 8 + nod); ctx.lineTo(11, hy0 + 8 + nod); }
-    else { ctx.arc(7, hy0 + 5 + nod, 3.6, 0.15, 2.7); }
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(255,120,120,0.35)'; ctx.beginPath(); ctx.ellipse(10, hy0 + 6 + nod, 3, 2, 0, 0, 6.2832); ctx.fill();
-    ctx.restore();
-    /* front arm: relaxed / flexing / reaching for the hilt (world coords so the hand really lands on it) */
-    ctx.save(); ctx.translate(x, yy); ctx.rotate(lean);
-    var sx = 8, sy = top + 18;
-    var ex, ey;
-    if (reach > 0.02) {
-      var inv = Math.cos(-lean), sn = Math.sin(-lean), dx = hx - x, dy = hy - yy;
-      var lx = dx * inv - dy * sn, ly = dx * sn + dy * inv;   /* hand target in hero space */
-      ex = sx + (lx - sx) * reach + (1 - reach) * 6; ey = sy + (ly - sy) * reach + (1 - reach) * 14;
-    } else { ex = 13 + flex * 4; ey = top + 34 - flex * 16; }
-    limb(sx, sy, ex, ey, 6.6, '#f2c29b', '#fff');
-    if (flex > 0.3 && reach < 0.1) { /* biceps bulge + fist */
-      ctx.fillStyle = '#ffd9b5'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc((sx + ex) / 2 + 2, (sy + ey) / 2 - 1, 4.2 + flex * 1.5, 0, 6.2832); ctx.fill(); ctx.stroke(); }
-    ctx.fillStyle = '#f2c29b'; ctx.strokeStyle = OUTLINE; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(ex, ey, 4.4, 0, 6.2832); ctx.fill(); ctx.stroke();
-    ctx.restore();
-  }
-
-  /* ---------- scene state ---------- */
+  var heroFlex = 0, heroLook = 0;
   var get = null;
   var safeSnap = { strength: 0, world: 0, worldName: '', sword: null, pets: [], pullT: 1 };
   var raf = 0, lastT = 0, tSec = 0;
@@ -347,6 +274,20 @@
   var motes = [];
   var displayStrength = 0;
   var twinkles = [];
+
+  var heroRar = 0;
+  function drawHero(x, y, t, flex, reach, hx, hy, lean, jump, capeCol, mood) {
+    var bob = Math.sin(t * 2.2) * 0.012 * (1 - reach), stomp = flex > 0.55 ? Math.sin(flex * 18) * 1.4 : 0;
+    var A = window.PAS_Art; if (!A) { return; }
+    var im = A.hero(heroRar), k = 0.64;
+    ctx.save(); ctx.translate(x, y - jump + stomp); ctx.rotate(lean); ctx.scale(1 + flex * 0.04, 1 + bob + flex * 0.03);
+    A.draw(ctx, im, 0, 0, k);
+    ctx.restore();
+    /* aura for Legendary / Mythic gear */
+    if (heroRar >= 4 && glowL) {
+      ctx.globalAlpha = 0.18 + 0.08 * Math.sin(t * 3); ctx.drawImage(glowL, x - 38, y - 90, 76, 90); ctx.globalAlpha = 1;
+    }
+  }
 
   /* pull animation state */
   var pullState = null; /* { t0, col, fired, cb, name } */
@@ -427,185 +368,26 @@
 
   /* ---------- pets ---------- */
   function drawPet(x, y, size, pet, tt) {
-    var g = ctx;
-    var col = pet.col || '#7c5cff';
-    var dark = shade(col, -0.55);
-    var light = shade(col, 0.25);
-    var s = size;
-    /* rarity glow behind */
-    var glowScale = s * (pet.r === 'Legendary' || pet.r === 'Mythic' ? 2.2 : 1.7);
-    g.globalAlpha = pet.r === 'Legendary' || pet.r === 'Mythic' ? 0.5 : 0.32;
-    g.drawImage(glowL, x - glowScale / 2, y - glowScale / 2, glowScale, glowScale);
-    g.globalAlpha = 1;
-    /* body base circle (most shapes) */
-    var bob = Math.sin(tt * 2 + x * 0.3) * s * 0.06;
-    var cy = y - s * 0.55 + bob;
-    var breathe = 1 + Math.sin(tt * 3 + y) * 0.03;
-
-    g.lineWidth = Math.max(1, s * 0.08);
-    g.strokeStyle = OUTLINE;
-    g.lineJoin = 'round';
-    g.lineCap = 'round';
-
-    function eye(ex, ey, er) {
-      g.fillStyle = '#ffffff';
-      g.beginPath(); g.arc(ex, ey, er, 0, 6.2832); g.fill();
-      g.fillStyle = OUTLINE;
-      g.beginPath(); g.arc(ex + er * 0.28, ey + er * 0.1, er * 0.5, 0, 6.2832); g.fill();
-    }
-
-    var shape = pet.shape;
-    var half = s / 2;
-
-    if (shape === 'cat') {
-      /* ears */
-      g.fillStyle = col;
-      g.beginPath(); g.moveTo(x - half * 0.55, cy - half * 0.7); g.lineTo(x - half * 0.25, cy - half * 1.35); g.lineTo(x - half * 0.05, cy - half * 0.75); g.closePath(); g.fill(); g.stroke();
-      g.beginPath(); g.moveTo(x + half * 0.55, cy - half * 0.7); g.lineTo(x + half * 0.25, cy - half * 1.35); g.lineTo(x + half * 0.05, cy - half * 0.75); g.closePath(); g.fill(); g.stroke();
-      /* body */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x, cy + half * 0.15, half * 0.85 * breathe, half * 0.8 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      /* tail */
-      g.beginPath(); g.moveTo(x + half * 0.8, cy + half * 0.3);
-      g.quadraticCurveTo(x + half * 1.5, cy + Math.sin(tt * 4) * half * 0.4, x + half * 1.2, cy - half * 0.7);
-      g.stroke();
-      eye(x - half * 0.3, cy, s * 0.07); eye(x + half * 0.3, cy, s * 0.07);
-      g.beginPath(); g.moveTo(x, cy + half * 0.2); g.lineTo(x, cy + half * 0.3); g.stroke();
-
-    } else if (shape === 'pup') {
-      /* floppy ears */
-      g.fillStyle = dark;
-      g.beginPath(); g.ellipse(x - half * 0.75, cy - half * 0.45, half * 0.28, half * 0.55, 0.4, 0, 6.2832); g.fill(); g.stroke();
-      g.beginPath(); g.ellipse(x + half * 0.75, cy - half * 0.45, half * 0.28, half * 0.55, -0.4, 0, 6.2832); g.fill(); g.stroke();
-      /* body */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x, cy + half * 0.15, half * 0.85 * breathe, half * 0.75 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      /* wagging tail */
-      g.beginPath(); g.moveTo(x + half * 0.75, cy + half * 0.25);
-      g.quadraticCurveTo(x + half * 1.4, cy + half * 0.1 + Math.sin(tt * 6) * half * 0.5, x + half * 1.3, cy - half * 0.3 + Math.sin(tt * 6) * half * 0.5);
-      g.stroke();
-      eye(x - half * 0.3, cy, s * 0.07); eye(x + half * 0.3, cy, s * 0.07);
-      g.fillStyle = OUTLINE;
-      g.beginPath(); g.ellipse(x, cy + half * 0.25, half * 0.14, half * 0.1, 0, 0, 6.2832); g.fill();
-
-    } else if (shape === 'bird') {
-      /* body */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x, cy + half * 0.1, half * 0.6 * breathe, half * 0.75 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      /* beak */
-      g.fillStyle = '#ffb03a';
-      g.beginPath(); g.moveTo(x - half * 0.55, cy - half * 0.1); g.lineTo(x - half * 1.05, cy); g.lineTo(x - half * 0.55, cy + half * 0.12); g.closePath(); g.fill(); g.stroke();
-      /* flapping wing */
-      var wf = Math.sin(tt * 8) * half * 0.5;
-      g.fillStyle = light;
-      g.beginPath();
-      g.moveTo(x + half * 0.1, cy);
-      g.quadraticCurveTo(x + half * 0.9, cy - half * 0.6 + wf, x + half * 0.9, cy + half * 0.1 + wf * 0.4);
-      g.closePath(); g.fill(); g.stroke();
-      eye(x - half * 0.28, cy - half * 0.12, s * 0.06);
-      /* little legs */
-      g.strokeStyle = OUTLINE;
-      g.beginPath(); g.moveTo(x - half * 0.15, cy + half * 0.85); g.lineTo(x - half * 0.15, y - 2); g.moveTo(x + half * 0.15, cy + half * 0.85); g.lineTo(x + half * 0.15, y - 2); g.stroke();
-
-    } else if (shape === 'bug') {
-      /* round shell */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x, cy + half * 0.2, half * 0.85 * breathe, half * 0.75 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      /* shell split line + spots */
-      g.strokeStyle = OUTLINE;
-      g.beginPath(); g.moveTo(x, cy - half * 0.55); g.lineTo(x, cy + half * 0.95); g.stroke();
-      g.fillStyle = light;
-      g.beginPath(); g.arc(x - half * 0.4, cy + half * 0.1, half * 0.16, 0, 6.2832); g.fill();
-      g.beginPath(); g.arc(x + half * 0.4, cy + half * 0.3, half * 0.16, 0, 6.2832); g.fill();
-      /* antennae */
-      g.beginPath(); g.moveTo(x - half * 0.2, cy - half * 0.5); g.lineTo(x - half * 0.45, cy - half * 1.05);
-      g.moveTo(x + half * 0.2, cy - half * 0.5); g.lineTo(x + half * 0.45, cy - half * 1.05); g.stroke();
-      /* legs */
-      g.beginPath();
-      g.moveTo(x - half * 0.6, cy + half * 0.7); g.lineTo(x - half * 0.8, cy + half * 1.0);
-      g.moveTo(x + half * 0.6, cy + half * 0.7); g.lineTo(x + half * 0.8, cy + half * 1.0);
-      g.stroke();
-      eye(x - half * 0.18, cy - half * 0.15, s * 0.06); eye(x + half * 0.18, cy - half * 0.15, s * 0.06);
-
-    } else if (shape === 'fox') {
-      /* pointed snout: body is a wedge-ish ellipse, snout triangle */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x + half * 0.15, cy + half * 0.1, half * 0.8 * breathe, half * 0.7 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      g.beginPath(); g.moveTo(x - half * 0.55, cy - half * 0.15); g.lineTo(x - half * 1.2, cy + half * 0.1); g.lineTo(x - half * 0.55, cy + half * 0.35); g.closePath(); g.fill(); g.stroke();
-      /* pointed ears */
-      g.beginPath(); g.moveTo(x - half * 0.15, cy - half * 0.5); g.lineTo(x - half * 0.05, cy - half * 1.3); g.lineTo(x + half * 0.3, cy - half * 0.6); g.closePath(); g.fill(); g.stroke();
-      g.beginPath(); g.moveTo(x + half * 0.45, cy - half * 0.5); g.lineTo(x + half * 0.6, cy - half * 1.25); g.lineTo(x + half * 0.85, cy - half * 0.45); g.closePath(); g.fill(); g.stroke();
-      /* bushy tail */
-      g.fillStyle = light;
-      g.beginPath();
-      g.ellipse(x + half * 1.05, cy + half * 0.3 + Math.sin(tt * 3) * half * 0.15, half * 0.55, half * 0.3, -0.5, 0, 6.2832);
-      g.fill(); g.stroke();
-      eye(x - half * 0.15, cy - half * 0.05, s * 0.06); eye(x + half * 0.25, cy - half * 0.05, s * 0.06);
-
-    } else if (shape === 'dragon') {
-      /* long neck: body low, head high */
-      var hw = Math.sin(tt * 5) * half * 0.25;
-      g.fillStyle = col;
-      /* tail */
-      g.beginPath(); g.moveTo(x + half * 0.6, cy + half * 0.5);
-      g.quadraticCurveTo(x + half * 1.5, cy + half * 0.4 + hw, x + half * 1.3, cy - half * 0.1 + hw);
-      g.lineWidth = Math.max(1.2, s * 0.1); g.strokeStyle = OUTLINE; g.stroke();
-      /* body */
-      g.lineWidth = Math.max(1, s * 0.08);
-      g.beginPath(); g.ellipse(x + half * 0.2, cy + half * 0.5, half * 0.75 * breathe, half * 0.5 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      /* neck + head */
-      g.beginPath(); g.moveTo(x - half * 0.2, cy + half * 0.4); g.lineTo(x - half * 0.35, cy - half * 0.75); g.lineTo(x - half * 0.05, cy - half * 0.75); g.lineTo(x + half * 0.05, cy + half * 0.4); g.closePath(); g.fill(); g.stroke();
-      g.beginPath(); g.ellipse(x - half * 0.3, cy - half * 0.95, half * 0.35, half * 0.22, -0.3, 0, 6.2832); g.fill(); g.stroke();
-      /* wings */
-      var dwf = Math.sin(tt * 6) * half * 0.35;
-      g.fillStyle = light;
-      g.beginPath(); g.moveTo(x + half * 0.1, cy + half * 0.25);
-      g.quadraticCurveTo(x + half * 0.9, cy - half * 0.7 + dwf, x + half * 1.0, cy + half * 0.3 + dwf * 0.3);
-      g.closePath(); g.fill(); g.stroke();
-      eye(x - half * 0.38, cy - half * 0.95, s * 0.055);
-
-    } else if (shape === 'golem') {
-      /* blocky body */
-      g.fillStyle = col;
-      g.fillRect(x - half * 0.7, cy - half * 0.2, half * 1.4, half * 1.1);
-      g.strokeRect(x - half * 0.7, cy - half * 0.2, half * 1.4, half * 1.1);
-      /* blocky head */
-      g.fillRect(x - half * 0.45, cy - half * 0.95, half * 0.9, half * 0.75);
-      g.strokeRect(x - half * 0.45, cy - half * 0.95, half * 0.9, half * 0.75);
-      /* arms */
-      var arm = Math.sin(tt * 2.5) * half * 0.12;
-      g.fillRect(x - half * 1.1, cy - half * 0.05 + arm, half * 0.35, half * 0.8);
-      g.strokeRect(x - half * 1.1, cy - half * 0.05 + arm, half * 0.35, half * 0.8);
-      g.fillRect(x + half * 0.75, cy - half * 0.05 - arm, half * 0.35, half * 0.8);
-      g.strokeRect(x + half * 0.75, cy - half * 0.05 - arm, half * 0.35, half * 0.8);
-      /* rune on chest */
-      g.strokeStyle = OUTLINE;
-      g.beginPath(); g.moveTo(x, cy + half * 0.1); g.lineTo(x, cy + half * 0.5); g.moveTo(x - half * 0.15, cy + half * 0.25); g.lineTo(x + half * 0.15, cy + half * 0.25); g.stroke();
-      eye(x - half * 0.22, cy - half * 0.6, s * 0.055); eye(x + half * 0.22, cy - half * 0.6, s * 0.055);
-
-    } else {
-      /* blob (and unknown shapes) */
-      g.fillStyle = col;
-      g.beginPath(); g.ellipse(x, cy + half * 0.25, half * 0.9 * breathe, half * 0.8 * breathe, 0, 0, 6.2832); g.fill(); g.stroke();
-      g.fillStyle = 'rgba(255,255,255,0.25)';
-      g.beginPath(); g.arc(x - half * 0.3, cy, half * 0.22, 0, 6.2832); g.fill();
-      eye(x - half * 0.25, cy - half * 0.05, s * 0.09); eye(x + half * 0.25, cy - half * 0.05, s * 0.09);
-      g.strokeStyle = OUTLINE;
-      g.beginPath(); g.arc(x, cy + half * 0.25, half * 0.22, 0.3, 2.8); g.stroke();
-    }
-
-    /* sparkle for Legendary / Mythic */
-    if (pet.r === 'Legendary' || pet.r === 'Mythic') {
-      var sp2 = (tt * 2 + x * 0.7) % 1;
-      var sx = x + Math.sin(tt * 1.7 + x) * s * 0.8;
-      var sy = cy - s * 0.6 - Math.cos(tt * 1.3 + y) * s * 0.3;
-      g.globalAlpha = 0.5 + 0.5 * Math.sin(tt * 6 + x);
-      g.fillStyle = '#ffffff';
-      var sr = s * 0.07 * (1 - sp2 * 0.4);
-      g.beginPath();
-      g.moveTo(sx, sy - sr * 2); g.lineTo(sx + sr, sy); g.lineTo(sx, sy + sr * 2); g.lineTo(sx - sr, sy);
-      g.closePath(); g.fill();
-      g.globalAlpha = 1;
+    var A = window.PAS_Art; if (!A) { return; }
+    var big = pet.r === 'Legendary' || pet.r === 'Mythic';
+    var gs = size * (big ? 2.4 : 1.7);
+    ctx.globalAlpha = big ? 0.5 : 0.3;
+    var rc = A.RC[A.ri(pet.r)]; /* soft rarity-tinted glow */
+    ctx.drawImage(glowL, x - gs / 2, y - gs * 0.7, gs, gs);
+    ctx.globalAlpha = 1;
+    var ph = Math.sin(tt * 2.1 + x * 0.07), hop = ph > 0.55 ? Math.sin((ph - 0.55) / 0.45 * 3.14159) * size * 0.28 : 0;
+    var sq = 1 + (hop === 0 ? Math.sin(tt * 3 + x) * 0.02 : -0.04);
+    var im = A.pet(pet.shape, pet.col), k = size * 0.0175;
+    ctx.save(); ctx.translate(x, y - hop); ctx.scale(1 / sq, sq);
+    A.draw(ctx, im, 0, 0, k);
+    ctx.restore();
+    if (big) {
+      for (var q = 0; q < 3; q++) {
+        var sx = x + Math.sin(tt * 1.7 + q * 2 + x) * size * 0.6, sy = y - size * (0.5 + 0.35 * ((tt * 0.5 + q * 0.33) % 1));
+        ctx.globalAlpha = 0.7 * (1 - (tt * 0.5 + q * 0.33) % 1); ctx.fillStyle = rc;
+        ctx.beginPath(); ctx.arc(sx, sy, 1.3, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
     }
   }
 
@@ -660,7 +442,9 @@
       oy + Math.cos(now * 0.11) * shakeA * 0.6 * scale);
 
     /* ---- 1-2. sky + stars (with a few cheap twinkles) ---- */
-    if (starL) { drawTiled(starL, 0); }
+    var wIdx = snap.world | 0; if (wIdx < 0) { wIdx = 0; }
+    var bgA = window.PAS_Art ? window.PAS_Art.world(wIdx) : null;
+    if (bgA && bgA.ok) { drawTiled(bgA.img, 0); }
     if (!twinkles.length) {
       for (var tw = 0; tw < 5; tw++) { twinkles.push({ x: rnd(20, 380), y: rnd(10, 150), ph: rnd(0, 6.28) }); }
     }
@@ -675,9 +459,9 @@
     /* ---- 4. ridges with subtle parallax ---- */
     var par = Math.sin(tSec * 0.4) * 2;
     if (pullingNow) { par += (1 - pLocal) * 3; }
-    if (ridgeL) { drawTiled(ridgeL, par); }
+
     /* ---- 5. ground ---- */
-    if (groundL) { drawTiled(groundL, 0); }
+
 
     /* ---- 6. ambient motes ---- */
     if (!motes.length) {
@@ -694,13 +478,15 @@
 
     /* ---- pull beat 0-300ms: rumble + light build + inward particles ---- */
     var lightT = 0;
+    var stA = window.PAS_Art ? window.PAS_Art.stone(wIdx) : null;
+    swordRar = snap.sword && snap.sword.r ? window.PAS_Art.ri(snap.sword.r) : 0; heroRar = swordRar;
     if (pullingNow && pLocal < 0.353) {
       var b0 = pLocal / 0.353;
       var rum = Math.sin(now * 0.05) * b0 * 1.6;
-      if (stoneL) { ctx.drawImage(stoneL, rum, 0, LW, LH); }
+      if (stA) { window.PAS_Art.draw(ctx, stA, 200 + rum, 240, 0.9); }
       lightT = b0 * 0.5;
-    } else if (stoneL) {
-      ctx.drawImage(stoneL, 0, 0, LW, LH);
+    } else if (stA) {
+      window.PAS_Art.draw(ctx, stA, 200, 240, 0.9);
     }
     if (pullingNow && pLocal < 0.353) {
       /* motes drawn inward toward the blade socket */
@@ -740,20 +526,20 @@
       reachA = Math.min(1, pLocal / 0.25); if (pLocal > 0.8) { reachA = Math.max(0, 1 - (pLocal - 0.8) / 0.2); }
       leanA = -0.22 * Math.min(1, pLocal / 0.5) * (pLocal > 0.8 ? 1 - (pLocal - 0.8) / 0.2 : 1);
       if (pLocal > 0.8) { jumpA = Math.sin((pLocal - 0.8) / 0.2 * Math.PI) * 14; }
-      hxx = 28 * reachA;
+      hxx = 12 * reachA;
     }
-    var heroX = 142 + hxx - (pullingNow ? 0 : 0);
+    var heroX = 154 + hxx - (pullingNow ? 0 : 0);
     drawHero(heroX, GROUND_Y - 2, tSec, heroFlex, reachA, 200 - 4, 174, leanA, jumpA, '#3a7bd5', 0);
 
     /* ---- 8. sword in the stone ---- */
-    var bladeX = 200, socketY = 190;
+    var bladeX = 200, socketY = 172;
     var lift = swordUp * 62;
-    var tilt = -0.08 + swordUp * 0.1 + Math.sin(tSec * 1.6) * 0.01;
+    var tilt = 0.0 + swordUp * 0.1 + Math.sin(tSec * 1.6) * 0.01;
     var bob = Math.sin(tSec * 1.6) * 1.2;
     /* glow behind sword */
     var gAmt = 0.55 + lightT + (pullingNow ? Math.sin(tSec * 8) * 0.1 : 0);
     ctx.globalAlpha = Math.min(1, gAmt);
-    ctx.drawImage(glowL, bladeX - 46, socketY - 40 + bob - lift * 0.5, 92, 92);
+    ctx.drawImage(glowL, bladeX - 56, socketY - 70 + bob - lift * 0.5, 112, 150);
     ctx.globalAlpha = 1;
     /* light beam column during beat 2 */
     if (pullingNow && pLocal >= 0.353 && pLocal < 0.8) {
@@ -763,7 +549,7 @@
       ctx.fillStyle = gcol;
       var bw = 16 + 10 * b2;
       ctx.beginPath();
-      ctx.moveTo(bladeX - bw, 186); ctx.lineTo(bladeX + bw, 186);
+      ctx.moveTo(bladeX - bw, 196); ctx.lineTo(bladeX + bw, 196);
       ctx.lineTo(bladeX + bw * 2.2, 30); ctx.lineTo(bladeX - bw * 2.2, 30);
       ctx.closePath(); ctx.fill();
       ctx.globalAlpha = 1;
@@ -840,46 +626,10 @@
     }
   }
 
+  var swordRar = 0;
   function drawSword(col) {
-    var g = ctx;
-    g.lineWidth = 1;
-    g.strokeStyle = OUTLINE;
-    g.lineJoin = 'round';
-    /* blade: tapered, fuller line, tip at y=-96, hilt bottom at y=+34 */
-    g.fillStyle = col;
-    g.beginPath();
-    g.moveTo(-4.5, 0);
-    g.lineTo(-3, -70);
-    g.lineTo(0, -96);
-    g.lineTo(3, -70);
-    g.lineTo(4.5, 0);
-    g.closePath();
-    g.fill();
-    g.stroke();
-    /* fuller line */
-    g.strokeStyle = shade(col, -0.45);
-    g.beginPath(); g.moveTo(0, -6); g.lineTo(0, -84); g.stroke();
-    g.strokeStyle = OUTLINE;
-    /* crossguard */
-    g.fillStyle = shade(col, -0.25);
-    g.beginPath();
-    g.moveTo(-13, 0); g.lineTo(13, 0); g.lineTo(11, 6); g.lineTo(-11, 6);
-    g.closePath(); g.fill(); g.stroke();
-    /* wrapped grip */
-    g.fillStyle = '#5a4632';
-    g.beginPath();
-    g.moveTo(-3.4, 6); g.lineTo(3.4, 6); g.lineTo(2.6, 26); g.lineTo(-2.6, 26);
-    g.closePath(); g.fill(); g.stroke();
-    g.strokeStyle = 'rgba(20,20,30,0.8)';
-    g.beginPath();
-    g.moveTo(-3, 10); g.lineTo(3, 12);
-    g.moveTo(-3, 15); g.lineTo(3, 17);
-    g.moveTo(-3, 20); g.lineTo(3, 22);
-    g.stroke();
-    /* pommel */
-    g.strokeStyle = OUTLINE;
-    g.fillStyle = shade(col, -0.25);
-    g.beginPath(); g.arc(0, 30, 4.2, 0, 6.2832); g.fill(); g.stroke();
+    var A = window.PAS_Art; if (!A) { return; }
+    A.draw(ctx, A.sword(swordRar), 0, 0, 0.62);
   }
 
   /* ---------- start ---------- */
