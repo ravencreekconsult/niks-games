@@ -1,3 +1,4 @@
+function ic(k) { return window.NKArt ? '<span class="bi">' + NKArt.icons[k] + "</span>" : ""; }
 /* =========================================================================
    NK Cookie Clicker — presentation / interaction layer.
    Talks ONLY to window.NK / window.NKData. Loaded after engine.js.
@@ -36,13 +37,13 @@ function setMotion(v) {
   try { localStorage.setItem(MOTION_KEY, v ? "1" : "0"); } catch (e) {}
   document.body.classList.toggle("no-motion", !v);
   var b = $("btn-motion");
-  if (b) { b.textContent = v ? "🎞️ Motion" : "🧘 Calm"; b.setAttribute("aria-pressed", v ? "true" : "false"); }
+  if (b) { b.innerHTML = ic("motion") + (v ? "Motion" : "Calm"); b.setAttribute("aria-pressed", v ? "true" : "false"); }
 }
 function setSound(v) {
   sound = v;
   try { localStorage.setItem(SOUND_KEY, v ? "1" : "0"); } catch (e) {}
   var b = $("btn-sound");
-  if (b) { b.textContent = v ? "🔊 Sound" : "🔇 Muted"; b.setAttribute("aria-pressed", v ? "true" : "false"); }
+  if (b) { b.innerHTML = ic("sound") + (v ? "Sound" : "Muted"); b.setAttribute("aria-pressed", v ? "true" : "false"); }
 }
 
 /* ============================= sound (lazy WebAudio) ============================= */
@@ -268,7 +269,7 @@ function updateShop() {
     var each = b.cps * Math.pow(2, Math.min(Math.floor(owned / 25), 3));
     var subTxt = (n > 1 ? "x" + n + "  ·  " : "") + "+" + fmt(each) + "/sec each";
     if (r.sub.textContent !== subTxt) r.sub.textContent = subTxt;
-    var pTxt = "🍪 " + fmt(price);
+    var pTxt = fmt(price);
     if (r.price.textContent !== pTxt) r.price.textContent = pTxt;
     var h = milestoneHint(owned);
     if (r.hint.textContent !== h) r.hint.textContent = h;
@@ -291,7 +292,7 @@ function buildUpgrades() {
   for (var i = 0; i < D.UPGRADES.length; i++) if (NK.state.upgrades[D.UPGRADES[i].id]) owned++;
   $("upg-count").textContent = "upgrades owned: " + owned + " / " + D.UPGRADES.length;
   if (vis.length === 0) {
-    var warm = el("div", "empty-note", "Nothing to buy right now! Keep tapping, buy more helpers and bake more cookies — new upgrades will appear here. ✨");
+    var warm = el("div", "empty-note", "Nothing to buy right now! Keep tapping, buy more helpers and bake more cookies — new upgrades will appear here.");
     list.appendChild(warm);
     return;
   }
@@ -303,7 +304,7 @@ function buildUpgrades() {
     mid.appendChild(el("div", "r-name", u.name));
     mid.appendChild(el("div", "r-sub", u.desc));
     var right = el("div", "r-right");
-    right.appendChild(el("div", "r-price", "🍪 " + fmt(u.cost)));
+    right.appendChild(el("div", "r-price", fmt(u.cost)));
     row.appendChild(mid); row.appendChild(right);
     row.addEventListener("click", function () {
       if (NK.buyUpgrade(u.id)) { sfx.buy(); } else { beep(200, 0.08, "sine", 0.03); }
@@ -383,7 +384,7 @@ function updateStats() {
   set("st-time", fmtTime(s.playSeconds));
   set("st-rank", NK.rank().name);
   var g = NK.goldenActive();
-  set("st-golden", g ? "ONE IS ON SCREEN! 🌟" : "in ~" + fmtTime(NK.secondsUntilNextGolden()));
+  set("st-golden", g ? "ONE IS ON SCREEN!" : "in ~" + fmtTime(NK.secondsUntilNextGolden()));
   function set(id, v) { var e = $(id); if (e && e.textContent !== v) e.textContent = v; }
 }
 
@@ -401,7 +402,7 @@ function buildHeaven() {
     var right = el("div", "r-right");
     var btn = el("button", "mini-btn");
     btn.type = "button";
-    btn.textContent = "🥮 " + h.cost;
+    btn.textContent = h.cost + " crumbs";
     right.appendChild(btn);
     row.appendChild(mid); row.appendChild(right);
     btn.addEventListener("click", function () {
@@ -416,10 +417,10 @@ function buildHeaven() {
 function updateAscend() {
   var gain = NK.ascendGain(), can = NK.canAscend();
   var btn = $("asc-btn");
-  set("asc-gain", can ? ("You would gain " + fmt(gain) + " crumbs 🥮") : "Not enough cookies baked this run yet — keep baking!");
+  set("asc-gain", can ? ("You would gain " + fmt(gain) + " crumbs") : "Not enough cookies baked this run yet — keep baking!");
   btn.disabled = !can;
   if (!can) {
-    set("asc-reason", gain === 0 ? "Bake a lot more first (ascension unlocks once a run is big enough)." : "Something went wrong — try reloading.");
+    set("asc-reason", gain === 0 ? "Bake about 10 million cookies in one run to earn your first crumb." : "Something went wrong — try reloading.");
   } else set("asc-reason", "It resets your cookies and helpers, but the crumbs are yours forever.");
   var rows = $("heaven-list").children;
   for (var i = 0; i < rows.length; i++) {
@@ -433,7 +434,7 @@ function updateAscend() {
     cost = def.cost;
     if (owned) { b.textContent = "✓ owned"; b.disabled = true; }
     else {
-      b.textContent = "🥮 " + cost;
+      b.textContent = cost + " crumbs";
       b.disabled = NK.state.crumbs < cost;
     }
   }
@@ -466,7 +467,7 @@ function spawnGolden(x, y, secs) {
   var g = el("button", "golden");
   g.type = "button";
   g.setAttribute("aria-label", "Golden cookie! Tap it!");
-  g.textContent = "🌟";
+  g.textContent = "";
   // place the WHOLE 72px cookie inside the stage so it is never clipped at an edge
   var gs = 72;
   var sw = stage.clientWidth || 320, sh = stage.clientHeight || 240;
@@ -550,7 +551,7 @@ NK.on("achievement", function (d) {
 
 NK.on("ascend", function (d) {
   sfx.ascend();
-  toast("Ascended! 🌠", "+" + fmt(d.gained) + " crumbs — every future run bakes faster!", "🥮", 6000);
+  toast("Ascended!", "+" + fmt(d.gained) + " crumbs — every future run bakes faster!", "🥮", 6000);
   if (motion) {
     document.body.classList.remove("flash");
     void document.body.offsetWidth;
@@ -561,8 +562,8 @@ NK.on("ascend", function (d) {
 });
 
 NK.on("welcome", function (d) {
-  showModal("<h2>Welcome back! 👋</h2><p>While you were away for <b>" + fmtTime(d.seconds) +
-    "</b>, your bakery made <b>🍪 " + fmt(d.gained) + "</b> cookies all on its own!</p>");
+  showModal("<h2>Welcome back!</h2><p>While you were away for <b>" + fmtTime(d.seconds) +
+    "</b>, your bakery made <b>" + fmt(d.gained) + "</b> cookies all on its own!</p>");
 });
 
 NK.on("reset", function () {
@@ -654,12 +655,12 @@ function boot() {
   requestAnimationFrame(loop);
   setInterval(function () {
     var n = $("news");
-    n.textContent = "📰 " + NK.newsNext();
+    n.textContent = NK.newsNext();
   }, 12000);
-  $("news").textContent = "📰 " + NK.newsNext();
+  $("news").textContent = NK.newsNext();
 
   if (firstVisit) {
-    showModal("<h2>Welcome to your bakery! 🍪</h2><p><b>1.</b> Tap the big cookie to bake cookies.<br><b>2.</b> Spend them in the <b>Shop</b> on helpers that bake for you.<br><b>3.</b> Watch for shiny <b>golden cookies 🌟</b> — they're worth grabbing!</p>");
+    showModal("<h2>Welcome to your bakery!</h2><p><b>1.</b> Tap the big cookie to bake cookies.<br><b>2.</b> Spend them in the <b>Shop</b> on helpers that bake for you.<br><b>3.</b> Watch for shiny <b>golden cookies</b> — they're worth grabbing!</p>");
   }
 }
 

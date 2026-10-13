@@ -33,7 +33,7 @@ function freshState() {
     achievements: {},
     ascensions: 0, crumbs: 0, crumbsTotal: 0, heavenly: {},
     buffs: [],
-    goldenClicked: 0, quests: null,
+    goldenClicked: 0, quests: null, tycoon: null,
     last: Date.now(), playSeconds: 0, startedAt: Date.now()
   };
 }
@@ -115,7 +115,8 @@ NK.cps = function () {
   return sum * factor("globalMult")
            * (1 + 0.01 * achCount())
            * (1 + 0.01 * NK.state.crumbsTotal)
-           * buffMult("cps");
+           * buffMult("cps")
+           * (NK.extraMult ? NK.extraMult() : 1);
 };
 
 NK.cpc = function () {
@@ -280,7 +281,7 @@ NK.rank = function () {
 
 /* ============================= prestige ============================= */
 NK.ascendGain = function () {
-  var g = Math.floor(Math.sqrt(NK.state.total / 1e10) * factor("crumbGain"));
+  var g = Math.floor(Math.sqrt(NK.state.total / 1e7) * factor("crumbGain"));
   return g;
 };
 NK.canAscend = function () { return NK.ascendGain() >= 1; };

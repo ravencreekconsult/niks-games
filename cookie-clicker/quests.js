@@ -48,7 +48,7 @@
     box.innerHTML = html;
     var bs = box.querySelectorAll("button[data-q]");
     for (var b = 0; b < bs.length; b++) bs[b].onclick = function () { claim(parseInt(this.getAttribute("data-q"), 10)); };
-    var s = $("quest-streak"); if (s) s.textContent = "🔥 Daily streak: " + (q.streak || 0) + " · finish all 4 for a big bonus";
+    var s = $("quest-streak"); if (s) s.textContent = "Daily streak: " + (q.streak || 0) + " · finish all 4 for a big bonus";
     var ready = 0; for (var k = 0; k < q.list.length; k++) if (q.list[k].have >= q.list[k].need && !q.list[k].claimed) ready++;
     var bd = $("badge-quests"); if (bd) { bd.textContent = ready || ""; bd.classList.toggle("show", ready > 0); }
   }
