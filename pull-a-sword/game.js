@@ -99,6 +99,13 @@
     /* fill any missing fields from the default so old/partial saves still run */
     var d = defaultState();
     for (var k in d) { if (s[k] === undefined) { s[k] = d[k]; } }
+    /* v3 art update: some sword/pet names were renamed to fit the new worlds - carry saves over */
+    (function () {
+      var M = {"Castle Cat": "Moss Cat", "Stone Puppy": "Fern Pup", "Knight Owl": "Hollow Owl", "Royal Griffin": "Glade Griffin", "Royal Lion": "Glade Lion", "Frost Fox": "Cloud Fox", "Snow Hare": "Mist Hare", "Ice Golem": "Storm Golem", "Crystal Wyrm": "Sky Wyrm", "Frost Reaver": "Cloud Reaver", "Avalanche Edge": "Skyfall Edge", "Frozen Fury": "Tempest Fury", "Blizzard's Bane": "Thunder's Bane", "Glacius": "Zephyrus"}, k, i;
+      function mv(o) { if (!o) { return; } for (k in M) { if (o[k] !== undefined) { if (o[M[k]] === undefined) { o[M[k]] = o[k]; } delete o[k]; } } }
+      function ma(a) { if (!a) { return; } for (i = 0; i < a.length; i++) { if (M[a[i]]) { a[i] = M[a[i]]; } } }
+      mv(s.owned); mv(s.petCounts); ma(s.pets); ma(s.equipPets); if (s.equipped && M[s.equipped]) { s.equipped = M[s.equipped]; }
+    })();
     if (typeof s.strength !== 'number' || !isFinite(s.strength) || s.strength < 0) { s.strength = 0; }
     if (typeof s.level !== 'number' || s.level < 1) { s.level = 1; }
     if (typeof s.world !== 'number' || !isFinite(s.world)) { s.world = 0; }
@@ -956,7 +963,7 @@
       strength: S.strength,
       world: S.world, maxWorld: S.maxWorld,
       worldName: curWorld() ? curWorld().name : '',
-      sword: sw ? { n: sw.n, c: rarityCol(sw.r) } : null,
+      sword: sw ? { n: sw.n, c: rarityCol(sw.r), r: sw.r } : null,
       pets: pets,
       pullT: pullT
     };
