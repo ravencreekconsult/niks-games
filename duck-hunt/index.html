@@ -33,15 +33,15 @@
   #stage{ position:relative; flex:1 1 auto; min-height:0; }
   #cv{ display:block; width:100%; height:100%; background:#000; touch-action:none; cursor:crosshair; }
   /* ---- controls ---- */
-  #controls{ flex:0 0 auto; display:flex; gap:6px; padding:7px 8px; flex-wrap:wrap;
+  #controls{ flex:0 0 auto; display:flex; gap:5px; padding:6px 6px calc(6px + env(safe-area-inset-bottom)); flex-wrap:nowrap;
     background:linear-gradient(180deg,#0b0f16,#05070b); border-top:3px solid var(--edge); }
-  button{ flex:1 1 0; min-height:46px; min-width:64px; border-radius:9px; cursor:pointer;
+  button{ flex:1 1 0; min-height:44px; min-width:50px; padding:0 4px; border-radius:9px; cursor:pointer;
     font-family:inherit; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
-    font-size:clamp(10px,2.5vw,12px); color:var(--ink);
+    font-size:clamp(9px,2.4vw,12px); color:var(--ink);
     background:linear-gradient(180deg,#2a3448,#141a26);
     border:2px solid var(--edge); box-shadow:0 3px 0 #000, inset 0 1px 0 rgba(255,255,255,.10); }
   button:active{ transform:translateY(2px); box-shadow:0 1px 0 #000; filter:brightness(1.2); }
-  button.small{ flex:0 0 auto; min-width:56px; }
+  button.small{ flex:0 0 auto; min-width:46px; }
   #pauseBtn{ background:linear-gradient(180deg,#39507a,#1d2b47); }
   #reloadBtn{ background:linear-gradient(180deg,#7a4a1e,#3d240e); border-color:#a06a34; }
   #muteBtn{ background:linear-gradient(180deg,#2c4436,#15251c); }
@@ -1481,7 +1481,7 @@ function gotoTitle(){
   updateHud();
   var arsenal='';
   for(var i=0;i<GUNS.length;i++){
-    arsenal+=(gunUnlocked(i)?'\u2714 ':'\uD83D\uDD12 ')+GUNS[i].name;
+    arsenal+=(gunUnlocked(i)?'\u25CF ':'\u25CB ')+GUNS[i].name;
     if(!gunUnlocked(i)) arsenal+=' ('+GUNS[i].req+'\u2605)';
     if(i<GUNS.length-1) arsenal+='  \u00b7  ';
   }
