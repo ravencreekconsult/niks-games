@@ -16,8 +16,8 @@
   /* 2. WORLDS — same five worlds, same order, same swords as the original game */
   var WORLDS = [
     {
-      name: 'Castle', boss: 'Stone Golem',
-      egg: { name: 'Castle Egg', cost: 60 },
+      name: 'Whisperwood', boss: 'Briar Golem',
+      egg: { name: 'Whisper Egg', cost: 60 },
       swords: [
         { n: 'Dawn Sword',         req: 50,        m: 2,        r: 'Common' },
         { n: 'Heartsbane Sword',   req: 700,       m: 4,        r: 'Uncommon' },
@@ -28,8 +28,8 @@
       ]
     },
     {
-      name: 'Volcano Cave', boss: 'Magma Dragon',
-      egg: { name: 'Magma Egg', cost: 500 },
+      name: 'Emberfall', boss: 'Magma Dragon',
+      egg: { name: 'Ember Egg', cost: 500 },
       swords: [
         { n: 'Dark Sword',     req: 6e6,      m: 100,    r: 'Common' },
         { n: 'Void Ripper',    req: 44.3e6,   m: 180,    r: 'Uncommon' },
@@ -40,19 +40,19 @@
       ]
     },
     {
-      name: 'Glacier Peaks', boss: 'Huge Yeti',
-      egg: { name: 'Frost Egg', cost: 3000 },
+      name: 'Cloudspire', boss: 'Storm Roc',
+      egg: { name: 'Cloud Egg', cost: 3000 },
       swords: [
-        { n: 'Frost Reaver',       req: 280e9,   m: 3500,    r: 'Common' },
-        { n: 'Avalanche Edge',     req: 1.8e12,  m: 6000,    r: 'Uncommon' },
-        { n: 'Frozen Fury',        req: 7e12,    m: 10000,   r: 'Rare' },
-        { n: "Blizzard's Bane",    req: 200e12,  m: 18000,   r: 'Epic' },
+        { n: 'Cloud Reaver',       req: 280e9,   m: 3500,    r: 'Common' },
+        { n: 'Skyfall Edge',     req: 1.8e12,  m: 6000,    r: 'Uncommon' },
+        { n: 'Tempest Fury',        req: 7e12,    m: 10000,   r: 'Rare' },
+        { n: "Thunder's Bane",    req: 200e12,  m: 18000,   r: 'Epic' },
         { n: 'Aquila',             req: 1.7e15,  m: 32000,   r: 'Legendary' },
-        { n: 'Glacius',            req: 2.3e15,  m: 56000,   r: 'Mythic' }
+        { n: 'Zephyrus',            req: 2.3e15,  m: 56000,   r: 'Mythic' }
       ]
     },
     {
-      name: 'Desert', boss: 'Anubis Colossus',
+      name: 'Sunscar Desert', boss: 'Anubis Colossus',
       egg: { name: 'Desert Egg', cost: 20000 },
       swords: [
         { n: 'Carrotbane',         req: 7.5e15,  m: 100000,   r: 'Common' },
@@ -64,7 +64,7 @@
       ]
     },
     {
-      name: 'Enchanted Forest', boss: 'Forest Guardian',
+      name: 'Elderwood', boss: 'Forest Guardian',
       egg: { name: 'Forest Egg', cost: 120000 },
       swords: [
         { n: 'Rootbound Edge',     req: 900e18,  m: 3000000,   r: 'Common' },
@@ -79,23 +79,23 @@
 
   /* 3. PETS — 28 pets (27 hatchable/special + Founder's Blade code pet) */
   var PETS = [
-    /* World 0 — Castle Egg */
-    { n: 'Castle Cat',     r: 'Common',    m: 1.5,       luck: 0,    world: 0, shape: 'cat',   col: '#c9a227' },
-    { n: 'Stone Puppy',    r: 'Uncommon',  m: 2.5,       luck: 0,    world: 0, shape: 'pup',   col: '#8d99ae' },
-    { n: 'Knight Owl',     r: 'Rare',      m: 5,         luck: 0,    world: 0, shape: 'bird',  col: '#b08968' },
-    { n: 'Royal Griffin',  r: 'Epic',      m: 14,        luck: 0,    world: 0, shape: 'bird',  col: '#d4af37' },
-    { n: 'Royal Lion',     r: 'Legendary', m: 40,        luck: 0.05, world: 0, shape: 'cat',   col: '#e0a020' },
+    /* World 0 — Whisper Egg */
+    { n: 'Moss Cat',     r: 'Common',    m: 1.5,       luck: 0,    world: 0, shape: 'cat',   col: '#c9a227' },
+    { n: 'Fern Pup',    r: 'Uncommon',  m: 2.5,       luck: 0,    world: 0, shape: 'pup',   col: '#8d99ae' },
+    { n: 'Hollow Owl',     r: 'Rare',      m: 5,         luck: 0,    world: 0, shape: 'bird',  col: '#b08968' },
+    { n: 'Glade Griffin',  r: 'Epic',      m: 14,        luck: 0,    world: 0, shape: 'bird',  col: '#d4af37' },
+    { n: 'Glade Lion',     r: 'Legendary', m: 40,        luck: 0.05, world: 0, shape: 'cat',   col: '#e0a020' },
     /* World 1 — Magma Egg */
     { n: 'Magma Pup',      r: 'Common',    m: 4,         luck: 0,    world: 1, shape: 'pup',   col: '#d9481f' },
     { n: 'Ember Bat',      r: 'Uncommon',  m: 9,         luck: 0,    world: 1, shape: 'bird',  col: '#ff7b3d' },
     { n: 'Ash Hound',      r: 'Rare',      m: 22,        luck: 0,    world: 1, shape: 'fox',   col: '#6b6b6b' },
     { n: 'Lava Drake',     r: 'Epic',      m: 60,        luck: 0,    world: 1, shape: 'dragon', col: '#ff5a1f' },
     { n: 'Phoenix Chick',  r: 'Legendary', m: 180,       luck: 0.05, world: 1, shape: 'bird',  col: '#ff9f1c' },
-    /* World 2 — Frost Egg */
-    { n: 'Frost Fox',      r: 'Common',    m: 25,        luck: 0,    world: 2, shape: 'fox',   col: '#9ad4f0' },
-    { n: 'Snow Hare',      r: 'Uncommon',  m: 55,        luck: 0,    world: 2, shape: 'fox',   col: '#e8f4ff' },
-    { n: 'Ice Golem',      r: 'Rare',      m: 140,       luck: 0,    world: 2, shape: 'golem', col: '#6fb7d9' },
-    { n: 'Crystal Wyrm',   r: 'Epic',      m: 380,       luck: 0,    world: 2, shape: 'dragon', col: '#8fe3ff' },
+    /* World 2 — Cloud Egg */
+    { n: 'Cloud Fox',      r: 'Common',    m: 25,        luck: 0,    world: 2, shape: 'fox',   col: '#9ad4f0' },
+    { n: 'Mist Hare',      r: 'Uncommon',  m: 55,        luck: 0,    world: 2, shape: 'fox',   col: '#e8f4ff' },
+    { n: 'Storm Golem',      r: 'Rare',      m: 140,       luck: 0,    world: 2, shape: 'golem', col: '#6fb7d9' },
+    { n: 'Sky Wyrm',   r: 'Epic',      m: 380,       luck: 0,    world: 2, shape: 'dragon', col: '#8fe3ff' },
     { n: 'Aurora Spirit',  r: 'Legendary', m: 1100,      luck: 0.05, world: 2, shape: 'blob',  col: '#7ef0d0' },
     /* World 3 — Desert Egg */
     { n: 'Sand Scarab',    r: 'Common',    m: 900,       luck: 0,    world: 3, shape: 'bug',   col: '#c9a227' },
