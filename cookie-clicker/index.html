@@ -292,5 +292,7 @@
   <script src="art.js"></script>
   <script src="polish.js"></script>
   <script src="tycoon.js"></script>
+<script src="cloud-save.js"></script>
+<script>CloudSave.initLS({game:"cookie-clicker",keys:["nk-cookie-clicker-v2"],summarize:function(d){return d['nk-cookie-clicker-v2']?'Cookie Clicker progress':'no progress yet'},validate:function(d){try{var o=JSON.parse(d['nk-cookie-clicker-v2']);return !!o&&typeof o==='object'&&!Array.isArray(o)}catch(e){return false}},mount:{el:document.getElementById("btn-sound").parentNode,cls:"#btn-sound",label:"Save"}});</script>
 </body>
 </html>
