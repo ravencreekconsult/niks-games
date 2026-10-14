@@ -348,5 +348,7 @@
 })();
 </script>
 <script src="emoji-art.js"></script>
+<script src="cloud-save.js"></script>
+<script>CloudSave.initLS({game:"pull-a-sword",keys:["pas_save_v2"],summarize:function(d){return d['pas_save_v2']?'Pull a Sword progress':'no progress yet'},validate:function(d){try{var o=JSON.parse(d['pas_save_v2']);return !!o&&typeof o==='object'&&!Array.isArray(o)}catch(e){return false}},mount:{el:document.getElementById("sec-power"),label:"Save / Cloud"}});</script>
 </body>
 </html>
