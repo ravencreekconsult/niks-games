@@ -163,7 +163,7 @@ function mixHex(a,b,t){
 
 /* ---------------- save (v2, migrates v1) ---------------- */
 var SAVE_KEY='duckhunt_save_v3', V2_KEY='duckhunt_save_v2', OLD_KEY='duckhunt_save_v1';
-var save={ best:0, goldUnlocked:false, stars:{}, endlessBest:0, feathers:0, gear:{aim:0,hands:0,pocket:0,lucky:0}, dex:{}, dogXp:0, chapter:0 };
+var save={ best:0, goldUnlocked:false, stars:{}, endlessBest:0, feathers:0, gear:{aim:0,hands:0,pocket:0,lucky:0}, dex:{}, dogXp:0, chapter:0, nik:false };
 function loadSave(){
   try{
     if(typeof localStorage==='undefined'||!localStorage) return;
@@ -177,6 +177,7 @@ function loadSave(){
         save.feathers=Math.max(0,Math.floor(Number(o.feathers))||0); save.dogXp=Math.max(0,Math.floor(Number(o.dogXp))||0);
         if(o.gear&&typeof o.gear==='object'){ for(var gk in save.gear){ save.gear[gk]=clamp(Math.floor(Number(o.gear[gk]))||0,0,5); } }
         if(o.dex&&typeof o.dex==='object'){ for(var dk2 in o.dex){ var dv=o.dex[dk2]; if(dv&&typeof dv==='object') save.dex[dk2]={seen:Math.max(0,Math.floor(Number(dv.seen))||0),hit:Math.max(0,Math.floor(Number(dv.hit))||0)}; } }
+        save.nik=!!o.nik;
         save.chapter=clamp(Math.floor(Number(o.chapter))||0,0,4);
         save.stars={};
         if(o.stars&&typeof o.stars==='object'){ for(var k in o.stars){ var v=Math.floor(Number(o.stars[k])); if(v>0&&v<=3) save.stars[k]=v; } }
@@ -196,6 +197,7 @@ function loadSave(){
     if(raw1){ var o1=JSON.parse(raw1); if(o1&&typeof o1.best==='number'&&isFinite(o1.best)) save.best=o1.best; }
   }catch(e){}
 }
+window.__nikDH=function(again){ save.nik=true; if(!again) save.feathers+=250; writeSave(); };
 function writeSave(){ try{ if(typeof localStorage!=='undefined'&&localStorage) localStorage.setItem(SAVE_KEY,JSON.stringify(save)); }catch(e){} }
 
 /* ---------------- audio (ON by default, unlocked on first tap) ---------------- */
@@ -261,7 +263,8 @@ var GUNS=[
   { name:'12-Gauge', mag:6, spread:30, pellets:6, pts:100, rate:340, req:0,  body:'#8a5a2b', metal:'#c9d2dd', flash:'#ffd27a' },
   { name:'Rifle',    mag:4, spread:6,  pellets:1, pts:320, rate:800, req:3,  body:'#6b3f1d', metal:'#e6eef7', flash:'#fff1c0' },
   { name:'Auto-12',  mag:8, spread:44, pellets:9, pts:60,  rate:150, req:8,  body:'#2f3138', metal:'#9aa4b2', flash:'#ffbe63' },
-  { name:'Golden Gun',mag:6, spread:14, pellets:7, pts:220, rate:300, req:20, body:'#d4af37', metal:'#fff2b0', flash:'#ffe071', gold:true }
+  { name:'Golden Gun',mag:6, spread:14, pellets:7, pts:220, rate:300, req:20, body:'#d4af37', metal:'#fff2b0', flash:'#ffe071', gold:true },
+  { name:'Aurora Scattergun',mag:9, spread:20, pellets:10, pts:260, rate:210, req:99999, body:'#6c3fd8', metal:'#7ef2ff', flash:'#ff7ab6', nik:true }
 ];
 var DIFFS=[
   { name:'Easy',   spd:0.82, thr:6, mul:1.0 },
@@ -613,7 +616,7 @@ function starsForAcc(acc){ return acc>=90?3:(acc>=70?2:1); }
 function starsText(n){ var s=''; for(var q=0;q<3;q++) s+=(q<n?'\u2605':'\u2606'); return s; }
 function totalStars(){ var t=0,k; for(k in save.stars) t+=save.stars[k]||0; return t; }
 function maxStars(){ return ROUNDS_TO_WIN*3; }
-function gunUnlocked(i){ if(i===3&&save.goldUnlocked) return true; return totalStars()>=(GUNS[i].req||0); }
+function gunUnlocked(i){ if(GUNS[i].nik) return !!save.nik; if(i===3&&save.goldUnlocked) return true; return totalStars()>=(GUNS[i].req||0); }
 function spawnDuck(forceSpecies){
   var fromLeft=RNG()<0.5;
   var y=80+RNG()*(HORIZON-44);
@@ -1360,6 +1363,7 @@ function drawGun(){
   ctx.fillStyle=g.metal; rr(ctx,-5,-150,16,96,5); ctx.fill(); ctx.stroke();
   // pump
   ctx.fillStyle=g.body; rr(ctx,-9,-96,18,22,4); ctx.fill(); ctx.stroke();
+  if(g.nik){ ctx.save(); var hh=(tG*0.06)%360; ctx.fillStyle='hsl('+hh+',90%,65%)'; ctx.globalAlpha=0.85; rr(ctx,-2,-146,10,84,3); ctx.fill(); ctx.globalAlpha=0.35+0.2*Math.sin(tG*0.006); ctx.shadowColor='#7ef2ff'; ctx.shadowBlur=18; ctx.fillStyle='#7ef2ff'; rr(ctx,-12,-60,30,62,8); ctx.fill(); ctx.restore(); }
   // muzzle flash
   if(muzzle>0){
     ctx.globalAlpha=muzzle; ctx.fillStyle=g.flash;
@@ -1510,9 +1514,10 @@ function gotoTitle(){
   updateHud();
   var arsenal='';
   for(var i=0;i<GUNS.length;i++){
+    if(GUNS[i].nik&&!save.nik) continue;
     arsenal+=(gunUnlocked(i)?'\u25CF ':'\u25CB ')+GUNS[i].name;
     if(!gunUnlocked(i)) arsenal+=' ('+GUNS[i].req+'\u2605)';
-    if(i<GUNS.length-1) arsenal+='  \u00b7  ';
+    if(i<GUNS.length-1&&!(GUNS[i+1].nik&&!save.nik)) arsenal+='  \u00b7  ';
   }
   showPanel('DUCK HUNT','TAP THE FIELD TO SHOOT \u00b7 HIT DUCKS REFUND A SHELL',
     [['QUOTA',quota()+' DUCKS PER ROUND'],['AREAS',String(ROUNDS_TO_WIN)],['BEST SCORE',String(best)],
@@ -1773,6 +1778,9 @@ if(typeof location!=='undefined'&&/[?&]debug=1/.test(location.search)) window.__
 
 })();
 </script>
+<script src="nik-promo.js"></script>
+<script>NikPromo.init({game:"duck-hunt",salt:"nk-23dd69da4a2c",codes:[{id:"dh-aurora",hash:"5d68556d78c65f6ddd0bdb2a07c34b380fc51d26bbb21dee635b218ff23ed7bc",title:"The Aurora Scattergun",desc:"A one-of-a-kind ranger gun, made for Nik: 9 shells, ten pellets, aurora-purple. Cycle guns to find it. Plus 250 bonus feathers for the Lodge.",apply:function(again){ if(window.__nikDH) __nikDH(again); }}]});
+NikPromo.hotspot(document.getElementById("panelTitle"),7);</script>
 <script src="cloud-save.js"></script>
 <script>CloudSave.initLS({game:"duck-hunt",keys:["duckhunt_save_v3"],summarize:function(d){return d['duckhunt_save_v3']?'Duck Hunt ranger progress':'no progress yet'},validate:function(d){try{var o=JSON.parse(d['duckhunt_save_v3']);return !!o&&typeof o==='object'&&!Array.isArray(o)}catch(e){return false}},mount:{none:true}});</script>
 </body>
