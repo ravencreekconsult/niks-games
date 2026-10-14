@@ -188,6 +188,7 @@
       <p>👀 Watch the <b>Next:</b> strip so you know who's coming, then press <b>Start Wave</b> — press it early for bonus gold!</p>
       <p>🪙 You earn gold for every kill and for keeping your base leak-free. Lose hearts if a monster gets through!</p>
       <button id="introGo">Play: Normal (100 gold) 🏗</button>
+      <button id="introChal" style="margin-top:8px;background:linear-gradient(180deg,#ff9f43,#d9480f)">Challenge Code: same waves as a friend</button>
       <button id="introSand" style="margin-top:8px;background:linear-gradient(180deg,#8a5cff,#4a2bb8)">🧪 Sandbox: 100,000 gold (test every tower)</button>
     </div></div>
   </div>
@@ -260,6 +261,11 @@ const TOWERS = [
 const TRACK_MUL={range:0.8, rate:1.0, dmg:1.1};
 const TRACK_RNG_ADD=0.55, TRACK_RATE=1.13, TRACK_DMG=1.24;
 function trackCost(t,k,lv){ return Math.round(t.cost*TRACK_MUL[k]*(0.30+0.22*lv)); } /* lv = level being bought (1..3) */
+/* VETERAN ranks: the late-game gold sink. After a tower is fully upgraded AND specialised,
+   each rank costs a lot but adds +10% damage and +4% fire rate (5 ranks). */
+const VET_MAX=5;
+function vetCost(t,rank){ return Math.round((250+t.cost*1.5)*(1+0.6*rank)); } /* rank = rank being bought (0-based) */
+function vetRank(tw){ return tw.vet||0; }
 function trackLabel(k){ return k==="range"?"RNG":k==="rate"?"RATE":"DMG"; }
 /* unlock ladder: each tower has a wave gate AND a one-off gold price paid in-run.
    Blaster is owned from the start; every other type must be BOUGHT in ladder order
@@ -287,13 +293,13 @@ const SOLMAX=6, TRAPMAX=12, SOL_COST=50, MINE_COST=60, WIRE_COST=50, STICKY_COST
 const HOLD_IMMUNE=2.5; /* seconds a freed enemy cannot be re-grabbed */
 const RD=[{k:"soldier",cost:SOL_COST,gl:"🛡 Soldier"},{k:"mine",cost:MINE_COST,gl:"🧨 Mine"},
           {k:"wire",cost:WIRE_COST,gl:"🕸 Wire"},{k:"sticky",cost:STICKY_COST,gl:"🍯 Sticky"}];
-function waveMult(w){ return Math.pow(1.125, w-1); }
+function waveMult(w){ return Math.pow(1.125, w-1)*(w>18?Math.pow(1.015,w-18):1); } /* gentle extra ramp after wave 18 so mid/late waves need the gold sinks */
 /* lane count grows with the wave: single source of truth (also used by drawRoad) */
 function laneCountFor(w){ return w>=18?4 : w>=10?3 : w>=4?2 : 1; }
 const LANE_SPACING=0.19, LANE_JITTER=0.03; /* offsets in cells, perpendicular to the path */
 function waveSpec(w){
   const mult=waveMult(w); const list=[];
-  const rng=mulberry32(w*7919+1013); /* seeded: wave N always builds the SAME list */
+  const rng=mulberry32(w*7919+1013+(CH?CH.seed%100003*131:0)); /* seeded: wave N always builds the SAME list */
   if(w%5===0){ const cnt=1+Math.floor((w-5)/10);
     for(let i=0;i<cnt;i++) list.push({t:"boss"});
     for(let i=0;i<Math.min(30,6+w);i++) list.push({t:"grunt"});
@@ -304,7 +310,7 @@ function waveSpec(w){
   if(w>=5) pool.push(["tank",0.35]);
   if(w>=7) pool.push(["flyer",0.4]);
   if(w>=9) pool.push(["healer",0.2]);
-  const tot=pool.reduce((s,p)=>s+p[1],0); const n=8+w*2;
+  const tot=pool.reduce((s,p)=>s+p[1],0); const n=Math.round((8+w*2)*(CH&&CH.mut.cnt||1));
   for(let i=0;i<n;i++){ let r=rng(),acc=0,pick="grunt";
     for(const p of pool){ acc+=p[1]/tot; if(r<=acc){ pick=p[0]; break; } }
     list.push({t:pick}); }
@@ -331,6 +337,13 @@ RD[0].btn=abSol; RD[1].btn=abSpike; RD[2].btn=abTar; RD[3].btn=abBomb;
    this script can ever leave the player stuck on the intro card ---------- */
 try{
   $id("introGo").onclick=()=>{ try{ goldMode="real"; localStorage.setItem("td_gold","real"); if(S&&S.wave===0) S.gold=100; hud(); intro.style.display="none"; }catch(e){} };
+  $id("introChal").onclick=()=>{ try{
+      const raw=window.prompt("Enter a friend's challenge code (like TD-K7QP) or leave blank for a new one:","");
+      if(raw===null) return; let c=raw.trim()?chParse(raw):chMake(chRoll());
+      if(!c){ say("That code did not look right",1800); return; }
+      CH=c; goldMode="real"; newGame(); intro.style.display="none";
+      say("Challenge TD-"+c.code+": "+c.mut.n+" - "+c.mut.d+(c.target?" Friend reached wave "+c.target+".":""),4200);
+    }catch(e){} };
   $id("introSand").onclick=()=>{ try{ goldMode="test"; localStorage.setItem("td_gold","test"); if(S&&S.wave===0) S.gold=100000; hud(); say("Sandbox: 100,000 gold",1800); intro.style.display="none"; }catch(e){} };
   /* delegated CAPTURE listener: a tap ANYWHERE on the intro card dismisses it,
      independent of every other handler in the file */
@@ -391,7 +404,19 @@ let cell=40,ox=0,oy=0,dpr=1,baseCell=40;
 let S, sel=0, speed=1, paused=false, autoOn=false, selTower=null, selSold=null, autoTimer=0;
 let goldMode="real"; try{ goldMode=localStorage.getItem("td_gold")==="test"?"test":"real"; }catch(e){}
 let goTick=0;
-function startGold(){ return goldMode==="real"?100:100000; }
+/* ---------- CHALLENGE CODES: a 4-letter code = a seed for the waves + a mutator. Same code = same fight. ---------- */
+let CH=null;
+const CH_ALPHA="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; /* no look-alikes */
+const CH_MUTS=[{n:"Iron Tide",d:"Monsters have 30% more health but drop 25% more gold.",hp:1.3,rew:1.25},
+               {n:"Sprint",d:"Every monster runs 20% faster.",spd:1.2},
+               {n:"Thin Wallet",d:"Start with 140 gold, but kills pay 20% less.",gold:140,rew:0.8},
+               {n:"Long Haul",d:"35% more monsters each wave, each pays 15% less.",cnt:1.35,rew:0.85}];
+function chHash(code){ let h=2166136261; for(const c of code){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return h>>>0; }
+function chRoll(){ let c=""; for(let i=0;i<4;i++) c+=CH_ALPHA[Math.floor(Math.random()*CH_ALPHA.length)]; return c; }
+function chMake(code){ const h=chHash(code); return {code,seed:h,mut:CH_MUTS[h%CH_MUTS.length]}; }
+function chParse(txt){ const m=String(txt||"").toUpperCase().replace(/[^A-Z0-9-]/g,"").match(/^(?:TD-?)?([A-Z0-9]{4})(?:-(\d+))?$/);
+  if(!m) return null; for(const c of m[1]) if(CH_ALPHA.indexOf(c)<0) return null; const o=chMake(m[1]); o.target=m[2]?+m[2]:0; return o; }
+function startGold(){ if(CH&&CH.mut.gold&&goldMode==="real") return CH.mut.gold; return goldMode==="real"?100:100000; }
 
 function newGame(){
   S={ gold:startGold(), lives:25, score:0, wave:0, running:false, over:false, won:false,
@@ -490,8 +515,8 @@ function linkedTowers(tw){ const out=[]; if(!S) return out;
   return out; }
 function linkCount(tw){ const kinds=new Set(); for(const o of linkedTowers(tw)) kinds.add(o.type.id); return Math.min(3,kinds.size); }
 function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
-  let dmg=tw.type.dmg*Math.pow(TRACK_DMG,d), range=trRange(tw),
-      rate=tw.type.rate*Math.pow(TRACK_RATE,f), splash=tw.type.splash||0,
+  let dmg=tw.type.dmg*Math.pow(TRACK_DMG,d)*Math.pow(1.10,tw.vet||0), range=trRange(tw),
+      rate=tw.type.rate*Math.pow(TRACK_RATE,f)*Math.pow(1.04,tw.vet||0), splash=tw.type.splash||0,
       slow=tw.type.slow||0, poison=tw.type.poison||0, chain=tw.type.chain||0;
   if(d>0){ if(tw.type.poison) poison*=Math.pow(1.2,d);
     if(tw.type.chain) chain+=d; if(tw.type.slow) slow+=0.03*d; }
@@ -646,7 +671,7 @@ function showInfo(){
     info.style.display="flex"; resize();
     iTxt.innerHTML=`<b>🛡 Soldier</b> Lv${s.lvl} · hp ${Math.max(0,Math.ceil(s.hp))}/${s.max} · dmg ${s.dmg}`
       + (s.lvl<3? ` · <span style="color:var(--gold)">upgrade ${c.cost}g</span>` : " · max level");
-    iUp.style.display = s.lvl<3? "" : "none";
+    iUp.textContent="UPGRADE"; iUp.style.display = s.lvl<3? "" : "none";
     iS1.style.display="none"; iS2.style.display="none"; iTgt.style.display="none";
     iRng.style.display="none"; iRate.style.display="none"; iDmg.style.display="none";
     iSell.textContent="Sell +"+(30*s.lvl)+"g"; return; }
@@ -664,7 +689,9 @@ function showInfo(){
   const trk=(btn,k,lv)=>{ if(lv>=3){ btn.classList.add("full"); btn.textContent=trackLabel(k)+" ✓full"; btn.style.opacity=""; return; }
     btn.classList.remove("full"); btn.textContent=trackLabel(k)+" "+trackCost(tw.type,k,lv+1)+"g"; };
   trk(iRng,"range",tw.rngLv||0); trk(iRate,"rate",tw.rateLv||0); trk(iDmg,"dmg",tw.dmgLv||0);
-  iUp.style.display="none";
+  if(allMax && tw.spec && !tw.type.boost || (allMax && tw.spec && tw.type.boost)){ const r=vetRank(tw);
+    if(r<VET_MAX){ iUp.style.display=""; iUp.textContent="VET "+(r+1)+" "+vetCost(tw.type,r)+"g"; } else { iUp.style.display=""; iUp.textContent="VET MAX"; } }
+  else iUp.style.display="none";
   iS1.style.display = canSpec? "" : "none";
   iS2.style.display = canSpec? "" : "none";
   if(canSpec){ const A=SPECS[tw.type.id];
@@ -677,6 +704,7 @@ function showInfo(){
 function sellValue(tw){ let inv=tw.type.cost;
   for(const k of ["range","rate","dmg"]){ const lv=tw[(k==="range"?"rng":k)+"Lv"]||0;
     for(let l=1;l<=lv;l++) inv+=trackCost(tw.type,k,l); }
+  for(let r=0;r<(tw.vet||0);r++) inv+=vetCost(tw.type,r);
   return Math.round(inv*0.7); }
 const TGT_ORDER=["first","last","strong","close"];
 const TGT_NAME={first:"First",last:"Last",strong:"Strongest",close:"Closest"};
@@ -699,7 +727,11 @@ iUp.onclick=()=>{ if(selSold){ const s=selSold;
     SFX.up(); S.gold-=c.cost; s.lvl++; const L=SOL_LV[s.lvl-1]; s.max=L.hp; s.hp=L.hp; s.dmg=L.dmg;
     s.holdMax=L.hold; s.recMax=L.rec; s.swingTime=1/L.rate; s.holdT=0; s.recT=0; s.tgt=null;
     say("Soldier Lv"+s.lvl+"!",1100); hud(); showInfo(); return; }
-  if(selTower) buyTrack("range"); };
+  if(selTower){ const tw=selTower;
+    if((tw.rngLv||0)>=3&&(tw.rateLv||0)>=3&&(tw.dmgLv||0)>=3&&tw.spec){ const r=vetRank(tw); if(r>=VET_MAX) return;
+      const c=vetCost(tw.type,r); if(S.gold<c){ say("Need "+c+"g"); return; }
+      SFX.up(); S.gold-=c; tw.vet=r+1; say("Veteran rank "+tw.vet+"/"+VET_MAX+"!",1100); hud(); showInfo(); return; }
+    buyTrack("range"); } };
 iSell.onclick=()=>{ if(selSold){ if(selSold.dead){ selSold=null; info.style.display="none"; resize(); return; }
     S.gold+=30*selSold.lvl; SFX.coin();
     S.soldiers=S.soldiers.filter(s=>s!==selSold); selSold=null; info.style.display="none"; resize(); hud(); return; }
@@ -768,7 +800,7 @@ function startWave(){
 const BOSS_TIERS=["Grunt King","Iron Colossus","Frost Tyrant","Venom Lord","Storm Titan","Chaos Overlord","Night Emperor","Void Sovereign"];
 function bossName(w){ return BOSS_TIERS[Math.min(BOSS_TIERS.length-1,Math.floor((w-1)/5))]||"Boss"; }
 function spawn(kind,dist){
-  const b=ETYPES[kind]; const hp=b.hp*(S.curMult||1);
+  const cm=CH&&CH.mut||{}; const b=ETYPES[kind]; const hp=(cm.hp||1)*b.hp*(b.boss?Math.pow(S.curMult||1,0.9):(S.curMult||1)); /* bosses scale a bit slower so they stay a spike, not a wall */
   if(S.seen && !S.seen[kind]) S.seen[kind]=true; /* summoned units count as appeared */
   /* lane assignment: round-robin across the lane count for this wave so a wave
      arrives in visible columns; draw-only offset in cells — world positions,
@@ -778,7 +810,7 @@ function spawn(kind,dist){
   let laneOff=0;
   if(!b.boss){ const i=(S.laneRR=(S.laneRR||0)+1)%ln; /* BUGFIX: was unbounded, so every enemy drifted further off the road */
     laneOff=(i-(ln-1)/2)*LANE_SPACING+(Math.random()*2-1)*LANE_JITTER; }
-  S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd, reward:Math.round(b.reward*(1+S.wave*0.04)),
+  S.enemies.push({ kind, dist:dist||0, hp, max:hp, spd:b.spd*(cm.spd||1), reward:Math.round(b.reward*(1+S.wave*0.04)*(cm.rew||1)),
     r:b.r, color:b.color, armor:(b.armor||0), heal:b.heal||0, healR:b.healR||0, flying:!!b.flying, lane:laneOff,
     boss:!!b.boss, slowUntil:0, slowPow:0, dot:0, dotAmt:0, dead:false, counted:false, hit:0, x:0, y:0,
     blocked:false, atk:(b.atk||0), freeAt:0,
@@ -1033,13 +1065,13 @@ function endGame(){ over.style.display="flex";
   const stats="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
     +(best>0? " · Best endless: wave "+best : "");
   if(S.won){ oT.textContent="You win! 🎉";
-    oX.textContent="All 30 waves held! "+stats;
+    oX.textContent=(CH?"Challenge TD-"+CH.code+" cleared! Send TD-"+CH.code+"-30+ - ":"")+"All 30 waves held! "+stats;
     oE.style.display=""; oE.textContent="Keep going — Endless (next: wave 31)"; }
   else{ oT.textContent="Base overrun";
     if(S.endless && S.wave>best){ try{ localStorage.setItem("td_best_endless",String(S.wave)); best=S.wave; }catch(e){} }
     const stats2="Wave reached: "+S.wave+" · Score "+S.score+" · Kills "+S.kills+" · Leaks "+S.leaksTotal
       +(S.endless? " · Best endless: wave "+best : "");
-    oX.textContent="The swarm got through — "+stats2+(S.newBest?" · NEW BEST WAVE! 🏆":"")+". Try more towers on the early bends!"; } }
+    oX.textContent=(CH?"Challenge TD-"+CH.code+" ("+CH.mut.n+") - send your friend TD-"+CH.code+"-"+S.wave+" - ":"")+"The swarm got through — "+stats2+(S.newBest?" · NEW BEST WAVE! 🏆":"")+". Try more towers on the early bends!"; } }
 oE.onclick=()=>{ if(!S.won) return;
   S.endless=true; S.won=false; S.over=false;
   over.style.display="none"; go.disabled=false;
