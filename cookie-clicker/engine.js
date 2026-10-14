@@ -352,6 +352,7 @@ NK.newsNext = function () {
 
 /* ============================= save / load / migrate ============================= */
 NK.save = function () {
+  if (window.CloudSave && window.CloudSave.reloading) return; // an import is reloading the page: do not overwrite it
   NK.state.last = now();
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(NK.state)); } catch (e) {}
 };
