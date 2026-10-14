@@ -113,7 +113,9 @@
     { n: 'Golden Bunny',   r: 'Mythic',    m: 5000000,   luck: 0.10, world: -1, shape: 'blob', col: '#ffd700' },
     { n: 'Void Kitten',    r: 'Mythic',    m: 12000000,  luck: 0.10, world: -1, shape: 'cat',  col: '#7a5cff' },
     /* Code pet (world -1) */
-    { n: "Founder's Blade", r: 'Mythic',   m: 8000000,   luck: 0.10, world: -1, shape: 'blob', col: '#00e5ff' }
+    { n: "Founder's Blade", r: 'Mythic',   m: 8000000,   luck: 0.10, world: -1, shape: 'blob', col: '#00e5ff' },
+    /* Nik's secret pet (hidden code) */
+    { n: 'Comet Drake', r: 'Mythic', m: 30000000, luck: 0.15, world: -1, shape: 'dragon', col: '#7ef2ff' }
   ];
 
   /* 4. EGG_WEIGHTS — hatch rarity weights, Common..Legendary (no Mythic from eggs) */
