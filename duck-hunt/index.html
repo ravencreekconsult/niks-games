@@ -1514,6 +1514,7 @@ function gotoTitle(){
     [{label:'START HUNT',primary:true,fn:function(){ unlockAudio(); newGame('hunt'); }},
      {label:'ENDLESS',fn:function(){ unlockAudio(); newGame('endless'); }},
      {label:'CHALLENGE CODE',fn:function(){ unlockAudio(); challengeMenu(); }},
+     {label:'SAVE / CLOUD',fn:function(){ if(window.CloudSave&&CloudSave.openMenu) CloudSave.openMenu(); }},
      {label:'RANGER LODGE',fn:function(){ unlockAudio(); lodge('dex'); }},
      {label:'VIBRATION '+(haptics?'ON':'OFF'),fn:function(){ setHaptics(!haptics); gotoTitle(); }}]);
 }
@@ -1667,5 +1668,7 @@ if(typeof location!=='undefined'&&/[?&]debug=1/.test(location.search)) window.__
 
 })();
 </script>
+<script src="cloud-save.js"></script>
+<script>CloudSave.initLS({game:"duck-hunt",keys:["duckhunt_save_v3"],summarize:function(d){return d['duckhunt_save_v3']?'Duck Hunt ranger progress':'no progress yet'},validate:function(d){try{var o=JSON.parse(d['duckhunt_save_v3']);return !!o&&typeof o==='object'&&!Array.isArray(o)}catch(e){return false}},mount:{none:true}});</script>
 </body>
 </html>
