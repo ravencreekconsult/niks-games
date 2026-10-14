@@ -416,10 +416,12 @@ function chRoll(){ let c=""; for(let i=0;i<4;i++) c+=CH_ALPHA[Math.floor(Math.ra
 function chMake(code){ const h=chHash(code); return {code,seed:h,mut:CH_MUTS[h%CH_MUTS.length]}; }
 function chParse(txt){ const m=String(txt||"").toUpperCase().replace(/[^A-Z0-9-]/g,"").match(/^(?:TD-?)?([A-Z0-9]{4})(?:-(\d+))?$/);
   if(!m) return null; for(const c of m[1]) if(CH_ALPHA.indexOf(c)<0) return null; const o=chMake(m[1]); o.target=m[2]?+m[2]:0; return o; }
-function startGold(){ if(CH&&CH.mut.gold&&goldMode==="real") return CH.mut.gold; return goldMode==="real"?100:100000; }
+window.__nikTD=function(){ try{ if(S&&S.wave===0&&!S.running){ S.gold+=150; S.lives=30; hud(); } }catch(e){} };
+function nikOn(){ return !!(window.NikPromo&&NikPromo.has("td-wrench")); }
+function startGold(){ if(CH&&CH.mut.gold&&goldMode==="real") return CH.mut.gold; return goldMode==="real"?100+(nikOn()?150:0):100000; }
 
 function newGame(){
-  S={ gold:startGold(), lives:25, score:0, wave:0, running:false, over:false, won:false,
+  S={ gold:startGold(), lives:25+(nikOn()?5:0), score:0, wave:0, running:false, over:false, won:false,
       towers:[], enemies:[], shots:[], bolts:[], parts:[], nums:[], decals:[], fx:[], gibs:[],
       queue:[], qTimer:0, shake:0, time:0, hover:null, banner:{until:0}, baseFlash:0,
       freezeUntil:0, ocUntil:0, armed:false, cd:{air:0,frz:0,rep:0,ovr:0},
@@ -528,6 +530,7 @@ function effStats(tw){ const d=tw.dmgLv||0, f=tw.rateLv||0;
   /* TWIST - Resonance Links: towers of DIFFERENT kinds standing within 2.3 cells link up and
      each gets +8% damage per distinct neighbour kind (max +24%). Mix your defence. */
   { const n=linkCount(tw); if(n>0) dmg*=1+0.08*n; }
+  if(nikOn()) dmg*=1.15;
   if(tw.spec==="minigun"){ rate*=2.4; dmg*=0.55; }
   else if(tw.spec==="mortar"){ splash*=1.9; rate*=0.6; range*=1.15; dmg*=1.15; }
   else if(tw.spec==="flak"){ rate*=1.3; }
@@ -554,7 +557,7 @@ function abilTap(k){
   if(k==="air"){ S.armed=!S.armed; if(S.armed) S.deploy=null;
     say(S.armed?"Airstrike armed — tap the map!":"Airstrike cancelled",1400); return; }
   if(k==="frz"){ S.cd.frz=S.time+ABIL.frz.cd; S.freezeUntil=S.time+4; say("Deep freeze! ❄",1300); }
-  else if(k==="rep"){ S.cd.rep=S.time+ABIL.rep.cd; S.lives=Math.min(25,S.lives+3); hud(); say("Repaired +3 lives",1300); }
+  else if(k==="rep"){ S.cd.rep=S.time+ABIL.rep.cd; S.lives=Math.min(nikOn()?30:25,S.lives+3); hud(); say("Repaired +3 lives",1300); }
   else if(k==="ovr"){ S.cd.ovr=S.time+ABIL.ovr.cd; S.ocUntil=S.time+6; say("Overcharge! Towers fire faster",1400); }
 }
 abAir.onclick=()=>abilTap("air"); abFrz.onclick=()=>abilTap("frz");
@@ -2576,6 +2579,9 @@ try{ requestAnimationFrame(loop); }catch(e){}
   [].forEach.call(document.querySelectorAll('#tdtabs button'),function(b){ b.addEventListener('click',function(){ show(b.getAttribute('data-tab')); }); });
 })();
 </script>
+<script src="nik-promo.js"></script>
+<script>NikPromo.init({game:"tower-defense",salt:"nk-23dd69da4a2c",codes:[{id:"td-wrench",hash:"20ef081bc334175996e230af2f365d6f2f30f7207e0666de4afff52b6577bf75",title:"The Golden Wrench",desc:"Nik's Engineer kit is yours forever: +15% damage on every tower, +5 base lives (30 max), and +150 starting gold.",apply:function(again){ if(!again&&window.__nikTD) __nikTD(); }}]});
+NikPromo.hotspot(document.getElementById("score").parentNode,7);</script>
 <script src="emoji-art.js"></script>
 <script src="cloud-save.js"></script>
 <script>CloudSave.initLS({game:"tower-defense",keys:["td_best_wave","td_best_endless","td_gold"],summarize:function(d){return 'best scores: wave '+(d.td_best_wave||0)+', endless '+(d.td_best_endless||0)},validate:function(d){var i=/^\d{1,6}$/;if(d.td_best_wave!=null&&!i.test(d.td_best_wave))return false;if(d.td_best_endless!=null&&!i.test(d.td_best_endless))return false;if(d.td_gold!=null&&d.td_gold!=='real'&&d.td_gold!=='test')return false;return true},mount:{el:document.getElementById("mute").parentNode,cls:"#mute",label:"Save"}});</script>
