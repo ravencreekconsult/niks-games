@@ -766,9 +766,24 @@
   }
 
   /* ---------- CODES ---------- */
+  window.__nikPAS = function () {
+    if (S.codes.nikcomet) { return 'dup'; }
+    S.codes.nikcomet = 1;
+    var pet = petByName('Comet Drake');
+    if (pet && !S.petCounts[pet.n]) {
+      S.petCounts[pet.n] = 1;
+      if (S.pets.indexOf(pet.n) === -1) { S.pets.push(pet.n); }
+      if (S.equipPets.length < petSlots()) { S.equipPets.push(pet.n); }
+    }
+    S.luckBonus += 0.25;
+    S.strength += Math.max(250000, S.strength * 0.15);
+    updateHUD(); renderPets(); renderIndex(); renderSwords(); save();
+    return 'fresh';
+  };
   function redeemCode() {
     var code = (el.codeInput.value || '').trim().toUpperCase();
     if (!code) { toast('Type a code first!'); return; }
+    if (window.NikPromo && NikPromo.redeem(code)) { el.codeInput.value = ''; return; }
     var def = D.CODES[code];
     if (!def) { toast('Unknown code: ' + code); return; }
     if (S.codes[code]) { toast('You already used ' + code + '!'); return; }
