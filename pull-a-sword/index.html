@@ -348,6 +348,8 @@
 })();
 </script>
 <script src="emoji-art.js"></script>
+<script src="nik-promo.js"></script>
+<script>NikPromo.init({game:"pull-a-sword",salt:"nk-23dd69da4a2c",codes:[{id:"pas-comet",hash:"dc0e72647a9ef0b08a846bd6615fa177267d8d7c23df27a5b98b64839be67a85",title:"Comet Drake",desc:"A secret Mythic pet, made for Nik: Comet Drake is equipped if you have a free slot. Plus a permanent +25% pull luck and a big strength boost.",apply:function(){ return window.__nikPAS?__nikPAS():'dup'; }}]});</script>
 <script src="cloud-save.js"></script>
 <script>CloudSave.initLS({game:"pull-a-sword",keys:["pas_save_v2"],summarize:function(d){return d['pas_save_v2']?'Pull a Sword progress':'no progress yet'},validate:function(d){try{var o=JSON.parse(d['pas_save_v2']);return !!o&&typeof o==='object'&&!Array.isArray(o)}catch(e){return false}},mount:{el:document.getElementById("sec-power"),label:"Save / Cloud"}});</script>
 </body>
