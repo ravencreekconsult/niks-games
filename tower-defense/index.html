@@ -2545,5 +2545,7 @@ try{ requestAnimationFrame(loop); }catch(e){}
 })();
 </script>
 <script src="emoji-art.js"></script>
+<script src="cloud-save.js"></script>
+<script>CloudSave.initLS({game:"tower-defense",keys:["td_best_wave","td_best_endless","td_gold"],summarize:function(d){return 'best scores: wave '+(d.td_best_wave||0)+', endless '+(d.td_best_endless||0)},validate:function(d){var i=/^\d{1,6}$/;if(d.td_best_wave!=null&&!i.test(d.td_best_wave))return false;if(d.td_best_endless!=null&&!i.test(d.td_best_endless))return false;if(d.td_gold!=null&&d.td_gold!=='real'&&d.td_gold!=='test')return false;return true},mount:{el:document.getElementById("mute").parentNode,cls:"#mute",label:"Save"}});</script>
 </body>
 </html>
