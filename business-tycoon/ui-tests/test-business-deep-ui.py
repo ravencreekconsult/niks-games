@@ -317,4 +317,31 @@ try:
   assert next(h for h in after['hustles'] if h['type']==j['type'])['last']['net']==j['net']
  print('PASS funded personal-time fixture shows ordered hustle net/skip and shift displacement320/390/1280; actual shift, pause/resume and settlement match plan')
 
+
+ # Funded career-gate fixture. Qualifications are purchased through the UI, not granted by the picker.
+ js('(async()=>{let e=await import("./engine.mjs"),x={...e.initial(),cash:12000,skill:2,jobLevel:2,careerXP:{specialist:40}};x=e.action(x,"open",{industry:"service"});x=e.action(x,"hire",{id:1});localStorage.setItem("business-sim-v1",JSON.stringify(x));setTimeout(()=>location.reload(),0)})()')
+ time.sleep(.3)
+ for w,h in [(320,568),(390,844),(1280,844)]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800})
+  js('document.querySelector("[data-nav=city]").click();document.querySelector(".life-controls").open=true;Array.from(document.querySelectorAll("summary")).find(x=>x.innerText.includes("job path")).parentElement.open=true;document.querySelector("[data-career-option=specialist]").scrollIntoView({block:"start"})')
+  needs=js('document.querySelector("[data-career-option=specialist] [data-career-needs]").innerText')
+  assert 'Foundation skill 3' in needs and 'Diagnostics & trade practice course' in needs
+  assert js('document.querySelector("[data-career-option=specialist]").innerText.includes("$280/shift")')
+  assert not js('document.documentElement.scrollWidth>innerWidth')
+  shot('career-choice-'+str(w))
+ before=js('localStorage.getItem("business-sim-v1")')
+ js('document.querySelector("[data-career-option=specialist] [data-action=career]").click()')
+ assert js('localStorage.getItem("business-sim-v1")')==before
+ js('Array.from(document.querySelectorAll("summary")).find(x=>x.innerText.includes("specialization")).parentElement.open=true;document.querySelector("[data-action=course]").click();document.querySelector("[data-action=class]").click()')
+ js('document.querySelector(".life-controls").open=true;Array.from(document.querySelectorAll("summary")).find(x=>x.innerText.includes("job path")).parentElement.open=true')
+ assert js('document.querySelector("[data-career-option=specialist] [data-career-needs]").innerText.includes("Requirements met")')
+ before=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ js('document.querySelector("[data-career-option=specialist] [data-action=career]").click()')
+ after=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ assert after['career']=='specialist' and after['cash']==before['cash'] and after['hoursUsed']==before['hoursUsed']
+ js('document.querySelector("[data-action=shift]").click();document.querySelector(".life-controls").open=true')
+ assert js('document.querySelector("[data-career-option=office] [data-career-needs]").innerText.includes("Finish this week")')
+ assert js('JSON.parse(localStorage.getItem("business-sim-v1")).industryExperience.mechanic===1')
+ print('PASS funded career-gate fixture320/390/1280; rejected application leaves save identical, actual class/course unlock, free job switch, shift adds experience and closes change window')
+
 finally:p.terminate();server.shutdown()
