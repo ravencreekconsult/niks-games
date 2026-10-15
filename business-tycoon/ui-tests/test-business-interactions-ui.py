@@ -57,7 +57,8 @@ try:
  print('PASS real pointer tap/hold/release/blur')
  # Keyboard focus remains after action and details remain open during render.
  js('document.querySelector("details summary").click()');js('document.querySelector("[data-action=shift]").focus()')
- cmd('Input.dispatchKeyEvent',{'type':'keyDown','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Enter','code':'Enter','windowsVirtualKeyCode':13})
+ prior_keyboard_shifts=state()['shifts'];cmd('Input.dispatchKeyEvent',{'type':'keyDown','text':'\r','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Enter','code':'Enter','windowsVirtualKeyCode':13})
+ assert state()['shifts']==prior_keyboard_shifts+1,'keyboard activation did not work'
  assert js('document.activeElement.dataset.action')=='shift','keyboard focus lost'
  assert js('document.querySelector("details").open'),'details collapsed on action'
  print('PASS keyboard action retains focus and expanded section')
