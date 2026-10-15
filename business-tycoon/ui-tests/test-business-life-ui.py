@@ -42,12 +42,12 @@ try:
  def sheet(name):js('document.querySelector("[data-life-sheet='+name+']").click()')
  def close():js('document.querySelector("#modal").close()')
  assert state()['cash']==12.5 and state()['life']['employment']=='unemployed'
- shot('clicker-fresh-390')
+ shot('clicker-fresh-390');sheet('jobs');assert js('!!document.querySelector("[aria-disabled=true]")');shot('clicker-job-locks-390');close();sheet('learn');assert js('document.querySelector("[data-action=\\"life:activity\\"][aria-disabled=true]").innerText.includes("more")');shot('clicker-learning-locks-390');close()
  assert not js('document.documentElement.scrollWidth>innerWidth')
  # Earned-only opening: taps, sell, upgrade, learn, recover, casual shifts.
  cmd('Emulation.setTouchEmulationEnabled',{'enabled':True,'maxTouchPoints':5})
  r=js('(()=>{let r=document.querySelector(".tap-earn").getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()')
- cmd('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':r['x'],'y':r['y'],'radiusX':2,'radiusY':2,'force':1,'id':1}]});cmd('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});time.sleep(.15);assert state()['cash']==13
+ cmd('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':r['x'],'y':r['y'],'radiusX':2,'radiusY':2,'force':1,'id':1}]});cmd('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});time.sleep(.15);assert state()['cash']==13;assert js('!!document.querySelector(".tap-float")');shot('clicker-tap-feedback-390')
  sheet('sell');click('life:sell',{'id':'headphones'});assert state()['cash']==31;close()
  sheet('upgrade');click('life:upgrade');assert state()['life']['upgrade']==1;close()
  cmd('Emulation.setFocusEmulationEnabled',{'enabled':True});js('document.querySelector(".tap-earn").focus()');cmd('Input.dispatchKeyEvent',{'type':'keyDown','text':'\r','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});assert state()['cash']==16.75;assert js('document.activeElement.dataset.action')=='life:tap'
