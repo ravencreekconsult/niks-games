@@ -83,6 +83,16 @@ try:
  js('document.querySelector("[data-nav=business]").click()');js('document.querySelector(".upgrade-options").open=true;document.querySelector(".upgrade-options").scrollIntoView({block:"start"})');shot('upgrade-options-390');
  js('document.querySelector("[data-nav=business]").click()');js('document.querySelector("[data-action=reviewSale]").click()');shot('sale-liabilities-390');js('document.querySelector("#cancel").click()')
  js('document.querySelector("[data-nav=deals]").click()');js('document.querySelector("[data-action=reviewAcquire]").click()');shot('acquisition-current-390');js('document.querySelector("#cancel").click()')
+ # Tight-cash shared-order fixture, not an earned portfolio path.
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:20000,skill:3};for(let type of ["shop","mechanic"]){t=e.action(t,"open",{industry:type});let id=t.businesses.at(-1).id;for(let n=0;n<2;n++)t=e.action(t,"hire",{id});t=e.action(t,"manager",{id});t=e.action(t,"autoRestock",{id});t=e.action(t,"restockBudget",{id,level:3000});}t.cash=1000;localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()')
+ js('document.querySelector("[data-nav=report]").click()');js('document.querySelector(".portfolio-cash-order").scrollIntoView({block:"start"})');shot('portfolio-order-before-390')
+ js('Array.from(document.querySelectorAll("[data-action=settlementOrder]")).find(x=>JSON.parse(x.dataset.args).id===2).click()')
+ assert js('JSON.parse(localStorage.getItem("business-sim-v1")).businesses[0].id===2');assert js('document.querySelector("[data-cash-order]").dataset.cashOrder==="2"')
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".portfolio-cash-order").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('portfolio-order-after-'+str(w))
+ js('(async()=>{let e=await import("./engine.mjs");window.orderQuote=e.cashPlan(JSON.parse(localStorage.getItem("business-sim-v1"))).net})()')
+ js('document.querySelector(".portfolio-cash-order [data-action=week]").click()');assert abs(js('JSON.parse(localStorage.getItem("business-sim-v1")).cash-1000-window.orderQuote'))<.01
+ cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
  # Isolated funded UI fixture: service-style choice/preview, not earned startup evidence.
  js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:40000,skill:2};t=e.action(t,"open",{industry:"cafe"});t=e.action(t,"hire",{id:1});t=e.action(t,"hire",{id:1});t=e.action(t,"buyStock",{id:1,count:200});localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()')
  js('document.querySelector("[data-nav=business]").click()');js('document.querySelector(".cafe-style-options").scrollIntoView({block:"start"})');shot('cafe-styles-before-390')
