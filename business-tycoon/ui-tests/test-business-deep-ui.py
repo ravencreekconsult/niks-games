@@ -156,4 +156,12 @@ try:
  assert js('!document.querySelector(".restock-budget-preview .cash-warning")');assert js('JSON.parse(localStorage.getItem("business-sim-v1")).cash===window.budgetCash')
  cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True});js('document.querySelector(".restock-budget-preview").scrollIntoView({block:"center"})');shot('restock-budget-covered-390')
  print('PASS manager budget shortfall preview, higher budget removes limitation without spending now, widths320/390/1280')
+ # Operating feedback is session-only and separate from action/economy state.
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:8000,skill:2};t=e.action(t,"open",{industry:"service"});t=e.action(t,"hire",{id:1});localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+ js('document.querySelector("[data-nav=business]").click()');js('document.querySelector("[data-action=hire]").click()');assert js('document.querySelector(".operation-receipt").innerText.includes("Employee hired")')
+ js('document.querySelector("[data-action=manager]").click()');assert js('document.querySelector(".operation-receipt").innerText.includes("Manager hired")');assert js('document.querySelector(".operation-receipt").innerText.includes("wages still apply")');time.sleep(3.6)
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".operation-receipt").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('manager-receipt-'+str(w))
+ before_dismiss=js('localStorage.getItem("business-sim-v1")');js('document.querySelector("[data-dismiss-operation]").click()');assert js('!document.querySelector(".operation-receipt")');assert js('localStorage.getItem("business-sim-v1")')==before_dismiss
+ print('PASS hire/manager change receipt, honest delegation scope, widths320/390/1280 and state-free dismissal')
 finally:p.terminate();server.shutdown()
