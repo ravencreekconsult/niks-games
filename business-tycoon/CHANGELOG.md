@@ -1,3 +1,9 @@
+# v31 - October 15, 2026
+- Books shows cash after the forecast settlement, unpaid payroll/premises remaining afterward and a planning-only earmarked balance. Negative forecast balances are explicit.
+- Equipment nearing capacity loss has a separate repair quote, never silently included in settlement.
+- 100 earned low-reserve stock/invoice/maintenance scenarios: 55 survive, 45 expected first-negative stops. Failure states stay importable. No balance change or save reset.
+- 176 engine and 34 life checks; full extracted-package runner and pixels required before handoff.
+
 # v30 - October 15, 2026
 - Logistics now chooses invoice account rounds or lower-throughput, higher-fuel express work paid this settlement. Existing receivables keep their due dates.
 - Live phone-first dispatch comparison puts operating profit and company cash side by side in meaning, with capacity/fuel details behind disclosure. Old route-free saves keep previous economics.
