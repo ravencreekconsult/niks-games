@@ -1,3 +1,8 @@
+# v39 - October 15, 2026
+- Risky-cash review, Books and Home shortfall now link directly to existing personal earning controls instead of leaving shifts/hands-on jobs buried in Home. Focuses the shift control, closes review and opens the right disclosure without changing play.
+- Owner earning panel explains that work uses shared weekly hours, keeps firms operating and is not a free bailout. No money, reset, automatic work or economy change.
+- Earned-engine second-firm failure save is loaded into the actual UI for navigation/shift checks, separate from fully all-UI fresh opening proof.
+
 # v38 - October 15, 2026
 -60 earned company-funded second-firm comparisons across six industries, two reserve targets and five seeds assert43survival/17first-negative outcomes. Outside salary ends at first ownership.
 - Startup review separates fit-out paid now, cash afterward, empty staffing/inventory and collection timing. Optional first-crew example includes materials when stocked and clearly is not minimum runway or a bundled purchase.
