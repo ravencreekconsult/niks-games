@@ -25,6 +25,8 @@ node strategy-capacity.mjs > "$BUSINESS_GAME_OUTPUT/strategy-capacity-results.tx
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-capacity-results.txt"
 node strategy-industries.mjs > "$BUSINESS_GAME_OUTPUT/strategy-industries-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-industries-results.txt"
+node strategy-careers.mjs > "$BUSINESS_GAME_OUTPUT/strategy-careers-results.txt"
+grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-careers-results.txt"
 node strategy-life.mjs > "$BUSINESS_GAME_OUTPUT/strategy-life-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-life-results.txt"
 node strategy.mjs > "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
