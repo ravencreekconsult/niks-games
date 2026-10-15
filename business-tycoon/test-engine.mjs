@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions,acquisitionForecast,cashExposure,physicalCapacity,startupQuote,hustlePlan} from './engine.mjs';
+import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions,acquisitionForecast,cashExposure,physicalCapacity,startupQuote,hustlePlan,careerQuote} from './engine.mjs';
 let tests=0;const test=(n,f)=>{f();tests++;console.log('PASS',n)};
 let s=initial();test('apartment starts with $110 and no company',()=>assert.equal(s.cash,110));
 test('cannot open without skill',()=>assert.throws(()=>action(s,'open',{industry:'service'})));
@@ -140,4 +140,8 @@ console.log('LATEST TOTAL: '+tests+' checks passed');
  console.log('LATEST TOTAL: '+tests+' checks passed');
 
  test('hustle planner reconciles 1620 ordered hours-level-pause settlement fixtures',()=>{let types=['websites','resale','tutoring','repair'];for(let seed=0;seed<20;seed++)for(let half=0;half<=80;half++){let order=[...types.slice(seed%4),...types.slice(0,seed%4)],x={...initial(),cash:5000,hoursUsed:half/2,hustles:order.map((type,i)=>({type,level:(seed+i)%4,active:(seed+i)%3!==0}))},before=structuredClone(x),q=hustlePlan(x),y=action(x,'week');assert.equal(y.cash,x.cash+q.net-75);assert.deepEqual(x,before);for(let j of q.jobs)if(j.active)assert.equal(y.hustles.find(h=>h.type===j.type).last.net,j.net);assert.equal(q.remaining,q.free-q.jobs.filter(j=>j.scheduled).reduce((sum,j)=>sum+j.hours,0));}});
+ console.log('LATEST TOTAL: '+tests+' checks passed');
+
+ test('career quotes match application gates across every job and1080 skill-tier-course-shift fixtures',()=>{for(let skill=0;skill<4;skill++)for(let level=0;level<5;level++)for(let course=0;course<3;course++)for(let shifts=0;shifts<3;shifts++)for(let id of ['retail','warehouse','office','specialist','dispatcher','machinist']){let x={...initial(),skill,jobLevel:level,shifts,education:{trades:course,production:course,operations:course,sales:0}},before=structuredClone(x),q=careerQuote(x,id);if(q.eligible){let y=action(x,'career',{id});assert.equal(y.career,id);assert.equal(y.cash,x.cash);assert.equal(y.hoursUsed,x.hoursUsed);}else assert.throws(()=>action(x,'career',{id}));assert.deepEqual(x,before);}});
+ test('career quotes retain job-specific pay and industry-experience distinctions',()=>{let x={...initial(),jobLevel:4,skill:3,careerXP:{retail:160,machinist:40},education:{trades:1,production:1,operations:1,sales:0}};assert.equal(careerQuote(x,'retail').pay,185);assert.equal(careerQuote(x,'machinist').pay,245);assert.equal(careerQuote(x,'specialist').pay,255);assert.deepEqual(careerQuote(x,'retail').industries,[]);assert.deepEqual(careerQuote(x,'dispatcher').industries,['logistics','transport']);assert.throws(()=>careerQuote(x,'unknown'));});
  console.log('LATEST TOTAL: '+tests+' checks passed');
