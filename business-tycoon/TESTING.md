@@ -47,3 +47,8 @@ On a genuinely fresh start, only headphones are listed. Cupboard/closet searches
 
 ## v24 interaction acceptance
 Unavailable personal actions show exact current cash/time/energy/prerequisite reason before clicking; buttons remain focusable and engine-enforced. Tap quote/payout agree at the overwork mood boundary. A real touch or keyboard tap shows the earned cents indicator. Reduced-motion CSS removes movement. All personal actions preflight on clones, never mutate the real save during render.
+
+
+## v25 workshop/earned-strategy acceptance
+Fresh opening through company ownership: the workshop shows actual forecast sales/profit, demand-served bar and bottleneck. Hiring/manager options and weekly cash/bills remain on the world image; insufficient recruiting cash is explicit. Inspect button opens the real company controls. Verify 320/390/1280 without overlapping core controls. Legacy v19 saves preserve their previous home presentation.
+strategy-life.mjs adds 15 earned fresh-start paths (books, paid course, odd jobs x five seeds), each through 24 weeks of ownership and management, without injected capital or manual-job farming. This is engine evidence, not 15 UI runs.
