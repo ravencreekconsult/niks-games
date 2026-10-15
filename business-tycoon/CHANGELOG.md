@@ -136,3 +136,9 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Sustained-work streak drives extra mood drain; meaningful break resets and exact learning previews.
 - Skip-to-next-week rest choice, matched sleep/skip overnight effects and single settlement.
 - 26 apartment checks, 10,000 new randomized life transitions, earned negative recovery, real touch/keyboard earning and stronger legacy keyboard assertions.
+
+
+## v0.23 - room discovery and three authored daily odd jobs
+- Cupboard/closet searches reveal one-off sale items; prior life saves retain listings.
+- Three rotating condition-gated daily odd jobs in the desk, with saved completion and knowledge rewards. They never count as full-time employment.
+- 30 apartment checks plus earned menu proof for discovery, sales and odd-job payout.
