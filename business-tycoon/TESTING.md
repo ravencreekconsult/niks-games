@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-176 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+178 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -108,3 +108,6 @@ The all-UI fresh-life earned path now verifies its first actual hire receipt (0t
 
 ## v35 company wayfinding
 The funded local fixture checks all company section jump destinations at320/390/1280, keyboard focus and reduced-motion emulation, default-closed profit/rival explanations, native expansion, return to controls and byte-identical saved state. It is not an earned progression claim. Existing earned apartment-to-owner and portfolio suites still run.
+
+## v36 physical-capacity comparisons
+strategy-capacity.mjs covers40 genuinely earned80-week mechanic/transport plans. All40 survive the conservative target; neglected equipment visibly loses throughput; extra labor alone does not fix the bay/fleet limit. These are whole-plan outcomes, not minimum-capital or universal-win claims. The funded UI fixtures check the explanatory display at320/390/1280 and its update after an actual equipment action.
