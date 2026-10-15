@@ -1,3 +1,9 @@
+# v30 - October 15, 2026
+- Logistics now chooses invoice account rounds or lower-throughput, higher-fuel express work paid this settlement. Existing receivables keep their due dates.
+- Live phone-first dispatch comparison puts operating profit and company cash side by side in meaning, with capacity/fuel details behind disclosure. Old route-free saves keep previous economics.
+- 172 engine checks, 34 life checks, 50 earned single-industry paths and 10 earned mixed portfolios; full extracted runner/pixels required before handoff.
+- Adopted review principles from design-taste/better-design, no repository code or new dependencies.
+
 # Preview build history
 
 Earlier entries describe the state at that version, not current limits. INTEGRATION.md is the current contract.
