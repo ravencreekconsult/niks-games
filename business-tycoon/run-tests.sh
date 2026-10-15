@@ -13,6 +13,8 @@ tail -1 "$BUSINESS_GAME_OUTPUT/engine-results.txt"
 node fuzz-life.mjs
 node fuzz.mjs
 node soak.mjs
+node strategy-life.mjs > "$BUSINESS_GAME_OUTPUT/strategy-life-results.txt"
+grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-life-results.txt"
 node strategy.mjs > "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
 if [[ ${1:-} == --ui ]]; then
