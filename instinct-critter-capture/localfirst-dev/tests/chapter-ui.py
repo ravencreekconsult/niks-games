@@ -222,5 +222,8 @@ try:
   shot('earned-forest-coats-'+str(w))
   close()
  print('PASS earned nursery -> forest habitat notes; rare-species odds readable with unseen names hidden at320/390/1280')
+ js('CritterDebug.save()')
+ Path(out+'/earned-nursery-runtime.json').write_text(js('localStorage.getItem("havenmoore-localfirst-prototype-runtime-local-regression-1")'))
+ print('CHECKPOINT earned nursery runtime written for continuation tests')
 
 finally:p.terminate();server.shutdown()
