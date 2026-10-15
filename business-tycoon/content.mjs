@@ -28,3 +28,8 @@ export const ECONOMIC_EVENTS=[
  {id:'building',name:'Local building boom',weeks:3,demand:1.2,input:1.03,market:.01,industries:['service','logistics','manufacturing'],desc:'Builders need services, freight and materials. Demand rises, but capacity still matters.'},
  {id:'soft',name:'Households tighten spending',weeks:3,demand:.86,input:1,market:-.012,industries:['cafe','shop','service'],desc:'Discretionary local purchases soften. Recurring contracts and careful cash reserves become more useful.'}
 ];
+export const PRODUCTS={
+ components:{name:'Standard components',price:95,packs:1,hours:1,lead:0,demand:1,minTools:0,minCourse:0,desc:'Simple wholesale work. One input pack per finished unit; ready when scheduled.'},
+ fixtures:{name:'Commercial fixtures',price:170,packs:2,hours:1.5,lead:1,demand:.7,minTools:1,minCourse:1,desc:'Two packs and more machine time per unit. Requires a production course and upgraded line. One full week in work-in-progress.'},
+ precision:{name:'Precision assemblies',price:285,packs:3,hours:2.5,lead:2,demand:.48,minTools:2,minCourse:2,desc:'Three packs and demanding quality. Two production courses, line level two, two full weeks in work-in-progress.'}
+};
