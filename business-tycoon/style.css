@@ -50,3 +50,7 @@ button.unavailable{border-style:dashed;filter:saturate(.55);box-shadow:none}.una
 .cash-exposure details summary{color:#c7d6d0}
 
 @media(max-height:650px){dialog[data-cash-review]{padding:16px;font-size:13px}dialog[data-cash-review] h2{font-size:22px}dialog[data-cash-review] p{margin:10px 0}dialog[data-cash-review] button{font-size:13px;min-height:44px;padding:9px 12px}dialog[data-cash-review] .small{font-size:11px}}
+
+.operation-receipt{border-color:#a3c8ad99}.operation-receipt>p{font-size:13px;line-height:1.5;margin:9px 0}.receipt-comparison{display:grid;gap:10px;margin:12px 0}.receipt-comparison div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #b3c7cb33;font-size:12px}.receipt-comparison span{color:#c1d2ce}.receipt-comparison strong{white-space:nowrap;font-variant-numeric:tabular-nums}.operation-receipt button{min-height:44px;font-size:12px}
+
+.operation-receipt{scroll-margin-top:110px}
