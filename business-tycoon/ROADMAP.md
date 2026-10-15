@@ -1,7 +1,7 @@
-# Business sim checkpoint - October 15, 2026, 12:50 PM Pacific
+# Business sim checkpoint - October 15, 2026, 1:11 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v33, business-tycoon-slice-v33.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
+Latest completed cumulative build: v34, business-tycoon-slice-v34.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
@@ -45,3 +45,9 @@ Next goals: compare alternate earned operating strategies against low-reserve fa
 300 earned comparisons (including unchanged control variants) now assert130 survival and170 first-negative outcomes. Lean staffing with manual procurement can preserve runway; very low manager budgets can starve stock sales; a short express bridge does not make the account switch free of cash risk. UI now explains the actual stock-order shortfall before settlement. No economy rebalance or new save fields.
 
 Next goals: inspect remaining opening-to-owner phone friction, particularly last-action feedback and transition into management; then improve one weak industry's actual operational decision only where tests show a genuine gap. Avoid duplicating controls or inflating depth claims.
+
+
+## Operating handoff checkpoint
+First hire and later team/manager/equipment changes now have a session-only receipt: paid cash, weekly cost and immediate capacity/profit snapshot. Earned UI path checks first hire, funded late fixture separately checks manager. No saved-state changes. Corrected owner cash warning arithmetic in its wording.
+
+Next goals: audit the weakest remaining industry for a meaningful reversible operating choice, using existing earned paths to prevent false variety; then review current phone information density to consolidate rather than endlessly add panels.
