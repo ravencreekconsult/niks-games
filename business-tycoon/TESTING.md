@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-172 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+176 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -85,3 +85,10 @@ strategy-portfolios.mjs adds 10 fully earned fresh-to-four-firm 120-week portfol
 Local funded logistics UI fixture checks switching, existing invoice dates, no setup charge, exact price label, 44px buttons, no horizontal overflow at 320/390/1280, and focus with reduced-motion emulation. This does not claim real Safari or a full accessibility audit. Actual screenshots inspected.
 
 Design reference review adopted the identity-first and hierarchy/a11y review principles described at https://github.com/madebymustafa/design-taste and https://github.com/marvkr/better-design. No third-party code installed. The first dispatch layout hid key cash values below the phone fold; revised to compact profit/cash rows and expandable capacity/fuel terms, then inspected again. Eight supplied repo pages skimmed; Hyperiux/trickle fetches unavailable. No new dependency, shader or paid tool.
+
+## v31 earned stress acceptance
+`strategy-stress.mjs` earns all setup cash through actual career/life actions. Five stock/invoice routes x four reserve targets (250, 1000, 2500, 6000) x five seeds = 100 scenarios, up to 48 owner weeks. Actual salary-step overshoot means targets are not exact opening reserves or minimum-capital recommendations. No outside salary after ownership, injected cash or manual-job farming. Managers purchase stock within 3000 budget; maintenance is purchased when condition falls below 65 and cash permits.
+
+55 scenarios remain nonnegative for 48 weeks; 45 deliberately stop at first negative cash, with valid exact-restore saves and cash-plan reconciliation. At target 250 only express survives all seeds; 1000 also supports table cafes; 2500 also supports the shop; 6000 supports all five tested routes. These are strategy-specific outcomes, not universal thresholds. The suite asserts both successes and failures, so balance changes cannot silently turn failures into unreported wins.
+
+Four new deterministic checks cover current gap, positive cash tied up by accrued bills, no double charging, separate maintenance quote, no mutation, exact settlement and negative-save restoration. UI uses clearly funded local warning fixtures, tested at 320/390/1280. Inspect actual warning and equipment-summary pixels; full accessibility/Safari/cloud acceptance remains out of scope.
