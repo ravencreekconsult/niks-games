@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-178 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+180 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -114,3 +114,6 @@ strategy-capacity.mjs covers40 genuinely earned80-week mechanic/transport plans.
 
 ## v37 portfolio comparison
 Funded UI fixtures compare displayed planned profit/cash against cashPlan, verify two/four firms and320/390/1280 layouts, correct firm selection/focused controls, folded Business comparison, long names and unchanged save bytes for navigation. Earned mixed-portfolio suites remain separate evidence.
+
+## v38 earned expansion and opening quote
+60 company-funded expansions:43survive,17asserted first-negative stops, exact settlement cash and restore. All six second-industry choices start after an earned service firm; no salary after first ownership. Target reserves are not exact minimums. Quote tests cover all industry fit-outs and stock examples without mutation. UI checks three industries,320x568/390/1280, expanded explanations, state-free Back and only actual fit-out charged.
