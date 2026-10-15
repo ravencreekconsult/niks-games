@@ -288,4 +288,33 @@ try:
  assert after_recovery['cash']>before_recovery['cash'];assert after_recovery['week']==before_recovery['week'];assert after_recovery['businesses']==before_recovery['businesses']
  print('PASS earned-engine negative second-firm save reaches existing owner shifts via state-free earning link, widths320/390/1280, then actual shift earns without changing firms or week')
 
+
+ # Isolated funded time-allocation fixture, distinct from the earned failure above.
+ js('(async()=>{let e=await import("./engine.mjs");let x={...e.initial(),cash:12000,skill:2};x=e.action(x,"open",{industry:"service"});for(let id of ["repair","websites","resale"])x=e.action(x,"startHustle",{id});x=e.action(x,"hire",{id:1});x=e.action(x,"hire",{id:1});x.hoursUsed=30;localStorage.setItem("business-sim-v1",JSON.stringify(x));setTimeout(()=>location.reload(),0)})()')
+ time.sleep(.3)
+ for w,h in [(320,568),(390,844),(1280,844)]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800})
+  js('document.querySelector("[data-nav=city]").click();document.querySelector(".life-controls").open=true;document.querySelector("[data-personal-time]").scrollIntoView({block:"center"})')
+  assert js('document.querySelector("[data-personal-time]").innerText.includes("down from $190")')
+  assert not js('document.documentElement.scrollWidth>innerWidth')
+  shot('personal-time-'+str(w))
+  js('Array.from(document.querySelectorAll("summary")).find(x=>x.innerText.includes("Side hustles")).parentElement.open=true;document.querySelector("[data-hustle-plan]").scrollIntoView({block:"start"})')
+  assert js('Array.from(document.querySelectorAll("[data-hustle]")).map(x=>x.dataset.hustle).join(",")==="repair,websites,resale,tutoring"')
+  assert js('document.querySelector("[data-hustle=resale] [data-hustle-status]").innerText.includes("Skipped")')
+  shot('hustle-plan-'+str(w))
+ js('document.querySelector("[data-action=shift]").click()')
+ js('document.querySelector(".life-controls").open=true;Array.from(document.querySelectorAll("summary")).find(x=>x.innerText.includes("Side hustles")).parentElement.open=true')
+ assert js('document.querySelector("[data-hustle=repair] [data-hustle-status]").innerText.includes("only 4h")')
+ assert js('document.querySelector("[data-hustle=websites] [data-hustle-status]").innerText.includes("$65")')
+ js('document.querySelector("[data-hustle=websites] [data-action=pauseHustle]").click()')
+ js('document.querySelector(".life-controls").open=true')
+ assert js('document.querySelector("[data-hustle-plan]").innerText.includes("$0 scheduled")')
+ js('document.querySelector("[data-hustle=websites] [data-action=pauseHustle]").click()')
+ planned=js('(async()=>{let e=await import("./engine.mjs");return e.hustlePlan(JSON.parse(localStorage.getItem("business-sim-v1")))})()')
+ js('document.querySelector("[data-action=week]").click()')
+ after=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ for j in planned['jobs']:
+  assert next(h for h in after['hustles'] if h['type']==j['type'])['last']['net']==j['net']
+ print('PASS funded personal-time fixture shows ordered hustle net/skip and shift displacement320/390/1280; actual shift, pause/resume and settlement match plan')
+
 finally:p.terminate();server.shutdown()
