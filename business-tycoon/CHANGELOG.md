@@ -142,3 +142,10 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Cupboard/closet searches reveal one-off sale items; prior life saves retain listings.
 - Three rotating condition-gated daily odd jobs in the desk, with saved completion and knowledge rewards. They never count as full-time employment.
 - 30 apartment checks plus earned menu proof for discovery, sales and odd-job payout.
+
+
+## v0.24 - action availability and tap feedback
+- Exact lock reasons on personal actions and career shift; engine preflight runs only on a clone.
+- Rising earned-cash tap feedback, reduced-motion support and weekly exhaustion guidance.
+- Tap quote matches payout across the overwork low-mood threshold.
+- 31 deterministic apartment checks plus full prior regression and real-touch visual proof.
