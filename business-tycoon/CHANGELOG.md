@@ -1,3 +1,9 @@
+# v38 - October 15, 2026
+-60 earned company-funded second-firm comparisons across six industries, two reserve targets and five seeds assert43survival/17first-negative outcomes. Outside salary ends at first ownership.
+- Startup review separates fit-out paid now, cash afterward, empty staffing/inventory and collection timing. Optional first-crew example includes materials when stocked and clearly is not minimum runway or a bundled purchase.
+- Compact320x568 review keeps Back visible and focused. Only fit-out is charged when opening; cancellation preserves save bytes. No economy/save changes.
+-180 deterministic engine checks plus34life and all prior cumulative suites.
+
 # v37 - October 15, 2026
 - Multiple-company Home replaces the single-company next-decision card with per-firm planned profit, cash change, accrued bills, stock purchases and collection timing in actual shared-cash order.
 - Manage jumps choose the right firm and focus its controls. Business retains its fast company switcher; comparison is folded there to avoid burying operations.
