@@ -156,3 +156,7 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Short recruiting cash is visible before hire; first-company review/reserve remains intact.
 - 15 additional earned fresh-life strategies across three routes/five seeds; 24 owner weeks and management, no injected capital or manual-job farming.
 - Actual earned workshop/inspection and phone/desktop checks in the fresh UI suite; prior regression preserved.
+
+
+## v26 - career consequences and visible pay progression
+Career Jobs now shows the next shift's exact pay, time and condition costs (including overwork mood), projected remaining stats, low-condition warning and quick food/rest routes. Shift outcome reports actual earnings/stats or an earned pay rise. Promotion progress and first-company cash target use bars and actual state; the target is guidance, not a debit. Pay rises still apply only from the following shift, and careers keep separate XP. No economy/save changes; legacy saves keep their condition-free rules. Shared careerShiftQuote backs the preview and shift condition charge. Added three engine assertions for exact outcome/promotion/legacy behavior (34 apartment checks), and fresh-browser proof exercises the preview, real shift, updated stats and modal rest route at phone widths.
