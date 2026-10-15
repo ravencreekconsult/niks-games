@@ -1,0 +1,9 @@
+# Tactical-readout test contract
+
+Run ./run-tests.sh from the extracted package. Requires Node, Python3 websocket-client and google-chrome-stable. Tests use a private local HTTP origin and isolated browser profile. No sign-in, network backend mutation, cloud journey migration or real account action.
+
+- boundaries.mjs:63 unchanged runtime hashes against the recovered live-v19 manifest; exact unchanged source for validation/migration/save/load, identity, stats, growth, nursery, capture and single/double turn sequencing.
+- damage-regression.mjs:loads actual content and actual helper/resolver functions in a VM.6,000 seeded combinations compare old-v19/current performMove results and RNG consumption.4,872 powered snapshots compare sampled non-critical rolls to the displayed endpoints and assert no state mutation. Includes levels/maturity, IVs/EVs/natures/heritage, stages/status, items, ability species, both difficulty directions, weather and terrain. This is synthetic coverage, not a complete strategy proof.
+- tactical-ui.py:local-only debug harness replaces dashboard boot and does not load room/sync modules. Real fresh name/hero/starter UI and reload, then seeded on-foot wild battle/catch through actual pointer and action controls without cash/stat/position grants. Captured save reload is byte-identical. Separate level18 fixtures verify move and double-target previews, read-only notes and actual hit at320/390/1280. Saved PNGs go to RIVENMOORE_OUTPUT or /tmp/rivenmoore-proof.
+
+No surviving upstream automated suite existed in the received tree. This new suite does not claim full story, Safari, cloud, multiplayer, trade, Drift or service-worker offline acceptance. The deployed stage/live smoke, free-plan verification, backup and unrelated-game regressions remain the deployment lane's job.
