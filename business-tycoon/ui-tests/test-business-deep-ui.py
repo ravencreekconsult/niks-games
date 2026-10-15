@@ -240,4 +240,26 @@ try:
  assert js('document.body.innerText.includes("Forecast cash shortfall:")')
  print('PASS four-firm comparison wraps long industry names on320 and home cash warning labels actual forecast shortfall')
 
+ # Opening review separates the fit-out purchase from illustrative operating cash.
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:10000,skill:2};localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+ js('document.querySelector("[data-nav=deals]").click()')
+ startup_save=js('localStorage.getItem("business-sim-v1")')
+ for industry in ['manufacturing','service','transport']:
+  js('Array.from(document.querySelectorAll("[data-action=reviewOpen]")).find(b=>JSON.parse(b.dataset.args).industry==="'+industry+'").click()')
+  assert js('document.querySelector("#modal").innerText.includes("Cash after fit-out")')
+  for w,h in [(320,568),(390,844),(1280,844)]:
+   cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800})
+   assert js('document.querySelector("#modal").getBoundingClientRect().height<=innerHeight')
+   assert not js('document.documentElement.scrollWidth>innerWidth')
+   assert js('document.querySelector("#cancel").getBoundingClientRect().bottom<=document.querySelector("#modal").getBoundingClientRect().bottom');shot('startup-'+industry+'-'+str(w))
+  js('document.querySelector(".startup-review details summary").click()');assert js('document.querySelector(".startup-review details").open')
+  assert js('document.querySelector("#modal").innerText.includes("minimum runway")')
+  js('document.querySelector("#cancel").click()');assert js('localStorage.getItem("business-sim-v1")')==startup_save
+ js('Array.from(document.querySelectorAll("[data-action=reviewOpen]")).find(b=>JSON.parse(b.dataset.args).industry==="manufacturing").click()')
+ js('(async()=>{let e=await import("./engine.mjs");window.startupExpected=e.startupQuote(JSON.parse(localStorage.getItem("business-sim-v1")),"manufacturing")})()')
+ js('document.querySelector("#confirm button").click()')
+ assert js('JSON.parse(localStorage.getItem("business-sim-v1")).cash===window.startupExpected.afterFitout')
+ assert js('JSON.parse(localStorage.getItem("business-sim-v1")).businesses[0].staff===0')
+ print('PASS startup fitout/operating-budget separation, three industries320/390/1280, state-free cancellation and only fitout charged on confirmation')
+
 finally:p.terminate();server.shutdown()
