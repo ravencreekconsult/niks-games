@@ -64,7 +64,40 @@ try:
   assert not js('document.documentElement.scrollWidth>innerWidth'),w
   shot('clicker-fulltime-'+str(w))
  cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
- print('PASS earned fresh clicker opening, sale, upgrade, learning, casual shifts, full-time gate, persistence and 320/390/1280 layouts')
+ # Continue entirely through the UI into the first owned company and crew.
+ sheet('food');click('life:pantry');close()
+ h=state()['hoursUsed'];daily=state()['life']['hours'];click('shift')
+ assert state()['hoursUsed']==h+8 and state()['life']['hours']==round(daily-8,2)
+ sheet('rest');click('life:sleep');close();click('shift')
+ click('week');assert state()['week']==2 and state()['life']['day']==8
+ js('document.querySelector("[data-nav=city]").click()')
+ click('shift');sheet('rest');click('life:sleep');close();click('shift')
+ assert state()['cash']>=630
+ js('document.querySelector("[data-nav=business]").click()')
+ click('reviewOpen');shot('clicker-first-company-review-390');js('document.querySelector("#confirm button").click()')
+ assert state()['life']['phase']=='owner' and len(state()['businesses'])==1
+ click('hire');assert state()['businesses'][0]['staff']==1 and state()['cash']>=0
+ js('document.querySelector("[data-nav=city]").click()');shot('clicker-earned-owner-390')
+ assert not js('!!document.querySelector("[data-action=\\"life:tap\\"]")')
+ # Persisted life history survives the genre change and a real exported file restore.
+ os.makedirs(out+'/life-exports',exist_ok=True)
+ if os.path.exists(out+'/life-exports/business-tycoon-save.json'):os.remove(out+'/life-exports/business-tycoon-save.json')
+ cmd('Browser.setDownloadBehavior',{'behavior':'allow','downloadPath':out+'/life-exports'})
+ js('document.querySelector("#savebtn").click()');js('Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Export save file").click()')
+ for _ in range(30):
+  if os.path.exists(out+'/life-exports/business-tycoon-save.json'):break
+  time.sleep(.1)
+ exported=json.load(open(out+'/life-exports/business-tycoon-save.json'));saved=json.loads(exported['data']['business-sim-v1']);assert saved['life']['sold']==['headphones']
+ click('week');assert state()['week']==saved['week']+1
+ js('(()=>{let old=HTMLInputElement.prototype.click;HTMLInputElement.prototype.click=function(){if(this.type==="file"){this.id="test-import-input";document.body.append(this);}else old.call(this);};})()')
+ js('document.querySelector("#savebtn").click()');js('Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Import save file").click()')
+ rootnode=cmd('DOM.getDocument')['root']['nodeId'];node=cmd('DOM.querySelector',{'nodeId':rootnode,'selector':'#test-import-input'})['nodeId'];cmd('DOM.setFileInputFiles',{'nodeId':node,'files':[out+'/life-exports/business-tycoon-save.json']})
+ for _ in range(30):
+  if js('!!Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Import to this device")'):break
+  time.sleep(.1)
+ shot('clicker-owner-import-review-390');js('Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Import to this device").click()');time.sleep(.7)
+ assert state()==saved
+ print('PASS earned fresh clicker -> casual shifts -> full-time -> company -> crew; daily/weekly hours, tap retirement, actual exported-file restore and 320/390/1280 layouts')
 finally:
  try:ws.close()
  except:pass
