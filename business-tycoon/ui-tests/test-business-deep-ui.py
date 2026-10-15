@@ -195,4 +195,16 @@ try:
  assert js('localStorage.getItem("business-sim-v1")')==company_nav_save
  print('PASS company section jumps focus visible destinations at320/390/1280, reduced motion, collapsed profit/rival details and byte-identical saved state')
 
+ # Funded fixtures isolate physical bottleneck display from progression proof.
+ for industry in ['mechanic','transport']:
+  js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:20000,skill:2};t=e.action(t,"open",{industry:"'+industry+'"});for(let n=0;n<2;n++)t=e.action(t,"hire",{id:1});localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+  js('document.querySelector("[data-nav=business]").click()')
+  assert js('document.querySelector(".physical-capacity").innerText.includes("Another employee alone cannot remove this limit")')
+  for w in [320,390,1280]:
+   cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800})
+   js('document.querySelector(".physical-capacity").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot(industry+'-capacity-'+str(w))
+  js('document.querySelector("[data-action=tool]").click()')
+  assert js('!document.querySelector(".physical-capacity").innerText.includes("Another employee alone cannot remove this limit")')
+ print('PASS mechanic/transport physical-versus-paid-labor display, widths320/390/1280 and real equipment action updates the limit')
+
 finally:p.terminate();server.shutdown()
