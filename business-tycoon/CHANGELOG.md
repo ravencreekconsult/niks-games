@@ -1,3 +1,8 @@
+# v32 - October 15, 2026
+- Fast week buttons now surface a negative cash forecast before settlement, with inspect/back/run-anyway choices. No forced bailout, auto-rebalance or extra prompt for nonnegative plans.
+- Compact cash review keeps all choices on screen at 320x568. Back gets initial focus. Cancel/inspect preserve save bytes; explicit confirmation settles once.
+- No economy/save changes. Full extracted runner and actual pixels required before delivery.
+
 # v31 - October 15, 2026
 - Books shows cash after the forecast settlement, unpaid payroll/premises remaining afterward and a planning-only earmarked balance. Negative forecast balances are explicit.
 - Equipment nearing capacity loss has a separate repair quote, never silently included in settlement.
