@@ -1,9 +1,9 @@
-# Merge and deployment boundary
+# Deploy species rarity / field hunting
 
-This is the complete recovered localfirst/ runtime plus tests and notes. Deploy ONLY the localfirst/ contents to the existing local-first/localfirst routes through the usual canonical -> both deploy trees -> stage smoke -> Free$0 verify -> live -> regressions route. Parent coordinates deploy and backup. Do not replace the worker/backend, dashboard or other games with this archive root.
+Deploy ONLY localfirst/contents, not this archive root/tests/docs and not any backend or dashboard. Runtime differs from tactical-v20 only in js/game.js,js/expansion-data.js,sw.js. Cache is havenmoore-localfirst-cartoon-v21. Other62runtime files unchanged.
 
-Changed runtime files: localfirst/js/game.js and localfirst/sw.js only. SW cache: havenmoore-localfirst-cartoon-v20. No new runtime files. RUNTIME-SHA256SUMS verifies this release from inside localfirst/. SHA256SUMS is deliberately the original received-v19 manifest, retained for boundaries.mjs baseline checks.
+Future wild species probabilities deliberately change outside beginner Reedway. Common/Uncommon/Rare multipliers are1/0.2/0.05on existing habitat weights before existing time/weather filtering. Continuous roll corrects integer-percent quantization. Rare coats/genes/stats/catch code remain unchanged; new notes explain existing rules. No saved fields, roster additions, auth/sync/ownership or money changes.
 
-Preserve auth bindings, secrets, sessions, save slots, trading/drift ownership and all existing families. Never clear/reset saves. Do not touch critter-capture/niks-realtime projects or instinct-apps-dashboard. No spend authorized. INTEGRATION-NOTES.md records the original source provenance and constraints; these are unchanged.
+Use RUNTIME-SHA256SUMS from inside localfirst/for all65runtime files. SHA256SUMS is the received-v19 baseline; BASELINE-V20-SHA256SUMS is the last tactical build. Neither old manifest is the current runtime manifest.
 
-Rollback: restore the two original files from the transferred v19 complete source, preserving all player state. No migration needed.
+Run ./run-tests.sh from the extracted archive before relay. Stage -> smoke -> Free-plan$0 verification -> live -> unrelated-game regression remains the parent/deploy lane route. No deploy occurred in this build workspace. Do not publish internal ops logs. Tests contain local-only harnesses, not real accounts or cloud mutations.
