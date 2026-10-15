@@ -102,3 +102,9 @@ New touch-emulated Chrome regression caught a delayed synthesized click adding w
 ## v0.13 repeatable acceptance and input safety
 
 148 deterministic checks now include bad quantity/NaN/infinite/string/fractional/action-enum/name inputs, all rejected without mutating original state. run-tests.sh runs syntax, engine, fuzz and soak; --ui adds the five sequential Chrome suites. UI scripts now accept BUSINESS_GAME_ROOT and BUSINESS_GAME_OUTPUT, so extracted package tests are not tied to the author's source directory. TESTING.md separates evidence, fixture limits, dependencies, hands-on morning smoke and unverified live acceptance. Full runner passed. Runtime visual layout unchanged; no new visual claim beyond prior inspected screens. No live auth/deploy verification here.
+
+## v0.14 strategic cash history and conservative paths
+
+Books now retains 24 real weekly settlements, with a cash trend and last eight weeks' end cash, settlement net and company operating profit. It distinguishes week-end balance from settlement-only net and paper value from cash. Earned week-21 pixels inspected at 390. Old saves start collecting history going forward, not fabricated history.
+
+strategy.mjs proves 15 conservative 32-week paths (employee, concurrent side hustles, first service company across five seeds), starting at $110, without manual-job farming or injected capital. None goes insolvent. It is evidence of viable alternatives, not calibrated difficulty or proof that all choices work. Cash at 32 weeks: employee $14,290, side hustles $29,495, first company ~$29,073-$31,944. Side hustles and wages are currently deterministic; company performance responds to seeded events/rivals. Full test runner now includes strategy checks and passes 150 deterministic, fuzz, soaks and five UI suites. Live account/deploy remains unverified.
