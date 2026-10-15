@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions} from './engine.mjs';
+import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions,acquisitionForecast} from './engine.mjs';
 let tests=0;const test=(n,f)=>{f();tests++;console.log('PASS',n)};
 let s=initial();test('apartment starts with $110 and no company',()=>assert.equal(s.cash,110));
 test('cannot open without skill',()=>assert.throws(()=>action(s,'open',{industry:'service'})));
@@ -92,4 +92,7 @@ let trends=structuredClone(fresh);for(let n=0;n<30;n++)trends=action(trends,'wee
 console.log('LATEST TOTAL: '+tests+' checks passed');
 
 let compare=structuredClone(fresh),compareBefore=JSON.stringify(compare),options=upgradeOptions(compare,compare.businesses[0]);test('upgrade comparison never changes company or cash',()=>assert.equal(JSON.stringify(compare),compareBefore));test('hire comparison matches actual post-hire forecast',()=>{let o=options.find(x=>x.name==='Hire one employee'),after=action(compare,'hire',{id:1});assert.equal(o.capacity,forecast(after,after.businesses[0]).capacity);assert.ok(Math.abs(o.profitChange-(forecast(after,after.businesses[0]).profit-forecast(compare,compare.businesses[0]).profit))<.001)});let constrained=structuredClone(factory);constrained.businesses[0].staff=2;constrained.businesses[0].inventory=100;test('factory comparison exposes no gain when machine is the limit',()=>{let o=upgradeOptions(constrained,constrained.businesses[0]).find(x=>x.name==='Hire one employee');assert.equal(o.capacityChange,0);assert.ok(o.profitChange<0)});
+console.log('LATEST TOTAL: '+tests+' checks passed');
+
+let acquiring={...initial(),cash:10000,skill:2};test('acquisition review matches actual acquired company current forecast',()=>{let preview=acquisitionForecast(acquiring),bought=action(acquiring,'acquire'),actual=forecast(bought,bought.businesses[0]);for(let k of ['capacity','demand','units','profit','price','wages','overhead'])assert.equal(preview[k],actual[k]);});
 console.log('LATEST TOTAL: '+tests+' checks passed');
