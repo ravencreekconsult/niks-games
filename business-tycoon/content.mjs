@@ -33,3 +33,9 @@ export const PRODUCTS={
  fixtures:{name:'Commercial fixtures',price:170,packs:2,hours:1.5,lead:1,demand:.7,minTools:1,minCourse:1,desc:'Two packs and more machine time per unit. Requires a production course and upgraded line. One full week in work-in-progress.'},
  precision:{name:'Precision assemblies',price:285,packs:3,hours:2.5,lead:2,demand:.48,minTools:2,minCourse:2,desc:'Three packs and demanding quality. Two production courses, line level two, two full weeks in work-in-progress.'}
 };
+
+export const DILIGENCE={
+ loop:{finding:'The recurring revenue is real, but retention is weaker than the pitch suggests.',confirmed:'Thirty teams are in the system; the $12,000 annualized revenue includes trial conversions that have not renewed yet.',risk:'8% monthly customer churn and $900 monthly burn. This round buys time to improve retention, not a profitable operation.',terms:'Books review unlocks a counteroffer of 12% for $2,000. Future funding still matters.'},
+ crate:{finding:'Paid pilots exist. Fleet and crate cash needs come before monthly collections.',confirmed:'Two producers have paid pilots; four more are testing. No full-year customer commitment was found.',risk:'Crate loss, cleaning and return-route costs can rise before producers settle invoices. Route density is not proven.',terms:'Books review unlocks a counteroffer of 18% for $4,500. The next area needs another funding round.'},
+ relay:{finding:'A working pilot has customers, but integrations and dispatcher adoption are unfinished.',confirmed:'Four fleets pay $180/month; hosting and support are $45/fleet before development and founder pay.',risk:'Two fleets still run exception handling on spreadsheets. Development costs are missing from the headline per-fleet margin.',terms:'Books review unlocks a counteroffer of 15% for $7,000. Reliability work needs more capital.'}
+};
