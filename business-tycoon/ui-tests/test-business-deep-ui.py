@@ -133,7 +133,15 @@ try:
   cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".cash-exposure").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('cash-exposure-shortfall-'+str(w))
  js('document.querySelector("[data-focus-cash]").click()');time.sleep(.2);assert js('document.querySelector(".portfolio-cash-order").getBoundingClientRect().top<200')
  js('(async()=>{let e=await import("./engine.mjs");window.exposureQuote=e.cashExposure(JSON.parse(localStorage.getItem("business-sim-v1")))})()')
- js('document.querySelector(".portfolio-cash-order [data-action=week]").click()');assert abs(js('JSON.parse(localStorage.getItem("business-sim-v1")).cash-window.exposureQuote.balance'))<.01
+ before_guard=js('localStorage.getItem("business-sim-v1")')
+ js('document.querySelector(".portfolio-cash-order [data-action=week]").click()');assert js('document.querySelector("#modal").open');assert js('document.activeElement.id==="cancel"');assert js('localStorage.getItem("business-sim-v1")')==before_guard
+ for w,h in [(320,568),(390,844),(1280,844)]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800});shot('cash-review-'+str(w));assert js('document.querySelector("#cancel").getBoundingClientRect().bottom<=document.querySelector("#modal").getBoundingClientRect().bottom');assert js('document.querySelector("#modal").getBoundingClientRect().height<=innerHeight');assert not js('document.documentElement.scrollWidth>innerWidth')
+ js('document.querySelector("#cancel").click()');assert js('localStorage.getItem("business-sim-v1")')==before_guard
+ js('document.querySelector(".portfolio-cash-order [data-action=week]").click()');js('document.querySelector("#modal [data-nav=report]").click()');assert not js('document.querySelector("#modal").open');assert js('localStorage.getItem("business-sim-v1")')==before_guard
+ js('document.querySelector(".portfolio-cash-order [data-action=week]").click()');js('document.querySelector("#confirm button").click()');assert abs(js('JSON.parse(localStorage.getItem("business-sim-v1")).cash-window.exposureQuote.balance'))<.01
+ js('document.querySelector("[data-action=week]").click()');assert js('document.querySelector("#modal").open');js('document.querySelector("#modal").close()')
+ print('PASS cash warning blocks fast settlement pending explicit choice, cancellation/inspection preserve bytes and confirmation settles exactly once')
  cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
  js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:20000,skill:2};t=e.action(t,"open",{industry:"manufacturing"});t=e.action(t,"hire",{id:1});t=e.action(t,"size",{id:1});t.businesses[0].condition=50;t.cash=500;localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
  js('document.querySelector("[data-nav=report]").click()');js('document.querySelector(".cash-exposure").scrollIntoView({block:"start"})');assert js('document.querySelector(".cash-exposure").innerText.includes("Some cash is already spoken for")');js('document.querySelector(".cash-exposure details").open=true');shot('cash-exposure-held-390')
