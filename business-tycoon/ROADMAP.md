@@ -1,7 +1,7 @@
-# Business sim checkpoint - October 15, 2026, 1:53 PM Pacific
+# Business sim checkpoint - October 15, 2026, 2:15 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v36, business-tycoon-slice-v36.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
+Latest completed cumulative build: v37, business-tycoon-slice-v37.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
@@ -63,3 +63,9 @@ Next goals: test maintenance/physical-capacity strategies in mechanic/transport 
 Forty earned 80-week mechanic/transport whole-plan comparisons complete: five seeds for maintain, neglect, extra employee and extra equipment. All survive with conservative salary-earned capital. Maintained plans beat neglect; an extra worker without a bay/fleet increase earns less; equipment unlocks existing paid labor. This is evidence of the existing choice, not a need for another mode. Unspent setup cash is part of each whole plan, not a matched post-setup bank comparison.
 
 The operating screen now shows labor slots, physical slots and condition-adjusted throughput in the existing capacity area. Snapshot is not promised sales. Next goals: company-to-portfolio comparison at a glance without hiding cash/stock risk, and investigate whether earned medium-reserve play makes choosing a second firm clear. Preserve all previous limits.
+
+
+## Portfolio comparison checkpoint
+Home's multi-firm next-decision card now compares every firm's planned operating profit with cash change and still-accrued bills, following actual cash order. Stock purchase and invoice timing stay with each firm. Manage links select the firm and focus its controls. Comparison is folded in Business, with the existing quick switcher retained. Uses the cash planner, not naive current-stock profit. Corrected Home's shortfall label to match actual forecast cash gap.
+
+Next: earned medium-reserve second-firm choice and whether startup fit-out versus operating runway is clear before expanding; then review portfolio/city priorities without another wall of panels. No new economy or save fields.
