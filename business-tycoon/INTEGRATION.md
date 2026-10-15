@@ -92,3 +92,9 @@ Company openings/branches/acquisition now take the first free location label rat
 Fourth UI script continues the actual earned $110 start through week 31, founder operating support, follow-on, milestone, buyer review and cash exit. It retains closed outcome/proceeds after reload. The same actual UI save exports as a downloaded JSON file; the game advances a week, selects that file in the real import input, reviews both states, backs up the device, imports, reloads and exactly restores company/cash/week/closed-history values. No state/cash injection in this path. This proves local export/import, not live authenticated cloud sync.
 
 Save dialogs now have a labeled dialog role, focus-on-open, tab trap, Escape for cancel/close and prior-focus restoration. Palette and touch targets match game decision UI; import and exit-history pixels inspected at 390. Blob object URLs release after download. 127 engine checks, 10,000 fuzz, 550-week/200-week soak, earned/deep/interactions/lifecycle UI suites pass.
+
+## v0.12 actual mobile touch and import consistency
+
+New touch-emulated Chrome regression caught a delayed synthesized click adding work after a long touch release, despite mouse tests passing. Hold release suppression now covers the delayed touch click without blocking the next intentional pointer or keyboard action. Actual touch tap/hold/release/cancel passes along with mouse, keyboard, Save trap and recovery checks. This is Chrome touch emulation, not an actual iPhone/Safari claim.
+
+135 deterministic checks, 10,000 fuzz transitions, long-session soaks and lifecycle/deep/touch UI pass. Import validation now covers all cross-asset IDs, prototype-key property/founder/hustle types, integer course levels, typed automation/startup flags/support and loan relationships. Collectibles are capped at 50 holdings so legitimate play cannot overflow its own report/import bounds. No live auth/deploy verification here.
