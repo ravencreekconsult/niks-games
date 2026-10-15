@@ -120,3 +120,6 @@ Funded UI fixtures compare displayed planned profit/cash against cashPlan, verif
 
 ## v39 recovery access
 strategy-expansion.mjs writes one genuinely earned service-to-factory negative-cash save to BUSINESS_GAME_OUTPUT for browser regression. UI loads that exact save, checks three widths and no-save-change recovery navigation, then one real shift increases cash without advancing the week or changing companies. It does not claim an all-UI earned second firm or guaranteed recovery. Existing unpaid/stock/invoice risks remain.
+
+## v40 weekly personal-time preview
+hustlePlan is pure. Tests compare its ordered net/hours and per-hustle result to actual settlement for1620 time/order/level/pause fixtures, explicit skipped-larger/later-smaller, paused upgrades, legacy website normalization and shift displacement. It does not make a solvency or daily-condition eligibility claim. Deep UI separately uses a funded operational fixture: repair/websites/resale started in that order,10free hours, shift leaves4 and displaces repair; actual pause/resume and settlement match. Screenshots at320/390/1280. No mutation merely opening preview.
