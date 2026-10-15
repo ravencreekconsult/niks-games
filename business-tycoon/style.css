@@ -61,3 +61,7 @@ button.unavailable{border-style:dashed;filter:saturate(.55);box-shadow:none}.una
 
 .physical-capacity{scroll-margin-top:110px}.physical-capacity h3{font-size:15px}.physical-capacity .split{gap:16px;font-size:13px}.physical-capacity strong{flex-shrink:0}
 .upgrade-options>summary{color:#d7e4dd;cursor:pointer;min-height:44px;padding:12px 0}
+
+.company-overview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.company-overview-card{margin:0;min-width:0}.company-overview-card h3{overflow-wrap:anywhere}.company-overview-card .split{gap:16px;font-size:13px}.company-overview-card .num{flex-shrink:0}.company-overview-card button{width:100%;overflow-wrap:anywhere}.company-overview{scroll-margin-top:110px}.pillbar[hidden]{display:none}@media(max-width:700px){.company-overview-grid{grid-template-columns:1fr}}
+
+.company-overview>summary{cursor:pointer;min-height:44px;color:#d7e4dd;padding:12px 0;font-weight:650}.company-overview[open]>summary{margin-bottom:12px}
