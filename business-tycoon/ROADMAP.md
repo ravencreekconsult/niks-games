@@ -1,7 +1,7 @@
-# Business sim checkpoint - October 15, 2026, 12:09 PM Pacific
+# Business sim checkpoint - October 15, 2026, 12:30 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v31, business-tycoon-slice-v31.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
+Latest completed cumulative build: v32, business-tycoon-slice-v32.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
@@ -33,3 +33,9 @@ Next goals: (1) earned lower-reserve/maintenance/stock stress cases with explici
 100 fully earned stock/invoice/maintenance stress paths now assert 55 survival outcomes and 45 first-negative stops. Capital targets are stepped through salary, not injected or exact minimums. Books now makes forecast cash, still-accrued commitments and separate repair costs explicit, without double charging or a solvency promise. Engine/economy and existing saves unchanged.
 
 Next two goals: (1) inspect the opening-to-owner handoff and highest-friction phone actions, especially making cash warnings discoverable before fast settlement; (2) test distinct alternate operating strategies rather than treating all failures as balance bugs. Maintain real tradeoffs and keep negative outcomes honest.
+
+
+## Fast settlement checkpoint
+Negative-cash warnings are now encountered from any fast week button, not only after opening Books. Explicit inspect/back/run-anyway review, with no extra step for normal forecasts or pre-company play. No gameplay state changes until the choice. Compact phone review visually checked and tested.
+
+Next goals: compare alternate earned operating strategies against low-reserve failures (restocking budgets, staffing and express/account timing), then inspect remaining opening-to-owner phone friction. Do not flatten risk or add gratuitous prompts.
