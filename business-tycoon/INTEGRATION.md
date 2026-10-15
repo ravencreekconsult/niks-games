@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.33. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.34. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -110,3 +110,6 @@ UI-only review when a company portfolio's next cash plan forecasts a negative ba
 
 ## v33 operating comparison
 Adds `strategy-alternates.mjs` to source/acceptance only. Runtime change is explanatory manager-restock preview: ordered/target/held units and a limitation warning. Uses current standalone restock quote, clearly labeled as affected by prior firms. No economy, action, schema or save changes.
+
+## v34 operating action feedback
+Session-only receipt for hire/release/manager/equipment/training/maintenance: paid now, current crew+manager weekly cost, capacity and forecast profit before/after. It is explicitly the snapshot at that action, not a live forecast or payback promise. Dismissal changes no saved state. No economy/schema change. Owner-HUD negative cash text now shows actual predicted shortfall rather than gross reserve requirement.
