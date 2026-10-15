@@ -1,11 +1,11 @@
-# Business sim checkpoint - October 15, 2026, 1:33 PM Pacific
+# Business sim checkpoint - October 15, 2026, 1:53 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v35, business-tycoon-slice-v35.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
+Latest completed cumulative build: v36, business-tycoon-slice-v36.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
-Cumulative acceptance: 176 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
+Cumulative acceptance: 178 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
 
 ## Next goals
 1. Earned industry paths and cash-runway balance. Extend fresh-start, no-injected-capital strategy coverage beyond the first service firm into stock-based and delayed-payment industries. Exercise purchasing/production/collection timing, delegation and shared cash across firms. Use failures to improve runway warnings or balance, with exact regression tests. Do not mistake seeded factory UI fixtures for earned progression.
@@ -57,3 +57,9 @@ Next goals: audit the weakest remaining industry for a meaningful reversible ope
 Audited remaining industry controls: manufacturing recipes/supply/WIP, cafe format/perishability and logistics payment timing already create distinct choices. Mechanic bay/labor and transport fleet/driver constraints remain simpler. Adding another price/capacity mode would be cosmetic variety, so this increment instead reduces phone hunting. Company section jumps reach demand, crew/stock, cash and manager/growth; repeated profit/rival explanations are folded, not cash warnings. Presentation changes leave saved play bytes intact.
 
 Next goals: test maintenance/physical-capacity strategies in mechanic/transport earned paths before selecting a deeper choice; review the company-to-portfolio information hierarchy. Keep the apartment/workshop/city transition and avoid another panel without a real decision.
+
+
+## Physical-capacity checkpoint
+Forty earned 80-week mechanic/transport whole-plan comparisons complete: five seeds for maintain, neglect, extra employee and extra equipment. All survive with conservative salary-earned capital. Maintained plans beat neglect; an extra worker without a bay/fleet increase earns less; equipment unlocks existing paid labor. This is evidence of the existing choice, not a need for another mode. Unspent setup cash is part of each whole plan, not a matched post-setup bank comparison.
+
+The operating screen now shows labor slots, physical slots and condition-adjusted throughput in the existing capacity area. Snapshot is not promised sales. Next goals: company-to-portfolio comparison at a glance without hiding cash/stock risk, and investigate whether earned medium-reserve play makes choosing a second firm clear. Preserve all previous limits.
