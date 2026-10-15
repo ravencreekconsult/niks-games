@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-154 legacy deterministic checks plus 26 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+154 legacy deterministic checks plus 30 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -39,3 +39,7 @@ Salary shifts, foundation training/classes, practical courses and completed cust
 - Work/study beyond 4 focused hours: extra mood drain is visible and included in learning effect previews. Take a walk/friend/full nap to clear the streak.
 - Seventh-night sleep and Next week apply overnight mood/food once, not twice.
 - New fuzz-life.mjs runs 10,000 seeded apartment/career/save transitions. New UI suite actually changes balance with a real touch event and keyboard Enter; focus alone is not counted as activation.
+
+
+## v23 discovery/offers
+On a genuinely fresh start, only headphones are listed. Cupboard/closet searches reveal the other sale items, each once. Verify old v20-v22 saves with missing discovery metadata retain all previous listings. Desk offer rotates over three authored variants by personal day. It requires matching knowledge, mood >=25 and nourishment >=20; it pays once/day, gives knowledge, consumes productive hours and never counts as full-time employment. Earned UI test covers search/sale and current pop-up offer without injected state.
