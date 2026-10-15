@@ -5,9 +5,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 server=http.server.ThreadingHTTPServer(('127.0.0.1',8799),functools.partial(Handler,directory=root));threading.Thread(target=server.serve_forever,daemon=True).start()
 p=subprocess.Popen(['google-chrome-stable','--headless=new','--no-sandbox','--disable-gpu','--remote-allow-origins=*','--remote-debugging-port=9337','--user-data-dir=/tmp/business-chrome-interactions','about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 try:
- for _ in range(50):
+ tabs=[]
+ for _ in range(200):
   try: tabs=json.load(urllib.request.urlopen('http://127.0.0.1:9337/json'));break
   except:time.sleep(.1)
+ if not tabs:raise RuntimeError('Chrome debugging endpoint did not start within 20 seconds')
  ws=websocket.create_connection(next(t for t in tabs if t["type"]=="page")['webSocketDebuggerUrl']);seq=0;ws.settimeout(8)
  def cmd(method,params={}):
   global seq
@@ -59,6 +61,9 @@ try:
  js('document.querySelector("#savebtn").focus();document.querySelector("#savebtn").click()');assert js('document.activeElement.classList.contains("cs-b")');assert js('document.querySelector(".cs-panel").getAttribute("aria-modal")')=='true'
  cmd('Input.dispatchKeyEvent',{'type':'keyDown','key':'Tab','code':'Tab','modifiers':8,'windowsVirtualKeyCode':9});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Tab','code':'Tab','modifiers':8,'windowsVirtualKeyCode':9});assert js('document.activeElement.textContent')=='Close'
  cmd('Input.dispatchKeyEvent',{'type':'keyDown','key':'Escape','code':'Escape','windowsVirtualKeyCode':27});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Escape','code':'Escape','windowsVirtualKeyCode':27});assert js('!document.querySelector(".cs-ov")');assert js('document.activeElement.id')=='savebtn';print('PASS Save dialog keyboard trap/Escape/restored focus')
+ # A local imported-text fixture must stay text, including sale review titles.
+ js('(async()=>{let e=await import("./engine.mjs");let t=e.action({...e.initial(),cash:5000,skill:2},"open",{industry:"service",name:"<img src=x onerror=window.unsafeImport=1>"});t.events=[{week:1,title:"<img src=x onerror=window.unsafeImport=1>",body:"<script>window.unsafeImport=1</script>"}];t.report={week:1,net:0,revenue:0,items:[{name:"<img src=x onerror=window.unsafeImport=1>",why:"<b>plain text</b>",amount:0}]};localStorage.setItem("business-sim-v1",JSON.stringify(t));location.reload()})()');time.sleep(.5)
+ js('document.querySelector("[data-nav=business]").click()');assert js('!window.unsafeImport');js('document.querySelector("[data-action=reviewSale]").click()');assert js('!document.querySelector("dialog img")');js('document.querySelector("#cancel").click()');js('document.querySelector("[data-nav=report]").click()');time.sleep(.1);assert js('!window.unsafeImport');assert js('!document.querySelector("main img")');print('PASS imported HTML-like labels/reports remain text')
  # Corruption checks are isolated from earned-path run. Keep the exact invalid bytes for recovery.
  raw='{"version":1,"cash":999,"week":1,"report":{}}'
  js('localStorage.setItem("business-sim-v1",'+json.dumps(raw)+')');cmd('Page.reload');time.sleep(.4)
