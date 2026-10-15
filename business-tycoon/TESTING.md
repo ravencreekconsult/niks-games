@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-154 legacy deterministic checks plus 30 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+154 legacy deterministic checks plus 31 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -43,3 +43,7 @@ Salary shifts, foundation training/classes, practical courses and completed cust
 
 ## v23 discovery/offers
 On a genuinely fresh start, only headphones are listed. Cupboard/closet searches reveal the other sale items, each once. Verify old v20-v22 saves with missing discovery metadata retain all previous listings. Desk offer rotates over three authored variants by personal day. It requires matching knowledge, mood >=25 and nourishment >=20; it pays once/day, gives knowledge, consumes productive hours and never counts as full-time employment. Earned UI test covers search/sale and current pop-up offer without injected state.
+
+
+## v24 interaction acceptance
+Unavailable personal actions show exact current cash/time/energy/prerequisite reason before clicking; buttons remain focusable and engine-enforced. Tap quote/payout agree at the overwork mood boundary. A real touch or keyboard tap shows the earned cents indicator. Reduced-motion CSS removes movement. All personal actions preflight on clones, never mutate the real save during render.
