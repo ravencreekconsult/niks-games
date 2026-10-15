@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.30. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.31. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -101,3 +101,6 @@ strategy-portfolios.mjs adds 10 fully earned fresh-to-four-firm 120-week portfol
 
 ## v30 dispatch decision
 Optional logistics `route` is `accounts` (legacy default) or `express`. Accounts keep the prior numeric model and 2-week terms. Express has 25% higher ticket, 20% lower base demand, 25% lower route capacity and 30% more variable fuel per stop, with same-settlement collection. Free switching affects future sales only; existing invoice objects/dates are untouched. No save reset or schema bump. Branches inherit the operational choice.
+
+## v31 cash exposure
+Adds a pure one-settlement `cashExposure` view over the existing cash plan. Shows forecast balance, wages/premises remaining accrued afterward, and balance after earmarking those commitments. Earmarking is display-only, never another expense. Repair quotes are separate voluntary costs. No save-field change or balance/economy change.
