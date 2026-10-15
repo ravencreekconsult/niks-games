@@ -69,8 +69,15 @@ try:
  cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
  # Continue entirely through the UI into the first owned company and crew.
  sheet('food');click('life:pantry');close()
- h=state()['hoursUsed'];daily=state()['life']['hours'];click('shift')
+ h=state()['hoursUsed'];daily=state()['life']['hours'];oldcash=state()['cash'];oldmood=state()['life']['mood'];oldfood=state()['life']['food'];oldenergy=state()['life']['energy'];sheet('jobs')
+ assert js('document.querySelectorAll(".career-progress progress").length===2')
+ assert js('document.querySelector("#modal").innerText.includes("including your work streak")')
+ shot('career-pay-progress-390')
+ cmd('Emulation.setDeviceMetricsOverride',{'width':320,'height':844,'deviceScaleFactor':1,'mobile':True});shot('career-pay-progress-320');assert not js('document.documentElement.scrollWidth>innerWidth')
+ cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True});click('shift');shot('career-shift-result-390')
  assert state()['hoursUsed']==h+8 and state()['life']['hours']==round(daily-8,2)
+ assert state()['cash']>oldcash and state()['life']['energy']==oldenergy-28 and state()['life']['food']==max(0,oldfood-14)
+ assert 'shift: earned' in state()['life']['last'];js('document.querySelector("#modal [data-life-sheet=rest]").click()');assert js('document.querySelector("#modal-title").textContent==="Rest and recover"');close()
  sheet('rest');click('life:sleep');close();click('shift')
  click('week');assert state()['week']==2 and state()['life']['day']==8
  js('document.querySelector("[data-nav=city]").click()')
