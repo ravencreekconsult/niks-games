@@ -34,4 +34,7 @@ let branchTest=structuredClone(factory);branchTest.businesses[0].manager=true;br
 
 let auto=structuredClone(factory);auto.businesses[0].manager=true;auto.businesses[0].rawStock=50;auto=action(auto,'autoProduction',{id:1});auto=action(auto,'week');test('manager schedules only bought inputs within capacity',()=>{assert.equal(auto.businesses[0].rawStock,22);assert.equal(auto.businesses[0].last.units,28);assert.equal(auto.businesses[0].inventory,0)});test('automation cannot bypass the manager gate',()=>assert.throws(()=>action(factory,'autoProduction',{id:1})));
 test('fresh legitimate save remains valid',()=>assert.ok(validSave(initial())));test('bad imported companies recover cleanly',()=>{let bad={...initial(),businesses:[{id:1,type:'invalid',staff:1,price:1}]};assert.ok(!validSave(bad));assert.equal(restore(bad).cash,110)});
+
+
+let timeBudget={...initial(),skill:3,jobLevel:2,career:'specialist'};for(let i=0;i<4;i++)timeBudget=action(timeBudget,'shift');test('full-time job consumes most active hours',()=>assert.equal(timeBudget.hoursUsed,32));for(let i=0;i<10;i++)timeBudget=action(timeBudget,'work');test('five short jobs use remaining free time',()=>assert.equal(timeBudget.hoursUsed,39.5));timeBudget=action(timeBudget,'work');test('time blocks another completed order',()=>assert.throws(()=>action(timeBudget,'work')));let newWeek=action(timeBudget,'week');test('weekly time resets while progress carries',()=>{assert.equal(newWeek.hoursUsed,0);assert.equal(newWeek.jobLevel,timeBudget.jobLevel)});
 console.log('FINAL: '+tests+' engine tests passed');
