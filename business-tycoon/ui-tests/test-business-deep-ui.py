@@ -164,4 +164,35 @@ try:
   cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".operation-receipt").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('manager-receipt-'+str(w))
  before_dismiss=js('localStorage.getItem("business-sim-v1")');js('document.querySelector("[data-dismiss-operation]").click()');assert js('!document.querySelector(".operation-receipt")');assert js('localStorage.getItem("business-sim-v1")')==before_dismiss
  print('PASS hire/manager change receipt, honest delegation scope, widths320/390/1280 and state-free dismissal')
+ # Company wayfinding and collapsed explanations must not touch saved play state.
+ js('document.querySelector("[data-nav=business]").click()')
+ company_nav_save=js('localStorage.getItem("business-sim-v1")')
+ assert js('!document.querySelector(".profit-detail").open&&!document.querySelector(".rival-detail").open')
+ cmd('Emulation.setEmulatedMedia',{'features':[{'name':'prefers-reduced-motion','value':'reduce'}]})
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800})
+  js('window.scrollTo(0,0)');shot('company-overview-'+str(w))
+  js('document.querySelector("[data-company-section=company-controls]").click()')
+  assert js('document.activeElement.id==="company-controls"')
+  assert not js('document.documentElement.scrollWidth>innerWidth')
+  shot('company-controls-'+str(w))
+  for section in ['company-demand','company-capacity','company-cash','company-growth']:
+   js(f'document.querySelector("[data-company-section={section}]").click()')
+   assert js(f'document.activeElement.id==="{section}"')
+   assert js(f'document.querySelector("#{section}").getBoundingClientRect().top>=100'),section
+   assert js(f'document.querySelector("#{section}").getBoundingClientRect().top<innerHeight'),section
+   assert js('document.querySelector(".top").getBoundingClientRect().bottom<=document.activeElement.getBoundingClientRect().top'),section
+  js('document.querySelector("[data-company-section=company-cash]").click()');shot('company-cash-jump-'+str(w))
+ js('document.querySelector(".profit-detail summary").click()')
+ assert js('document.querySelector(".profit-detail").open')
+ cmd('Emulation.setDeviceMetricsOverride',{'width':320,'height':844,'deviceScaleFactor':1,'mobile':True})
+ js('document.querySelector(".profit-detail").scrollIntoView({block:"start"})');assert js('document.querySelector(".profit-detail summary").getBoundingClientRect().top>=100');shot('company-profit-expanded-320')
+ js('document.querySelector(".rival-detail summary").click()')
+ assert js('document.querySelector(".rival-detail").open')
+ assert js('localStorage.getItem("business-sim-v1")')==company_nav_save
+ js('document.querySelector("[data-nav=report]").click();document.querySelector("[data-nav=business]").click()')
+ assert js('!document.querySelector(".profit-detail").open&&!document.querySelector(".rival-detail").open')
+ assert js('localStorage.getItem("business-sim-v1")')==company_nav_save
+ print('PASS company section jumps focus visible destinations at320/390/1280, reduced motion, collapsed profit/rival details and byte-identical saved state')
+
 finally:p.terminate();server.shutdown()
