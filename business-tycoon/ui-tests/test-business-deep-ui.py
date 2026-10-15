@@ -207,4 +207,37 @@ try:
   assert js('!document.querySelector(".physical-capacity").innerText.includes("Another employee alone cannot remove this limit")')
  print('PASS mechanic/transport physical-versus-paid-labor display, widths320/390/1280 and real equipment action updates the limit')
 
+ # Compare two funded firms using the exact shared cash planner, without mutating play.
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:24000,skill:2};for(let type of ["mechanic","logistics"]){t=e.action(t,"open",{industry:type});let id=t.businesses.at(-1).id;for(let n=0;n<2;n++)t=e.action(t,"hire",{id});t=e.action(t,"manager",{id});}t=e.action(t,"autoRestock",{id:1});t=e.action(t,"restockBudget",{id:1,level:3000});window.comparisonPlan=e.cashPlan(t);localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+ comparison_save=js('localStorage.getItem("business-sim-v1")')
+ js('document.querySelector("[data-nav=city]").click()')
+ assert js('document.querySelectorAll(".company-overview-card").length===2')
+ js('(async()=>{let e=await import("./engine.mjs");window.comparisonPlan=e.cashPlan(JSON.parse(localStorage.getItem("business-sim-v1")))})()')
+ for row in js('window.comparisonPlan.companies'):
+  expected=lambda n: ('-' if n<0 else '')+'$'+format(round(abs(n)),',')
+  text=js("document.querySelector("+json.dumps('[data-company-overview="'+str(row["id"])+'"]')+").innerText")
+  for key in ['profit','net']:assert expected(row[key]) in text,(key,text)
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800})
+  js('document.querySelector(".company-overview").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('portfolio-comparison-'+str(w));js('document.querySelectorAll(".company-overview-card")[1].scrollIntoView({block:"start"})');shot('portfolio-second-firm-'+str(w))
+ js('Array.from(document.querySelectorAll("[data-manage-company]")).find(b=>b.dataset.manageCompany==="2").click()')
+ assert js('document.querySelector("#company-controls").contains(document.activeElement)||document.activeElement.id==="company-controls"')
+ assert js('document.querySelector(".panel.cream h2").innerText.includes("logistics")')
+ assert js('!document.querySelector("details.company-overview").open')
+ js('document.querySelector("details.company-overview summary").click()')
+ assert js('document.querySelector("details.company-overview").open')
+ js('Array.from(document.querySelectorAll("[data-manage-company]")).find(b=>b.dataset.manageCompany==="1").click()')
+ assert js('document.querySelector(".panel.cream h2").innerText.includes("Mechanic")')
+ assert js('localStorage.getItem("business-sim-v1")')==comparison_save
+ print('PASS portfolio comparison exact planned profit/cash, two firms, widths320/390/1280, selected management focus and byte-identical save')
+
+ js('(async()=>{let e=await import("./engine.mjs");let t=JSON.parse(localStorage.getItem("business-sim-v1"));for(let industry of ["manufacturing","transport"])t=e.action(t,"open",{industry});t.cash=500;localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+ js('document.querySelector("[data-nav=city]").click()')
+ assert js('document.querySelectorAll(".company-overview-card").length===4')
+ cmd('Emulation.setDeviceMetricsOverride',{'width':320,'height':844,'deviceScaleFactor':1,'mobile':True})
+ js('document.querySelectorAll(".company-overview-card")[2].scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('portfolio-four-firms-320')
+ js('(async()=>{let e=await import("./engine.mjs");let t=JSON.parse(localStorage.getItem("business-sim-v1"));window.homeGap=Math.max(0,-t.cash-e.cashPlan(t).net)})()')
+ assert js('document.body.innerText.includes("Forecast cash shortfall:")')
+ print('PASS four-firm comparison wraps long industry names on320 and home cash warning labels actual forecast shortfall')
+
 finally:p.terminate();server.shutdown()
