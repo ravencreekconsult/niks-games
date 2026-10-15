@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.23. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.24. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -23,7 +23,7 @@ Outside equity, actual-history buyer values and amortizing growth loans; three u
 
 ## Verified local evidence
 
-154 legacy deterministic checks plus 30 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
+154 legacy deterministic checks plus 31 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
 
 ## Honest limits
 
@@ -56,3 +56,11 @@ New fresh openings know only the spare headphones. Searching the cupboard and cl
 The desk has three authored rotating daily small offers: photo tagging, printer help and pop-up retail help. Each has distinct pay/time/condition effects, knowledge prerequisites and minimum mood/food. One per day, paid once, saved across reload. Completing one builds knowledge but is explicitly not full-time employment; it does not bypass the full-time gate. These are three authored offers, not unlimited generated content or actual external work.
 
 Fresh UI proof additionally searches both room places, sells the finds and earns the current daily offer through the actual menu. 30 deterministic apartment checks plus 10,000 randomized life transitions and the full previous runner pass.
+
+
+## v24 clearer decisions and tap response
+Personal-action buttons preflight through a cloned engine state and show the exact current lock reason (cash/time/energy/condition/prerequisites). Unavailable buttons stay keyboard-focusable and can explain their reason; they cannot mutate state because the actual engine still enforces every requirement. The personal-action preview is never used as execution authority. Salary shift availability uses the same check.
+
+Real touch/keyboard taps now show a small rising earned-cash indicator, including cents, and brief button feedback. Reduced-motion preference removes the movement. Fixed the edge case where overwork crossed the low-mood threshold during a tap: the displayed tap quote now matches the actual paid amount. Weekly-hour exhaustion has an explicit room hint to use Rest -> Skip to next week.
+
+31 deterministic apartment checks; all other runner coverage unchanged. UI additionally inspects lock reasons and actual tap feedback after a real touch event.
