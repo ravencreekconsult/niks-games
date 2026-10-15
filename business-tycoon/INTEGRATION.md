@@ -28,3 +28,11 @@ Billing now carries accrued wage/premises liabilities separately from accounting
 51 deterministic engine tests pass. UI tested founder selection/question/diligence/negotiated investment, insufficient-cash rejection and a successful retail property purchase, price change, weekly books, scroll-bottom controls, and 320/390/1280 widths. Decisive pixels inspected: founder questions, property costs and owned property controls, operating books, business bottom controls. Earned engine run gets from $110 to a staffed managed business with no fixture cash; late-game UI remains fixture-tested. Full real-account/cloud integration and deployment remain unverified here.
 
 Supersedes v01. No longer accurate: one property type/one founder scenario. Still bounded: no per-product factory recipes/lead times, tenant-by-tenant leasing, invoice default risk, full stock earnings model or multiplayer. This is continuous overnight build work, not the final depth promised.
+
+## v0.3 visual and time update
+
+55 deterministic engine checks pass. A 40-hour active weekly budget now connects shifts, classes and manual jobs. Part-time vs. full-time schedules differ, and growing companies let the player move away from hands-on labor. Staff have their own capacity. Job/skill/hustle controls remain available after becoming an operator.
+
+Adopted visual-direction production palette, full-bleed home scenes, coded top-left week/cash pills, slim action capsule and quiet bottom navigation. Existing clean environment artwork is still used; the new flattened concept frames are reference only and were not shipped as functional UI. Scene action scrolls to the real controls. Full deal terms remain readable before simulated commitment. 320/390/1280 pixels inspected for scene HUD/crop, accessible controls, factory production and local-save menu.
+
+Additional UI interaction coverage: bought factory inputs, manual production, delegated production, delayed invoice creation, scene-action scroll, local export/import menu. Live cloud auth/save remains integration-owner verification work, not a test passed in this sandbox.
