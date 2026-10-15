@@ -1,3 +1,8 @@
+# v40 - October 15, 2026
+- Existing personal-work area shows weekly hours a shift needs, slots/hours exhaustion and any drop in scheduled side-hustle net caused by taking it.
+- Existing side-hustle disclosure now lists owned activities in actual settlement order with scheduled/paused/skipped hours and net. Preview does not reserve time or cash and remains outside company cash forecasts.
+- Pure hustlePlan helper checked against actual settlement, legacy normalization and1620 time/order/level/pause fixtures. No action, economy or save-schema changes.
+
 # v39 - October 15, 2026
 - Risky-cash review, Books and Home shortfall now link directly to existing personal earning controls instead of leaving shifts/hands-on jobs buried in Home. Focuses the shift control, closes review and opens the right disclosure without changing play.
 - Owner earning panel explains that work uses shared weekly hours, keeps firms operating and is not a free bailout. No money, reset, automatic work or economy change.
