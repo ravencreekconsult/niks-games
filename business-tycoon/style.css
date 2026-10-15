@@ -48,3 +48,5 @@ button.unavailable{border-style:dashed;filter:saturate(.55);box-shadow:none}.una
 
 .cash-exposure{scroll-margin-top:110px}.cash-exposure dl{margin:12px 0}.cash-exposure dl div{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #b3c7cb33;font-size:13px;line-height:1.5}.cash-exposure dt{max-width:70%;color:#c7d6d0}.cash-exposure dd{margin:0;font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}.cash-shortfall{border-color:#d7a67f}.cash-warning{font-size:13px;line-height:1.5;color:#ffdaa3}.cash-exposure summary{font-size:12px;min-height:44px;padding:12px 0}.cash-exposure button{min-height:44px;margin-top:8px}
 .cash-exposure details summary{color:#c7d6d0}
+
+@media(max-height:650px){dialog[data-cash-review]{padding:16px;font-size:13px}dialog[data-cash-review] h2{font-size:22px}dialog[data-cash-review] p{margin:10px 0}dialog[data-cash-review] button{font-size:13px;min-height:44px;padding:9px 12px}dialog[data-cash-review] .small{font-size:11px}}
