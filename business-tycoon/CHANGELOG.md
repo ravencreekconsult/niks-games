@@ -111,3 +111,7 @@ Added sixth UI suite at 320x568 and 667x375, navigation/dialog/save overlays. In
 ## v0.18 recovered-source audit
 
 Recovered v17 from repository backup after working storage reset; all runtime hashes matched. Engine/fuzz/soak/strategy/six UI rerun passed. Slow fresh Chrome startup needed a longer bounded test harness wait with explicit timeout reporting. Imported HTML-like company/event/report strings tested as inert text, including native sale dialog title. Shell runner/package executable bits restored on the recovered copy. No gameplay or visual layout change.
+
+## v0.19 acquisition terms audit
+
+Removed stale hardcoded cafe acquisition capacity. Review now uses the same forecast rules as the acquired company, including current skills/events/rivals, condition, stock and wages, and labels spoilage/extras. Pure review-to-acquired forecast equality regression added. 154 checks and full six-UI/fuzz/soak/strategy runner pass; acquisition phone pixels inspected. No other economy changes or live verification.
