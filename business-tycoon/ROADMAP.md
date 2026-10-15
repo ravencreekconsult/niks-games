@@ -1,7 +1,7 @@
-# Business sim checkpoint - October 15, 2026, 12:30 PM Pacific
+# Business sim checkpoint - October 15, 2026, 12:50 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v32, business-tycoon-slice-v32.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
+Latest completed cumulative build: v33, business-tycoon-slice-v33.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
@@ -39,3 +39,9 @@ Next two goals: (1) inspect the opening-to-owner handoff and highest-friction ph
 Negative-cash warnings are now encountered from any fast week button, not only after opening Books. Explicit inspect/back/run-anyway review, with no extra step for normal forecasts or pre-company play. No gameplay state changes until the choice. Compact phone review visually checked and tested.
 
 Next goals: compare alternate earned operating strategies against low-reserve failures (restocking budgets, staffing and express/account timing), then inspect remaining opening-to-owner phone friction. Do not flatten risk or add gratuitous prompts.
+
+
+## Alternate operating checkpoint
+300 earned comparisons (including unchanged control variants) now assert130 survival and170 first-negative outcomes. Lean staffing with manual procurement can preserve runway; very low manager budgets can starve stock sales; a short express bridge does not make the account switch free of cash risk. UI now explains the actual stock-order shortfall before settlement. No economy rebalance or new save fields.
+
+Next goals: inspect remaining opening-to-owner phone friction, particularly last-action feedback and transition into management; then improve one weak industry's actual operational decision only where tests show a genuine gap. Avoid duplicating controls or inflating depth claims.
