@@ -1,3 +1,8 @@
+# v35 - October 15, 2026
+- Company controls now have direct jumps to demand/price, crew/stock, cash/bills and manager/growth, with focused visible targets, reduced-motion support and a return route.
+- Repeated profit and competitor explanations are folded behind labeled disclosures. Cash/stock warnings and operating controls remain visible. No save or economy changes.
+- Industry audit chose usability over another cosmetic service-mode multiplier. Existing mechanic bay/labor and transport fleet/driver limits remain honest distinct constraints, not a deeper job/route simulation.
+
 # v34 - October 15, 2026
 - Hiring, delegation, equipment, training and maintenance now leave a dismissible session change summary rather than only a fleeting toast. Separates purchase cost, weekly cost and before/after forecast.
 - Earned first hire now has persistent visible feedback; manager scope differs for stock and nonstock companies. No save or economy changes.
