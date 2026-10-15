@@ -1,3 +1,8 @@
+# v33 - October 15, 2026
+- 300 earned operating-strategy comparisons preserve success and failure outcomes, covering staffing/delegation, restock limits and short express bridge. No economy rebalance.
+- Manager stock controls now show held/target/order units and warn when cash or budget leaves the current target short. A spending cap is not a fixed purchase or free payroll protection.
+- Engine checks unchanged at176 plus34 life; all strategy/soak/fuzz/UI suites required before extracted-package delivery.
+
 # v32 - October 15, 2026
 - Fast week buttons now surface a negative cash forecast before settlement, with inspect/back/run-anyway choices. No forced bailout, auto-rebalance or extra prompt for nonnegative plans.
 - Compact cash review keeps all choices on screen at 320x568. Back gets initial focus. Cancel/inspect preserve save bytes; explicit confirmation settles once.
