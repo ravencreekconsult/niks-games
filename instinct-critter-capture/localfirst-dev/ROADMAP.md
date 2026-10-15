@@ -28,3 +28,8 @@ Field kit and scanner now explain current habitat odds/conditions, unseen-name p
 
 ## Integration boundaries
 Deploy only localfirst/contents through parent relay. This increment changes js/game.js,js/expansion-data.js,sw.js(cachev21). No new runtime files/assets or save fields, no backend/auth/sync/ownership work, no spend, no reset. Preserve all unrelated games and reserved projects. Stage/smoke/Free$0/live/regression and backup belong to the deployment lane.
+
+## Earned story audit follow-up
+Test-only work after cachev21 now reaches the valley ending from fresh UI state through saved checkpoints: nursery, four keeper mechanisms/battles/badges, Swim/Shove on actual maps, quarry repair, six community permits, archive, condition-specific recruits, held items, real wild XP/training, harbor rest, final Rowan doubles and the chosen beacon message. Ending survives full reload and repeat visit is read-only. Tested actual320/390ending pixels are readable. No runtime change was needed to make this route work.
+
+This closes the missing earned-state main-path smoke, not the normal-play acceptance bar. Scripted rare encounter/catch luck and accelerated battle animations mean the10-12hour target, rarity pacing, difficulty, organic navigation and two-phone/Safari/cloud acceptance remain open. The next design work can move into purposeful cast/story content and subsequent chapter creature rounds, with phone feedback overriding it.
