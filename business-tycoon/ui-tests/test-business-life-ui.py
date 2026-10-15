@@ -87,6 +87,7 @@ try:
  click('reviewOpen');shot('clicker-first-company-review-390');js('document.querySelector("#confirm button").click()')
  assert state()['life']['phase']=='owner' and len(state()['businesses'])==1
  click('hire');assert state()['businesses'][0]['staff']==1 and state()['cash']>=0
+ assert js('document.querySelector(".operation-receipt").innerText.includes("Employee hired")');assert js('document.querySelector(".operation-receipt").innerText.includes("0 → 6")');js('document.querySelector(".operation-receipt").scrollIntoView({block:"start"})');time.sleep(3.6);shot('earned-hire-receipt-390')
  js('document.querySelector("[data-nav=city]").click()');time.sleep(3.6);shot('clicker-earned-owner-390');assert js('!!document.querySelector(".owner-scoreboard")');assert js('document.querySelector(".owner-scoreboard").innerText.includes("Operating profit")');js('document.querySelector(".owner-world-button[data-nav=business]").click()');assert js('document.body.innerText.includes("Your companies")');js('document.querySelector("[data-nav=city]").click()')
  assert not js('!!document.querySelector("[data-action=\\"life:tap\\"]")')
  for w in [320,390,1280]:
