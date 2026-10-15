@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.25. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.26. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -72,3 +72,7 @@ For players who came through the new life opening, the workshop is now an active
 Added 15 earned life-to-owner strategies across five seeds and three opening routes: free books, paid course, condition-gated odd jobs. No injected capital or manual customer-job farming. Each reaches the first full-time job on personal day 3 or 4, ownership in week 2, then survives 24 owner weeks and reaches management. These are engine strategy checks, separate from the real UI earned path. Company-opening reserve guidance remains a recommendation, not money charged.
 
 All previous checks plus fresh-life strategy matrix are included in run-tests.sh; runtime file allowlist unchanged. Actual earned workshop view and 320/390/1280 widths verified. No new paid services or shared files.
+
+
+## v26 - career consequences and visible pay progression
+Career Jobs now shows the next shift's exact pay, time and condition costs (including overwork mood), projected remaining stats, low-condition warning and quick food/rest routes. Shift outcome reports actual earnings/stats or an earned pay rise. Promotion progress and first-company cash target use bars and actual state; the target is guidance, not a debit. Pay rises still apply only from the following shift, and careers keep separate XP. No economy/save changes; legacy saves keep their condition-free rules. Shared careerShiftQuote backs the preview and shift condition charge. Added three engine assertions for exact outcome/promotion/legacy behavior (34 apartment checks), and fresh-browser proof exercises the preview, real shift, updated stats and modal rest route at phone widths.
