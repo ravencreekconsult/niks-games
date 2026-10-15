@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.24. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.25. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -64,3 +64,11 @@ Personal-action buttons preflight through a cloned engine state and show the exa
 Real touch/keyboard taps now show a small rising earned-cash indicator, including cents, and brief button feedback. Reduced-motion preference removes the movement. Fixed the edge case where overwork crossed the low-mood threshold during a tap: the displayed tap quote now matches the actual paid amount. Weekly-hour exhaustion has an explicit room hint to use Rest -> Skip to next week.
 
 31 deterministic apartment checks; all other runner coverage unchanged. UI additionally inspects lock reasons and actual tap feedback after a real touch event.
+
+
+## v25 workshop operating surface and fresh-life strategies
+For players who came through the new life opening, the workshop is now an active operating screen rather than a scenic interlude: sales/profit forecast, demand-served bar, bottleneck, hiring/manager/inspection controls and next-week cash/settlement. If hiring cash is short the prompt says so rather than offering a failing hire. Legacy v19 saves keep the previous presentation. At portfolio stage the existing city still takes over.
+
+Added 15 earned life-to-owner strategies across five seeds and three opening routes: free books, paid course, condition-gated odd jobs. No injected capital or manual customer-job farming. Each reaches the first full-time job on personal day 3 or 4, ownership in week 2, then survives 24 owner weeks and reaches management. These are engine strategy checks, separate from the real UI earned path. Company-opening reserve guidance remains a recommendation, not money charged.
+
+All previous checks plus fresh-life strategy matrix are included in run-tests.sh; runtime file allowlist unchanged. Actual earned workshop view and 320/390/1280 widths verified. No new paid services or shared files.
