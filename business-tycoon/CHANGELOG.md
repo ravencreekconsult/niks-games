@@ -1,3 +1,8 @@
+# v36 - October 15, 2026
+- Forty earned 80-week mechanic/transport comparisons test maintenance, neglect, extra employee and extra equipment. All use the same salary-earned capital target; retained unspent setup cash is part of each whole plan.
+- Existing physical bottlenecks now show paid labor slots against bay/fleet slots and condition-adjusted capacity. Warns when another employee alone cannot unlock capacity. No economy, save or new operating-mode change.
+-178 deterministic engine checks plus34life; full cumulative extracted runner and actual pixels required.
+
 # v35 - October 15, 2026
 - Company controls now have direct jumps to demand/price, crew/stock, cash/bills and manager/growth, with focused visible targets, reduced-motion support and a return route.
 - Repeated profit and competitor explanations are folded behind labeled disclosures. Cash/stock warnings and operating controls remain visible. No save or economy changes.
