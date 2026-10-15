@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.31. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.32. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -104,3 +104,6 @@ Optional logistics `route` is `accounts` (legacy default) or `express`. Accounts
 
 ## v31 cash exposure
 Adds a pure one-settlement `cashExposure` view over the existing cash plan. Shows forecast balance, wages/premises remaining accrued afterward, and balance after earmarking those commitments. Earmarking is display-only, never another expense. Repair quotes are separate voluntary costs. No save-field change or balance/economy change.
+
+## v32 fast settlement safety
+UI-only review when a company portfolio's next cash plan forecasts a negative balance. Explicit Run week anyway continues once; Back or Inspect cash plan changes no game state. No extra confirmation on nonnegative forecast or pre-owner career weeks. Simulation actions/economy and saves unchanged. Game-money risk review, not a real payment flow.
