@@ -146,4 +146,14 @@ try:
  js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:20000,skill:2};t=e.action(t,"open",{industry:"manufacturing"});t=e.action(t,"hire",{id:1});t=e.action(t,"size",{id:1});t.businesses[0].condition=50;t.cash=500;localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
  js('document.querySelector("[data-nav=report]").click()');js('document.querySelector(".cash-exposure").scrollIntoView({block:"start"})');assert js('document.querySelector(".cash-exposure").innerText.includes("Some cash is already spoken for")');js('document.querySelector(".cash-exposure details").open=true');shot('cash-exposure-held-390')
  print('PASS cash exposure UI negative balance, held commitments, separate equipment cost, jump control and actual settlement reconciliation')
+ # Funded shop fixture verifies the budget tradeoff and truthful order preview.
+ cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:10000,skill:2};t=e.action(t,"open",{industry:"shop"});for(let n=0;n<2;n++)t=e.action(t,"hire",{id:1});t=e.action(t,"manager",{id:1});t=e.action(t,"autoRestock",{id:1});t=e.action(t,"restockBudget",{id:1,level:250});localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()');time.sleep(.3)
+ js('document.querySelector("[data-nav=business]").click()');assert js('!!document.querySelector(".restock-budget-preview .cash-warning")')
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".restock-budget-preview").scrollIntoView({block:"center"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('restock-budget-shortfall-'+str(w))
+ js('window.budgetCash=JSON.parse(localStorage.getItem("business-sim-v1")).cash;document.querySelector("[data-setting=restockBudget]").value="1000";document.querySelector("[data-setting=restockBudget]").dispatchEvent(new Event("change",{bubbles:true}))')
+ assert js('!document.querySelector(".restock-budget-preview .cash-warning")');assert js('JSON.parse(localStorage.getItem("business-sim-v1")).cash===window.budgetCash')
+ cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True});js('document.querySelector(".restock-budget-preview").scrollIntoView({block:"center"})');shot('restock-budget-covered-390')
+ print('PASS manager budget shortfall preview, higher budget removes limitation without spending now, widths320/390/1280')
 finally:p.terminate();server.shutdown()
