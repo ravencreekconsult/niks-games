@@ -1,11 +1,11 @@
-# Business sim checkpoint - October 15, 2026, 11:09 AM Pacific
+# Business sim checkpoint - October 15, 2026, 11:28 AM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v28, business-tycoon-slice-v28.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v28 is live.
+Latest completed cumulative build: v29, business-tycoon-slice-v29.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
-Acceptance at v28: 162 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
+Acceptance at v29: 162 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
 
 ## Next goals
 1. Earned industry paths and cash-runway balance. Extend fresh-start, no-injected-capital strategy coverage beyond the first service firm into stock-based and delayed-payment industries. Exercise purchasing/production/collection timing, delegation and shared cash across firms. Use failures to improve runway warnings or balance, with exact regression tests. Do not mistake seeded factory UI fixtures for earned progression.
@@ -17,3 +17,7 @@ No new service spending, no silent reset, no shared dashboard edits from this la
 
 ## Progress since checkpoint
 Completed the first goal's single-industry earned coverage: 45 fresh-to-industry paths with high reserves through 32 owner weeks, no outside salary after opening. All seven industries are covered; these are conservative strategies, not minimal-capital claims. Added a distinct cafe service-format decision and exact outcome tests. Next: earned mixed portfolios sharing stock/restock cash and deferred bills; then improve a less distinct industry's actual decision loop based on those results.
+
+
+## Mixed-portfolio checkpoint
+10 fully earned mixed portfolios now reach four firms and survive 120 owner weeks, with salary stopped at the first company. Two mixes cover all seven industries across five seeds. Per-action solvency, shared cash-plan reconciliation and exact restore pass. Exposed the existing sequential settlement rule as a player-controlled free/reversible order in Books, with per-firm stock orders/collections/cash effects. Tight-cash tests and UI prove the order changes funding and matches settlement. Next goals: improve the delayed-payment industry decision loop (routes/contracts rather than generic upgrades), then broaden earned stress scenarios with lower reserves and equipment/stock shocks without implying all strategies win.
