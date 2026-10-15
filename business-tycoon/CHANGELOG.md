@@ -103,3 +103,7 @@ strategy.mjs proves 15 conservative 32-week paths (employee, concurrent side hus
 ## v0.15 marginal upgrade comparison
 
 A collapsed comparison under Capacity & quality shows the next hire, equipment, training, maintenance, footprint and manufacturing input contract: cash cost now, capacity/sales changes and weekly operating-profit change under current assumptions. It exposes when the real bottleneck means another hire or machine adds cost with no immediate gain. Snapshots do not mutate state and are not cash forecasts or promised payback; wages/ongoing operating changes included, purchase cost separate. Current stock/lead-time caveats shown. Phone comparison pixels inspected. 153 deterministic checks verify pure preview and actual hire forecast equality plus machine-limited counterexample. Full five-UI/fuzz/soak/strategy runner passes. Live auth/deploy unverified.
+
+## v0.17 compact viewport audit
+
+Added sixth UI suite at 320x568 and 667x375, navigation/dialog/save overlays. Inspection found landscape home primary action offscreen under the fixed scene minimum. Reduced short-landscape scene, removed redundant map pins in that orientation and kept the primary action above bottom navigation. Compact dialogs scroll within viewport. Revised actual landscape pixels inspected. Full six-UI runner plus all 153/fuzz/soak/strategy checks passes. No gameplay balance change or live verification.
