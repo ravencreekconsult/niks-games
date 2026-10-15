@@ -5,9 +5,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 server=http.server.ThreadingHTTPServer(('127.0.0.1',8799),functools.partial(Handler,directory=root));threading.Thread(target=server.serve_forever,daemon=True).start()
 p=subprocess.Popen(['google-chrome-stable','--headless=new','--no-sandbox','--disable-gpu','--remote-allow-origins=*','--remote-debugging-port=9338','--user-data-dir=/tmp/business-chrome','about:blank'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 try:
- for _ in range(50):
+ tabs=[]
+ for _ in range(200):
   try: tabs=json.load(urllib.request.urlopen('http://127.0.0.1:9338/json'));break
   except:time.sleep(.1)
+ if not tabs:raise RuntimeError('Chrome debugging endpoint did not start within 20 seconds')
  ws=websocket.create_connection(next(t for t in tabs if t["type"]=="page")['webSocketDebuggerUrl']);seq=0;ws.settimeout(8)
  def cmd(method,params={}):
   global seq
