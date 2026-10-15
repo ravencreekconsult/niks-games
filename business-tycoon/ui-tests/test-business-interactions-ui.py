@@ -56,6 +56,9 @@ try:
  assert js('document.activeElement.dataset.action')=='shift','keyboard focus lost'
  assert js('document.querySelector("details").open'),'details collapsed on action'
  print('PASS keyboard action retains focus and expanded section')
+ js('document.querySelector("#savebtn").focus();document.querySelector("#savebtn").click()');assert js('document.activeElement.classList.contains("cs-b")');assert js('document.querySelector(".cs-panel").getAttribute("aria-modal")')=='true'
+ cmd('Input.dispatchKeyEvent',{'type':'keyDown','key':'Tab','code':'Tab','modifiers':8,'windowsVirtualKeyCode':9});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Tab','code':'Tab','modifiers':8,'windowsVirtualKeyCode':9});assert js('document.activeElement.textContent')=='Close'
+ cmd('Input.dispatchKeyEvent',{'type':'keyDown','key':'Escape','code':'Escape','windowsVirtualKeyCode':27});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Escape','code':'Escape','windowsVirtualKeyCode':27});assert js('!document.querySelector(".cs-ov")');assert js('document.activeElement.id')=='savebtn';print('PASS Save dialog keyboard trap/Escape/restored focus')
  # Corruption checks are isolated from earned-path run. Keep the exact invalid bytes for recovery.
  raw='{"version":1,"cash":999,"week":1,"report":{}}'
  js('localStorage.setItem("business-sim-v1",'+json.dumps(raw)+')');cmd('Page.reload');time.sleep(.4)
