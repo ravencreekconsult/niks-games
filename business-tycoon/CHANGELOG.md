@@ -129,3 +129,10 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Daily life condition applies to pre-owner weekly career/study work. Shared productive weekly time budget, aligned sleep/next-week calendar.
 - Consistent first-company reserve guidance; normalized company fields on creation.
 - 21 apartment checks and fresh earned UI proof through first company, employee and actual exported-file restore.
+
+
+## v0.22 - no cash lock, meaningful overwork and faster recovery
+- Fix negative balances incorrectly blocking free apartment actions.
+- Sustained-work streak drives extra mood drain; meaningful break resets and exact learning previews.
+- Skip-to-next-week rest choice, matched sleep/skip overnight effects and single settlement.
+- 26 apartment checks, 10,000 new randomized life transitions, earned negative recovery, real touch/keyboard earning and stronger legacy keyboard assertions.
