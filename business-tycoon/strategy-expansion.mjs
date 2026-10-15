@@ -1,3 +1,4 @@
+import {writeFileSync,mkdirSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {freshInitial,action,validSave,restore,INDUSTRIES,ECONOMICS,startupCost,cashPlan} from './engine.mjs';
 let rows=[];
@@ -11,7 +12,7 @@ for(let type of ['shop','mechanic','manufacturing','logistics','transport','cafe
  // Second firm is funded only by the service firm's cash, at a salary-step-independent target.
  while(s.cash<startupCost(s,type)+1000+reserve){settle();assert.ok(s.cash>=0);assert.ok(s.week<200);}
  open(type);let opened=s.week,start=s.cash,low=s.cash,failed=false;
- for(let week=0;week<48;week++){settle();low=Math.min(low,s.cash);if(s.cash<0){failed=true;break;}}
+ for(let week=0;week<48;week++){settle();low=Math.min(low,s.cash);if(s.cash<0){failed=true;if(type==='manufacturing'&&reserve===500&&seed===17&&process.env.BUSINESS_GAME_OUTPUT){mkdirSync(process.env.BUSINESS_GAME_OUTPUT,{recursive:true});writeFileSync(process.env.BUSINESS_GAME_OUTPUT+'/earned-expansion-failure.json',JSON.stringify(s));}break;}}
  let expectedFailure=reserve===500&&(['manufacturing','logistics'].includes(type)||type==='transport'&&seed!==17)||reserve===2500&&type==='manufacturing'&&[531,98431,24316].includes(seed);assert.equal(failed,expectedFailure,JSON.stringify({type,reserve,seed}));
  rows.push({type,reserve,seed,salaryStops,opened,start:Math.round(start),end:Math.round(s.cash),low:Math.round(low),failed});
 }
