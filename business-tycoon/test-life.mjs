@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {freshInitial,initial,action,validSave,restore} from './engine.mjs';
-import {LIFE_ACTIVITIES,offerFor,foundItems} from './life.mjs';
+import {LIFE_ACTIVITIES,offerFor,foundItems,tapValue} from './life.mjs';
 let checks=0;const test=(name,f)=>{f();checks++;console.log('PASS '+name);};
 let s=freshInitial();test('unemployed start uses real cents',()=>{assert.equal(s.cash,12.5);assert.equal(s.life.employment,'unemployed');assert.equal(s.life.phase,'clicker');});
 test('legacy initial and restores unchanged',()=>{let a=initial();assert.equal(a.cash,110);assert.equal(restore(a).life,undefined);assert.deepEqual(restore(a),a);});
@@ -32,4 +32,5 @@ test('room search unlocks one-off sale without duplication',()=>{let a=freshInit
 test('older life saves keep known household listings',()=>{let a=freshInitial();delete a.life.found;assert.equal(foundItems(a.life).length,3);assert.equal(action(a,'life:sell',{id:'console'}).cash,57.5);});
 test('small offer requires knowledge and condition, pays once per day',()=>{let a=freshInitial(),o=offerFor(a.life);assert.throws(()=>action(a,'life:offer',{id:o.id}));a=action(a,'life:activity',{id:'book'});let before=a.cash;a=action(a,'life:offer',{id:o.id});assert.equal(a.cash,before+o.pay);assert.equal(a.life.knowledge,3);assert.equal(a.life.phase,'clicker');assert.throws(()=>action(a,'life:offer',{id:o.id}));a=action(a,'life:sleep');assert.notEqual(offerFor(a.life).id,o.id);assert.throws(()=>action(a,'life:offer',{id:o.id}));});
 test('offer cannot bypass low nourishment or mood',()=>{let a=freshInitial();a.life.knowledge=10;a.life.food=19;assert.throws(()=>action(a,'life:offer',{id:offerFor(a.life).id}));a.life.food=100;a.life.mood=24;assert.throws(()=>action(a,'life:offer',{id:offerFor(a.life).id}));});
+test('tap quote matches payout when overwork crosses mood threshold',()=>{let a=freshInitial();a.life.focused=5;a.life.mood=15.1;let quote=tapValue(a.life),b=action(a,'life:tap');assert.equal(quote,.25);assert.equal(b.cash-a.cash,quote);});
 console.log('PASS '+checks+' apartment checks');
