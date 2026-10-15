@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-154 legacy deterministic checks plus 21 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+154 legacy deterministic checks plus 26 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -32,3 +32,10 @@ Six legacy browser suites now seed an explicit existing v19 initial save before 
 
 ## v21 time/transition checks
 Salary shifts, foundation training/classes, practical courses and completed customer jobs use daily time/condition before ownership. Productive apartment work/learning/taps share the 40 active-hour weekly budget. Sleep resets daily hours; only the seventh night settles a week. Next week skips to the next personal-week boundary. Activities fail atomically if either budget is unavailable. First-company review retains its full recruitment/operating-reserve warning; the room goal now uses that reserve instead of a too-small living-only target.
+
+
+## v22 recovery/mood acceptance
+- Skip the first week with no earnings: balance becomes -$62.50, but taps/free pantry/books/casual shifts must still work. Earn above zero without reset or paid rescue.
+- Work/study beyond 4 focused hours: extra mood drain is visible and included in learning effect previews. Take a walk/friend/full nap to clear the streak.
+- Seventh-night sleep and Next week apply overnight mood/food once, not twice.
+- New fuzz-life.mjs runs 10,000 seeded apartment/career/save transitions. New UI suite actually changes balance with a real touch event and keyboard Enter; focus alone is not counted as activation.
