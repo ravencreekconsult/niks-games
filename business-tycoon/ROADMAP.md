@@ -1,11 +1,11 @@
-# Business sim checkpoint - October 15, 2026, 11:50 AM Pacific
+# Business sim checkpoint - October 15, 2026, 12:09 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v30, business-tycoon-slice-v30.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
+Latest completed cumulative build: v31, business-tycoon-slice-v31.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim v29 is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
-Acceptance at v29: 172 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
+Acceptance at v29: 176 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
 
 ## Next goals
 1. Earned industry paths and cash-runway balance. Extend fresh-start, no-injected-capital strategy coverage beyond the first service firm into stock-based and delayed-payment industries. Exercise purchasing/production/collection timing, delegation and shared cash across firms. Use failures to improve runway warnings or balance, with exact regression tests. Do not mistake seeded factory UI fixtures for earned progression.
@@ -27,3 +27,9 @@ Completed the first goal's single-industry earned coverage: 45 fresh-to-industry
 Completed the delayed-payment decision goal: logistics can choose established account rounds or express dispatch, trading lower capacity/higher fuel for immediate payment. Prior invoice due dates do not change. Five earned express paths added, bringing single-industry strategies to 50. Phone comparison revised after inspecting first pixels to put profit/cash before optional operating details. Design-taste/better-design review principles used, no library installed.
 
 Next goals: (1) earned lower-reserve/maintenance/stock stress cases with explicit failure outcomes and runway warnings, not universal-win claims; (2) review opening-to-owner transitions and phone information density for the next highest-friction interaction. Keep existing-save progress and the apartment/workshop/city identity.
+
+
+## Low-reserve checkpoint
+100 fully earned stock/invoice/maintenance stress paths now assert 55 survival outcomes and 45 first-negative stops. Capital targets are stepped through salary, not injected or exact minimums. Books now makes forecast cash, still-accrued commitments and separate repair costs explicit, without double charging or a solvency promise. Engine/economy and existing saves unchanged.
+
+Next two goals: (1) inspect the opening-to-owner handoff and highest-friction phone actions, especially making cash warnings discoverable before fast settlement; (2) test distinct alternate operating strategies rather than treating all failures as balance bugs. Maintain real tradeoffs and keep negative outcomes honest.
