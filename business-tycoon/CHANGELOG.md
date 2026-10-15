@@ -1,3 +1,8 @@
+# v37 - October 15, 2026
+- Multiple-company Home replaces the single-company next-decision card with per-firm planned profit, cash change, accrued bills, stock purchases and collection timing in actual shared-cash order.
+- Manage jumps choose the right firm and focus its controls. Business retains its fast company switcher; comparison is folded there to avoid burying operations.
+- Home warning now labels the actual projected cash shortfall, matching the owner HUD. Presentation only, no economy/save changes.
+
 # v36 - October 15, 2026
 - Forty earned 80-week mechanic/transport comparisons test maintenance, neglect, extra employee and extra equipment. All use the same salary-earned capital target; retained unspent setup cash is part of each whole plan.
 - Existing physical bottlenecks now show paid labor slots against bay/fleet slots and condition-adjusted capacity. Warns when another employee alone cannot unlock capacity. No economy, save or new operating-mode change.
