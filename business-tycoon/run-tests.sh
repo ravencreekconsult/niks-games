@@ -15,6 +15,8 @@ node fuzz.mjs
 node soak.mjs
 node strategy-portfolios.mjs > "$BUSINESS_GAME_OUTPUT/strategy-portfolios-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-portfolios-results.txt"
+node strategy-alternates.mjs > "$BUSINESS_GAME_OUTPUT/strategy-alternates-results.txt"
+grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-alternates-results.txt"
 node strategy-stress.mjs > "$BUSINESS_GAME_OUTPUT/strategy-stress-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-stress-results.txt"
 node strategy-industries.mjs > "$BUSINESS_GAME_OUTPUT/strategy-industries-results.txt"
