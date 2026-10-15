@@ -1,7 +1,7 @@
-# Business sim checkpoint - October 15, 2026, 3:15 PM Pacific
+# Business sim checkpoint - October 15, 2026, 3:36 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v40, business-tycoon-slice-v40.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
+Latest completed cumulative build: v41, business-tycoon-slice-v41.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
@@ -89,3 +89,11 @@ Next: review city/portfolio information priority and owner-work cash warnings, t
 The existing earning panel now shows a shift's weekly-hour requirement and warns when taking it displaces scheduled side-hustle net. Existing side-hustle rows show actual settlement order and whether each runs, is paused or misses its hours. Skipping an oversized activity preserves hours for a later smaller activity. No hours or money are reserved by looking.
 
 Pure planner reconciles against settlement across1620 isolated order/time/upgrade/pause fixtures plus explicit legacy and shift cases. Browser proof uses an explicitly funded operational fixture, separately from the earned failure route. No economy, saved state or action changes; company cash forecasts still exclude hustles. Next: inspect city/portfolio priorities and choose an actual career/operating depth gap without adding default panels or flattening risk.
+
+
+## Career-choice checkpoint
+The pay-only job pills obscured career-specific promotion, weekly shift limits and actual course/experience gates. The existing disclosure now compares those facts, names missing qualifications and shows which industries benefit from professional experience. Overall work tier and job-specific promotions are explicitly different. No extra default panel or invented career mode.
+
+Thirty earned16-week comparisons start from the same salary-funded skill/course preparation after the real fresh opening. Six jobs, five seeds, identical deterministic salary outcomes across seeds. Full-time coordinator keeps its earned promotion; switching jobs starts with only that job's earned pay. Higher-skill roles offer higher pay and relevant future fit-out discounts; part-time roles preserve more weekly hours. These are conservative whole-plan comparisons, not proof every career is equally attractive or stochastic salary testing.
+
+Next: the city currently provides a broad navigation overview and is not a simulated editable map. Review whether portfolio tasks need a clearer opening action, then choose a substantive operating/content gap only after earned evidence supports it. Preserve compact clarity, saved progress and negative outcomes.
