@@ -111,3 +111,6 @@ The funded local fixture checks all company section jump destinations at320/390/
 
 ## v36 physical-capacity comparisons
 strategy-capacity.mjs covers40 genuinely earned80-week mechanic/transport plans. All40 survive the conservative target; neglected equipment visibly loses throughput; extra labor alone does not fix the bay/fleet limit. These are whole-plan outcomes, not minimum-capital or universal-win claims. The funded UI fixtures check the explanatory display at320/390/1280 and its update after an actual equipment action.
+
+## v37 portfolio comparison
+Funded UI fixtures compare displayed planned profit/cash against cashPlan, verify two/four firms and320/390/1280 layouts, correct firm selection/focused controls, folded Business comparison, long names and unchanged save bytes for navigation. Earned mixed-portfolio suites remain separate evidence.
