@@ -39,3 +39,10 @@ export const DILIGENCE={
  crate:{finding:'Paid pilots exist. Fleet and crate cash needs come before monthly collections.',confirmed:'Two producers have paid pilots; four more are testing. No full-year customer commitment was found.',risk:'Crate loss, cleaning and return-route costs can rise before producers settle invoices. Route density is not proven.',terms:'Books review unlocks a counteroffer of 18% for $4,500. The next area needs another funding round.'},
  relay:{finding:'A working pilot has customers, but integrations and dispatcher adoption are unfinished.',confirmed:'Four fleets pay $180/month; hosting and support are $45/fleet before development and founder pay.',risk:'Two fleets still run exception handling on spreadsheets. Development costs are missing from the headline per-fleet margin.',terms:'Books review unlocks a counteroffer of 15% for $7,000. Reliability work needs more capital.'}
 };
+
+// Service format changes price, throughput and audience, not the ingredient pack.
+export const CAFE_STYLES={
+ standard:{name:'Neighborhood cafe',price:1,capacity:1,demand:1,desc:'Current menu and service. Balanced throughput and ticket.'},
+ counter:{name:'Quick counter',price:.9,capacity:1.3,demand:1.1,desc:'10% lower ticket, 30% more capacity, 10% more demand. Lower margin per ingredient pack.'},
+ table:{name:'Table service',price:1.25,capacity:.75,demand:.9,desc:'25% higher ticket, 25% less capacity, 10% less demand. Fewer, higher-value visits.'}
+};
