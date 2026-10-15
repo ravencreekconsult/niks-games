@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.27. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.28. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -82,3 +82,11 @@ Career Jobs now shows the next shift's exact pay, time and condition costs (incl
 Each company now has a cash-vs-profit view for the next settlement: customer collections, stock order cash, payroll/rent actually due, other operations, investor share and net cash. Deferred wages/rent remain visible after settlement, with their billing cycle, and existing invoice dates can be expanded. New delayed sales are identified with their settlement week even when no saleable output is forecast. A whole-portfolio link includes the omitted personal/property/loan/hustle flows. This exposes existing different industry mechanics, not a new economy.
 
 The existing cashPlan now returns additive per-company rows using the same sequential shared-budget simulation. No save schema or settlement changes. Eight new deterministic tests reconcile forecast rows with actual settlement for seven industries over three weeks, plus a multi-firm shared-budget case. They check collections, cash, accounting profit and deferred payroll/rent. Total 162 engine +34 apartment checks. Deep UI inspects factory timing and invoice schedule at 320/390/1280. Engine test fixtures are not earned-opening proof; existing fresh browser route and fresh-life strategy suite stay separate.
+
+
+## v28 - earned industry runway and cafe service choices
+Added strategy-industries.mjs to runner/package: 45 fully earned salary-to-company paths (seven industries plus counter/table cafe variants x five seeds), 32 owner weeks, per-action nonnegative cash and exact restore. Capital comes from actual personal-day salary shifts; no injected cash or manual customer-job farming. Outside salary stops when the firm opens. These are conservative, high-reserve strategies, not claims of minimum capital or fastest progression. Baseline cafes and counter-style cafes survived but drew down reserves under passive two-staff management; table service grew cash. No promise all configurations grow or survive indefinitely.
+
+Cafe service choices now change real visit ticket, demand and capacity: standard preserves the previous behavior; counter lowers ticket 10%, raises capacity 30% and demand 10%; table raises ticket 25%, lowers capacity 25% and demand 10%. Free reversible format changes preserve ingredient units and paid cost basis. Local previews show actual projected visits/profit and warn that stock/demand limit outcomes. Exact-cent tickets are shown. Engine tests prove forecast/settlement match, retained stock/cash, rejected wrong-firm/invalid styles, save restore, and that one-employee vs two-employee contexts prefer different formats. Optional cafeStyle is absent on older saves, which retain standard behavior. Finance fuzz includes style changes.
+
+Final acceptance: 165 engine checks, 34 apartment checks; all previous fuzz/soak/strategy/UI suites plus the new 45-path matrix. Deep UI uses an explicitly funded local cafe fixture to select table service and check actual setting, stock/cash preservation and settlement; that UI fixture is not earned-start proof. ROADMAP.md now included in package.
