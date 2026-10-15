@@ -113,3 +113,8 @@ Object.assign(ABILITIES,{'Rain caller':'Summons rain on battle entry until anoth
 for(const id of ['brookfin','rivermaw'])SPECIES[id].extraAbility='Rain caller';
 for(const id of ['sunpip','dawncrest'])SPECIES[id].extraAbility='Sun caller';
 for(const id of ['tinling','forgeback'])SPECIES[id].extraAbility='Iron resolve';
+
+// Species rarity is independent of inherited coat rarity. Native residents stay common;
+// a few specialist lines are occasional finds within their existing habitats.
+const FIELD_RARITY={Common:{weight:1},Uncommon:{weight:.2},Rare:{weight:.05}};
+for(const [id,s] of Object.entries(SPECIES))s.fieldRarity=['thoughtlet','brookfin','wispup'].includes(id)?'Rare':['duskit','sunpip','snowbun','voltkit'].includes(id)?'Uncommon':'Common';
