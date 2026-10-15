@@ -107,3 +107,7 @@ A collapsed comparison under Capacity & quality shows the next hire, equipment, 
 ## v0.17 compact viewport audit
 
 Added sixth UI suite at 320x568 and 667x375, navigation/dialog/save overlays. Inspection found landscape home primary action offscreen under the fixed scene minimum. Reduced short-landscape scene, removed redundant map pins in that orientation and kept the primary action above bottom navigation. Compact dialogs scroll within viewport. Revised actual landscape pixels inspected. Full six-UI runner plus all 153/fuzz/soak/strategy checks passes. No gameplay balance change or live verification.
+
+## v0.18 recovered-source audit
+
+Recovered v17 from repository backup after working storage reset; all runtime hashes matched. Engine/fuzz/soak/strategy/six UI rerun passed. Slow fresh Chrome startup needed a longer bounded test harness wait with explicit timeout reporting. Imported HTML-like company/event/report strings tested as inert text, including native sale dialog title. Shell runner/package executable bits restored on the recovered copy. No gameplay or visual layout change.
