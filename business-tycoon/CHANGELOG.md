@@ -1,3 +1,8 @@
+# v41 - October 15, 2026
+- Existing job-path disclosure replaces pay-only pills with each job's pay, hours, shift limit, job-specific promotion and industry-experience benefit, plus exact missing application requirements.
+- Distinguishes overall work-experience tier from job-specific promotions; changing careers does not inherit another job's pay level. Industry experience reduces future fit-out, not current expenses.
+- Pure careerQuote helper matches1,080 application-gate cases. Thirty fully earned fresh-opening to qualified16-week career comparisons verify pay/time/industry differences from common salary-funded qualifications. No career mechanics, economy or save change.
+
 # v40 - October 15, 2026
 - Existing personal-work area shows weekly hours a shift needs, slots/hours exhaustion and any drop in scheduled side-hustle net caused by taking it.
 - Existing side-hustle disclosure now lists owned activities in actual settlement order with scheduled/paused/skipped hours and net. Preview does not reserve time or cash and remains outside company cash forecasts.
