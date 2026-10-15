@@ -10,6 +10,7 @@ node test-life.mjs > "$BUSINESS_GAME_OUTPUT/life-results.txt"
 tail -1 "$BUSINESS_GAME_OUTPUT/life-results.txt"
 node test-engine.mjs > "$BUSINESS_GAME_OUTPUT/engine-results.txt"
 tail -1 "$BUSINESS_GAME_OUTPUT/engine-results.txt"
+node fuzz-life.mjs
 node fuzz.mjs
 node soak.mjs
 node strategy.mjs > "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
