@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-154 legacy deterministic checks plus 18 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+154 legacy deterministic checks plus 21 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -27,4 +27,8 @@ Local passes do not verify the production route, dashboard card, signed-in cloud
 
 
 ## v20 evidence distinction
-Six legacy browser suites now seed an explicit existing v19 initial save before first load; their earned portfolio path proves compatibility, not a fresh clicker-to-portfolio path. The seventh suite starts with empty storage and earns the opening through full-time employment using only UI actions, then checks reload and 320/390/1280 widths. No injected money in that run. Engine opening suite includes 70 days / 4,200 taps with save restores, free pantry, activity effects, partial/first-full-time gates and ownership tap retirement. Full earned fresh opening-to-company UI proof is next increment.
+Six legacy browser suites now seed an explicit existing v19 initial save before first load; their earned portfolio path proves compatibility, not a fresh clicker-to-portfolio path. The seventh suite starts with empty storage and earns the opening through full-time employment using only UI actions, then checks reload and 320/390/1280 widths. No injected money in that run. Engine opening suite includes 70 days / 2,800 taps with save restores, free pantry, activity effects, partial/first-full-time gates and ownership tap retirement. v21 extends that same earned fresh path into company/first employee, removes tapping at ownership, exports the actual save, advances the game, imports that file and verifies exact restoration.
+
+
+## v21 time/transition checks
+Salary shifts, foundation training/classes, practical courses and completed customer jobs use daily time/condition before ownership. Productive apartment work/learning/taps share the 40 active-hour weekly budget. Sleep resets daily hours; only the seventh night settles a week. Next week skips to the next personal-week boundary. Activities fail atomically if either budget is unavailable. First-company review retains its full recruitment/operating-reserve warning; the room goal now uses that reserve instead of a too-small living-only target.
