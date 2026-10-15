@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.17. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.18. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
