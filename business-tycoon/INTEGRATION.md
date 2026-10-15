@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.29. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.30. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -98,3 +98,6 @@ Books now exposes the existing sequential settlement rule with per-firm collecti
 Two tests prove free reversible ordering, validation, persistence and tight-cash order-sensitive stock funding with actual settlement reconciliation. Financial fuzz includes order changes. Deep UI uses a labeled local two-firm tight-cash fixture, reorders, checks saved/displayed order and exact settlement, and captures 320/390/1280. This fixture is not earned-path evidence.
 
 strategy-portfolios.mjs adds 10 fully earned fresh-to-four-firm 120-week portfolios: service/shop/manufacturing/logistics and service/mechanic/cafe/transport across five seeds. Starting capital is salary-earned, salary stops at first ownership, later firms are funded by company operations, no cash injection/manual customer-job farming. Conservative reserve thresholds; not minimum-capital claims. Per-action solvency, shared cash forecast reconciliation, order changes and exact restore required. End cash about $135k-$189k; all four firms earned by weeks 40-54. Run full extracted runner: 167 engine +34 apartment checks and all previous fuzz/soak/strategy/seven-UI checks. ROADMAP updated with next goals.
+
+## v30 dispatch decision
+Optional logistics `route` is `accounts` (legacy default) or `express`. Accounts keep the prior numeric model and 2-week terms. Express has 25% higher ticket, 20% lower base demand, 25% lower route capacity and 30% more variable fuel per stop, with same-settlement collection. Free switching affects future sales only; existing invoice objects/dates are untouched. No save reset or schema bump. Branches inherit the operational choice.
