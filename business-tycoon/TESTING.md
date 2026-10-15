@@ -117,3 +117,6 @@ Funded UI fixtures compare displayed planned profit/cash against cashPlan, verif
 
 ## v38 earned expansion and opening quote
 60 company-funded expansions:43survive,17asserted first-negative stops, exact settlement cash and restore. All six second-industry choices start after an earned service firm; no salary after first ownership. Target reserves are not exact minimums. Quote tests cover all industry fit-outs and stock examples without mutation. UI checks three industries,320x568/390/1280, expanded explanations, state-free Back and only actual fit-out charged.
+
+## v39 recovery access
+strategy-expansion.mjs writes one genuinely earned service-to-factory negative-cash save to BUSINESS_GAME_OUTPUT for browser regression. UI loads that exact save, checks three widths and no-save-change recovery navigation, then one real shift increases cash without advancing the week or changing companies. It does not claim an all-UI earned second firm or guaranteed recovery. Existing unpaid/stock/invoice risks remain.
