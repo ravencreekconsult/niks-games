@@ -15,7 +15,7 @@ grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
 if [[ ${1:-} == --ui ]]; then
   command -v google-chrome-stable >/dev/null
   python3 -c 'import websocket'
-  for name in earned deep interactions lifecycle touch; do
+  for name in earned deep interactions lifecycle touch compact; do
     python3 "ui-tests/test-business-${name}-ui.py" > "$BUSINESS_GAME_OUTPUT/${name}-results.txt"
     printf 'PASS UI suite: %s\n' "$name"
   done
