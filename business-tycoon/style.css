@@ -69,3 +69,5 @@ button.unavailable{border-style:dashed;filter:saturate(.55);box-shadow:none}.una
 .startup-review .split{gap:16px}.startup-review .split strong{flex-shrink:0}.startup-review summary{min-height:44px;padding:10px 0;cursor:pointer;color:#d7e4dd}.startup-review>p{margin:12px 0}@media(max-height:640px){dialog .startup-review{font-size:13px}dialog .startup-review>p{margin:8px 0}dialog .startup-review .small{font-size:12px}}
 
 @media(max-height:640px){dialog[data-startup-review]{padding:16px}dialog[data-startup-review] h2{font-size:20px;line-height:1.15;margin-bottom:12px}dialog[data-startup-review] .rows .split{padding:9px 0}dialog[data-startup-review] #confirm{margin-top:8px}dialog[data-startup-review] #cancel{margin-top:8px}dialog[data-startup-review] .startup-review>p{margin:7px 0}}
+
+.life-controls{scroll-margin-top:110px}.life-controls>summary{min-height:44px;padding:10px 0;cursor:pointer;color:#d7e4dd}.cash-exposure .actions{margin:14px 0}
