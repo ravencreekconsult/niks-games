@@ -44,13 +44,15 @@ try:
  shot('clicker-fresh-390')
  assert not js('document.documentElement.scrollWidth>innerWidth')
  # Earned-only opening: taps, sell, upgrade, learn, recover, casual shifts.
- click('life:tap');assert state()['cash']==13
+ cmd('Emulation.setTouchEmulationEnabled',{'enabled':True,'maxTouchPoints':5})
+ r=js('(()=>{let r=document.querySelector(".tap-earn").getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()')
+ cmd('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':r['x'],'y':r['y'],'radiusX':2,'radiusY':2,'force':1,'id':1}]});cmd('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});time.sleep(.15);assert state()['cash']==13
  sheet('sell');click('life:sell',{'id':'headphones'});assert state()['cash']==31;close()
  sheet('upgrade');click('life:upgrade');assert state()['life']['upgrade']==1;close()
- click('life:tap');assert state()['cash']==16.75
+ cmd('Emulation.setFocusEmulationEnabled',{'enabled':True});js('document.querySelector(".tap-earn").focus()');cmd('Input.dispatchKeyEvent',{'type':'keyDown','text':'\r','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});cmd('Input.dispatchKeyEvent',{'type':'keyUp','key':'Enter','code':'Enter','windowsVirtualKeyCode':13});assert state()['cash']==16.75;assert js('document.activeElement.dataset.action')=='life:tap'
  sheet('learn');click('life:activity',{'id':'book'});shot('clicker-learning-390');close()
- sheet('jobs');click('life:job',{'id':'retail'});click('life:casualShift');assert state()['life']['phase']=='clicker';close()
- sheet('rest');click('life:sleep');close()
+ sheet('jobs');click('life:job',{'id':'retail'});click('life:casualShift');assert state()['life']['phase']=='clicker';close();assert state()['life']['focused']>4;time.sleep(3.6);shot('clicker-overwork-390');sheet('social');click('life:activity',{'id':'walk'});assert state()['life']['focused']==0;shot('clicker-break-390');close()
+ sheet('rest');shot('clicker-rest-options-390');click('life:sleep');close()
  sheet('jobs');click('life:casualShift');close()
  sheet('learn');click('life:activity',{'id':'book'});close()
  sheet('rest');click('life:sleep');close()
@@ -97,7 +99,21 @@ try:
   time.sleep(.1)
  shot('clicker-owner-import-review-390');js('Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Import to this device").click()');time.sleep(.7)
  assert state()==saved
- print('PASS earned fresh clicker -> casual shifts -> full-time -> company -> crew; daily/weekly hours, tap retirement, actual exported-file restore and 320/390/1280 layouts')
+ # A separate empty localhost origin proves a bad first week is recoverable, with no injected balance.
+ cmd('Page.navigate',{'url':'http://localhost:8799/'})
+ for _ in range(60):
+  if js('!!document.querySelector(".life-room")'):break
+  time.sleep(.1)
+ assert state()['cash']==12.5
+ sheet('rest');click('week');assert state()['cash']==-62.5 and state()['life']['day']==8;close()
+ old=state()['cash'];click('life:tap');assert state()['cash']>old
+ sheet('food');click('life:pantry');close()
+ sheet('learn');click('life:activity',{'id':'book'});close()
+ sheet('jobs');click('life:job',{'id':'retail'});click('life:casualShift');close()
+ sheet('rest');click('life:sleep');close()
+ sheet('jobs');click('life:casualShift');close()
+ assert state()['cash']>0;shot('clicker-earned-negative-recovery-390')
+ print('PASS earned fresh clicker -> casual shifts -> full-time -> company -> crew; daily/weekly hours, tap retirement, actual exported-file restore, real touch/keyboard activation, overwork/breaks, skipped-week negative-cash recovery and 320/390/1280 layouts')
 finally:
  try:ws.close()
  except:pass
