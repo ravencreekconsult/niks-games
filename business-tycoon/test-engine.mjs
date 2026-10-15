@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions,acquisitionForecast,cashExposure,physicalCapacity} from './engine.mjs';
+import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones,upgradeOptions,acquisitionForecast,cashExposure,physicalCapacity,startupQuote} from './engine.mjs';
 let tests=0;const test=(n,f)=>{f();tests++;console.log('PASS',n)};
 let s=initial();test('apartment starts with $110 and no company',()=>assert.equal(s.cash,110));
 test('cannot open without skill',()=>assert.throws(()=>action(s,'open',{industry:'service'})));
@@ -127,4 +127,8 @@ console.log('LATEST TOTAL: '+tests+' checks passed');
 
 test('physical capacity makes bay/fleet bottlenecks explicit without mutating state',()=>{for(let type of ['mechanic','transport']){let x={...initial(),cash:20000,skill:2};x=action(x,'open',{industry:type});for(let n=0;n<2;n++)x=action(x,'hire',{id:1});let before=structuredClone(x),q=physicalCapacity(x,x.businesses[0]);assert.equal(q.limitedBy,'physical');assert.equal(q.physical,type==='mechanic'?9:65);assert.ok(q.unusedLabor>0);assert.equal(q.capacity,forecast(x,x.businesses[0]).capacity);assert.deepEqual(x,before);let y=action(x,'hire',{id:1});assert.equal(physicalCapacity(y,y.businesses[0]).capacity,q.capacity);y=action(x,'tool',{id:1});assert.ok(physicalCapacity(y,y.businesses[0]).capacity>q.capacity);}});
 test('physical capacity reports condition and labor without claiming sales',()=>{let x={...initial(),cash:20000,skill:2};x=action(x,'open',{industry:'mechanic'});x=action(x,'hire',{id:1});let q=physicalCapacity(x,x.businesses[0]);assert.equal(q.limitedBy,'labor');assert.equal(q.labor,7);x.businesses[0].condition=0;assert.equal(physicalCapacity(x,x.businesses[0]).capacity,5);assert.equal(physicalCapacity(x,{...x.businesses[0],type:'service'}),null);});
+console.log('LATEST TOTAL: '+tests+' checks passed');
+
+test('startup quote matches actual fitout without spending or changing the save',()=>{for(let type of Object.keys(INDUSTRIES)){let x={...initial(),cash:20000,skill:2},before=structuredClone(x),q=startupQuote(x,type),y=action(x,'open',{industry:type});assert.equal(y.cash,q.afterFitout);assert.equal(x.cash-y.cash,q.fitout);assert.equal(q.exampleExtra,180+INDUSTRIES[type].wage+INDUSTRIES[type].overhead+q.firstStock);assert.deepEqual(x,before);assert.equal(q.firstStock,q.stock?inventoryQuote(x,{type,product:'components'},10):0);}});
+test('startup quote separates delayed collections and cannot invent an industry',()=>{let x=initial();assert.equal(startupQuote(x,'manufacturing').lag,2);assert.equal(startupQuote(x,'transport').lag,1);assert.equal(startupQuote(x,'service').lag,0);assert.ok(startupQuote(x,'manufacturing').afterFitout<0);assert.throws(()=>startupQuote(x,'unknown'));});
 console.log('LATEST TOTAL: '+tests+' checks passed');
