@@ -1,11 +1,11 @@
 # Business simulation preview integration
 
-Current package: v0.19. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.20. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
 
-Copy only index.html, style.css, app.mjs, engine.mjs, content.mjs, cloud-save.js and assets/apartment.webp, assets/workshop.webp, assets/city.webp into the game runtime. Test scripts and Markdown are source/acceptance material, not public runtime assets. There are no package dependencies, build step, credentials or paid services in the runtime.
+Copy only index.html, style.css, app.mjs, engine.mjs, life.mjs, content.mjs, cloud-save.js and assets/apartment.webp, assets/workshop.webp, assets/city.webp into the game runtime. Test scripts and Markdown are source/acceptance material, not public runtime assets. There are no package dependencies, build step, credentials or paid services in the runtime.
 
 Save key business-sim-v1; envelope game business-tycoon; schemaVersion 1. Optional fields restore with safe defaults. Invalid local original bytes are retained under business-sim-v1-recovery for download. Private account data was not used in development tests.
 
@@ -23,8 +23,14 @@ Outside equity, actual-history buyer values and amortizing growth loans; three u
 
 ## Verified local evidence
 
-154 deterministic checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Six Chrome UI suites: earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
+154 legacy deterministic checks plus 18 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
 
 ## Honest limits
 
 Playable preview, not full-depth completion. Four concurrent companies, three listed properties, one active product line per factory, authored limited founder choices and modeled failure odds, simplified personal-liability lending/defaults/taxes, grouped tenants, seeded fictional stocks, illustrative static city scenes rather than dynamic buildings. Wages and side-hustle demand are deterministic. Chrome touch emulation is not real iPhone/Safari testing. Existing clean environment art does not fully match the painterly reference target. Live route/dashboard/cloud and real-device verification are unverified in this build lane.
+
+
+## v20 opening
+Fresh profiles start unemployed at $12.50, daily life bars, $0.50 taps, three per-tap upgrades, three one-off fictional Facebook sales, learning/food/rest/social choices and casual jobs. First full-time coordinator requires 6 knowledge and 2 casual shifts. Only that role opens the existing career/company game; tap income remains until first company. Existing v19 saves have no life object and remain exactly on their old path. Do not clear user saves to show the new opening. Use a fresh browser profile or local save backup before intentional restart.
+
+life.mjs is a REQUIRED new runtime module. Copy it alongside engine.mjs/app.mjs; an omitted module prevents startup. No shared dashboard files changed. Screenshots show actual tested local app, not mockups. Transition wiring is a working bridge in v20; further work will tighten the weekly/personal-time relationship and extend earned proof into company ownership. Free pantry once per day, free walks/books/rest and no real-time wait prevent pay/clock softlocks. Food costs are additional to the existing weekly $75 living cost.
