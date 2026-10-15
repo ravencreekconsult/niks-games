@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay} from './engine.mjs';
+import {initial,action,forecast,worth,stage,INDUSTRIES,payment,restore,validSave,inventoryQuote,industryExpertise,careerLevel,careerPay,cashPlan,milestones} from './engine.mjs';
 let tests=0;const test=(n,f)=>{f();tests++;console.log('PASS',n)};
 let s=initial();test('apartment starts with $110 and no company',()=>assert.equal(s.cash,110));
 test('cannot open without skill',()=>assert.throws(()=>action(s,'open',{industry:'service'})));
@@ -55,4 +55,7 @@ let job={...initial(),cash:2000,skill:3,jobLevel:2,education:{trades:1,productio
 
 
 let lending=structuredClone(rich);let preLoanWorth=worth(lending);lending=action(lending,'loan',{id:1});test('loan cash does not increase net worth',()=>{assert.equal(worth(lending),preLoanWorth);assert.ok(lending.cash>rich.cash);assert.ok(lending.loans[0].balance>0)});let loanPrincipal=lending.loans[0].balance,lendingNext=action(lending,'week');test('business loan amortizes and records interest separately',()=>{assert.ok(lendingNext.loans[0].balance<loanPrincipal);assert.ok(lendingNext.report.items.some(x=>x.name==='Growth loan'&&x.why.includes('Interest')))});test('new company cannot borrow against imagined profits',()=>assert.throws(()=>action(fresh,'loan',{id:1})));let afterSale=action(lending,'sellBusiness',{id:1});test('company sale does not silently erase loan debt',()=>assert.equal(afterSale.loans[0].balance,loanPrincipal));let repaid=action(lending,'repayLoan',{id:lending.loans[0].id});test('early payoff removes principal and cash equally',()=>{assert.equal(repaid.loans.length,0);assert.equal(repaid.cash,lending.cash-loanPrincipal)});
+
+
+let simplePlan=cashPlan(fresh);let simpleSettled=action(fresh,'week');test('cash planner matches a simple service settlement',()=>assert.ok(Math.abs(simplePlan.net-simpleSettled.report.net)<.02));let pendingPlan=cashPlan(logi);test('cash plan includes invoices due this week',()=>assert.equal(pendingPlan.collections,(logi.businesses[0].receivables||[]).filter(r=>r.due<=logi.week).reduce((n,r)=>n+r.amount,0)));test('progress steps correspond to actual state',()=>{assert.ok(milestones(fresh).find(m=>m.name==='Hire your first employee').done);assert.ok(!milestones(initial()).some(m=>m.done))});
 console.log('FINAL: '+tests+' engine tests passed');
