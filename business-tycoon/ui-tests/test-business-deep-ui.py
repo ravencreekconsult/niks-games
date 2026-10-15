@@ -83,6 +83,18 @@ try:
  js('document.querySelector("[data-nav=business]").click()');js('document.querySelector(".upgrade-options").open=true;document.querySelector(".upgrade-options").scrollIntoView({block:"start"})');shot('upgrade-options-390');
  js('document.querySelector("[data-nav=business]").click()');js('document.querySelector("[data-action=reviewSale]").click()');shot('sale-liabilities-390');js('document.querySelector("#cancel").click()')
  js('document.querySelector("[data-nav=deals]").click()');js('document.querySelector("[data-action=reviewAcquire]").click()');shot('acquisition-current-390');js('document.querySelector("#cancel").click()')
+ # Isolated funded UI fixture: service-style choice/preview, not earned startup evidence.
+ js('(async()=>{let e=await import("./engine.mjs");let t={...e.initial(),cash:40000,skill:2};t=e.action(t,"open",{industry:"cafe"});t=e.action(t,"hire",{id:1});t=e.action(t,"hire",{id:1});t=e.action(t,"buyStock",{id:1,count:200});localStorage.setItem("business-sim-v1",JSON.stringify(t));setTimeout(()=>location.reload(),0)})()')
+ js('document.querySelector("[data-nav=business]").click()');js('document.querySelector(".cafe-style-options").scrollIntoView({block:"start"})');shot('cafe-styles-before-390')
+ before=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ js('Array.from(document.querySelectorAll("[data-action=cafeStyle]")).find(x=>JSON.parse(x.dataset.args).style==="table").click()')
+ after=js('JSON.parse(localStorage.getItem("business-sim-v1"))');assert after['businesses'][0]['cafeStyle']=='table' and before['cash']==after['cash'] and before['businesses'][0]['inventory']==after['businesses'][0]['inventory']
+ assert js('document.querySelector(".cafe-style-options").innerText.includes("Table service · active")');assert js('document.querySelector("[data-setting=price]").selectedOptions[0].textContent.includes("$20")')
+ for w in [320,390,1280]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':844,'deviceScaleFactor':1,'mobile':w<800});js('document.querySelector(".cafe-style-options").scrollIntoView({block:"start"})');assert not js('document.documentElement.scrollWidth>innerWidth');shot('cafe-styles-after-'+str(w))
+ js('window.cashQuote=window.factoryEngine.cashPlan(JSON.parse(localStorage.getItem("business-sim-v1"))).companies[0]') if js('!!window.factoryEngine') else js('(async()=>{let e=await import("./engine.mjs");window.cashQuote=e.cashPlan(JSON.parse(localStorage.getItem("business-sim-v1"))).companies[0]})()')
+ js('document.querySelector("[data-action=week]").click()');assert abs(js('JSON.parse(localStorage.getItem("business-sim-v1")).businesses[0].last.net-window.cashQuote.net'))<.01
+ cmd('Emulation.setDeviceMetricsOverride',{'width':390,'height':844,'deviceScaleFactor':1,'mobile':True})
  js('document.querySelector("#savebtn").click()');shot('save-menu-390');print('save controls',js('document.body.innerText.slice(-1300)'))
  print('saved local bytes',js('localStorage.getItem("business-sim-v1").length'))
 finally:p.terminate();server.shutdown()
