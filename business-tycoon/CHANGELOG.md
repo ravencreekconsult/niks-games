@@ -149,3 +149,10 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Rising earned-cash tap feedback, reduced-motion support and weekly exhaustion guidance.
 - Tap quote matches payout across the overwork low-mood threshold.
 - 31 deterministic apartment checks plus full prior regression and real-touch visual proof.
+
+
+## v0.25 - workshop as the next operating world
+- New-opening owners get forecasts, demand/capacity bar, hiring/management/inspection and weekly settlement on the workshop.
+- Short recruiting cash is visible before hire; first-company review/reserve remains intact.
+- 15 additional earned fresh-life strategies across three routes/five seeds; 24 owner weeks and management, no injected capital or manual-job farming.
+- Actual earned workshop/inspection and phone/desktop checks in the fresh UI suite; prior regression preserved.
