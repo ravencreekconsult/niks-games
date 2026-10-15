@@ -122,3 +122,10 @@ Removed stale hardcoded cafe acquisition capacity. Review now uses the same fore
 - Casual employment does not end clicker; first full-time job opens career/company bridge. First company retires tapping.
 - Optional validated life save object; existing saves preserve old progression. Required life.mjs module.
 - 18 new apartment checks; separate fresh-start earned Chrome suite. Existing six suites are explicitly v19-save compatibility checks.
+
+
+## v0.21 - career takes the lead, then ownership
+- Full-time salary shifts become primary room action; tapping stays secondary until first company.
+- Daily life condition applies to pre-owner weekly career/study work. Shared productive weekly time budget, aligned sleep/next-week calendar.
+- Consistent first-company reserve guidance; normalized company fields on creation.
+- 21 apartment checks and fresh earned UI proof through first company, employee and actual exported-file restore.
