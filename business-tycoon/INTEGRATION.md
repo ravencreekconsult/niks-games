@@ -54,3 +54,11 @@ Manufacturing now chooses standard components, commercial fixtures or precision 
 A managed company with eight settled weeks and positive cumulative profit can secure a bounded 12% fixed annual growth loan, 52 amortizing weekly payments. Principal raises cash and debt equally, interest and principal are visible separately, payoff uses actual cash, and selling the company does not erase the loan. This is a simplified personally liable loan, not a full secured-lending/legal model. Terms are reviewed in a confirmation dialog.
 
 UI checks selected the fixtures recipe, bought packs, scheduled work-in-progress, selected machinist career and reviewed/accepted a growth loan on a labeled local eligibility fixture. Actual pixels inspected show recipe controls and complete loan terms. Earlier widths/scenarios still pass. No cloud-account or deployment verification claimed.
+
+## v0.6 earned-path and cash clarity update
+
+88 deterministic engine checks plus 10,000 fuzz transitions pass. A separate Chromium UI run starts from $110 and makes only real UI actions: shifts, foundation class, hands-on customer jobs, first company, employees, manager, equipment, second logistics company, apartment property, founder diligence and negotiated investment over 20 weeks. No injected cash or altered game state. It reaches $37,737.54 cash at week 21 with two companies, property and funded founder, without negative cash. Refresh preserves substantive progress (restore may add safe default fields). This tests one viable path, not every balance choice.
+
+Opening a company from Deals now takes the player straight to its operations. A next-steps panel makes the progression discoverable. Before-week cash planner shows bills due, collections/rents and the estimated operating cash gap, including accrued premises/payroll billing and loan payments. Its scope excludes new purchases, side hustles and dividends; production/tenants/demand can change results. Start-company review states a planning reserve for recruiting/wages/premises, not an extra fee.
+
+Actual pixels inspected: earned second company/district, achieved milestones and labeled bills/collections forecast. Deep scenario regression at 320/390/1280 remains green, including recipes, loans and hustles. No production cloud account, staging, live deployment or GitHub verification claimed by this lane.
