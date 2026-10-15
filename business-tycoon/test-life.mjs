@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {freshInitial,initial,action,validSave,restore} from './engine.mjs';
-import {LIFE_ACTIVITIES} from './life.mjs';
+import {LIFE_ACTIVITIES,offerFor,foundItems} from './life.mjs';
 let checks=0;const test=(name,f)=>{f();checks++;console.log('PASS '+name);};
 let s=freshInitial();test('unemployed start uses real cents',()=>{assert.equal(s.cash,12.5);assert.equal(s.life.employment,'unemployed');assert.equal(s.life.phase,'clicker');});
 test('legacy initial and restores unchanged',()=>{let a=initial();assert.equal(a.cash,110);assert.equal(restore(a).life,undefined);assert.deepEqual(restore(a),a);});
@@ -28,4 +28,8 @@ test('old v20 life saves restore without a focused field',()=>{let a=freshInitia
 test('next week resets streak and calendar once',()=>{let a=freshInitial();a=action(a,'life:activity',{id:'book'});a=action(a,'week');assert.equal(a.week,2);assert.equal(a.life.day,8);assert.equal(a.life.focused,0);assert.equal(a.cash,-62.5);});
 test('seventh night applies overnight effects once, skip matches sleep',()=>{let a=freshInitial();a.life.day=7;a.life.food=100;a.life.mood=20;let b=action(a,'life:sleep');assert.equal(b.life.food,85);assert.equal(b.life.mood,32);let c=action(a,'week');assert.equal(c.life.food,b.life.food);assert.equal(c.life.mood,b.life.mood);assert.equal(c.week,b.week);});
 test('negative cash still allows free recovery work, learning and pantry',()=>{let a=freshInitial();a=action(a,'week');assert.equal(a.cash,-62.5);let b=action(a,'life:tap');assert.ok(b.cash>a.cash);b=action(b,'life:pantry');b=action(b,'life:activity',{id:'book'});b=action(b,'life:job',{id:'retail'});b=action(b,'life:casualShift');assert.ok(b.cash>-10);assert.ok(validSave(b));assert.throws(()=>action(a,'life:activity',{id:'snack'}));});
+test('room search unlocks one-off sale without duplication',()=>{let a=freshInitial();assert.deepEqual(foundItems(a.life),['headphones']);assert.throws(()=>action(a,'life:sell',{id:'lamp'}));a=action(a,'life:search',{id:'cupboard'});assert.ok(foundItems(a.life).includes('lamp'));assert.throws(()=>action(a,'life:search',{id:'cupboard'}));a=action(a,'life:sell',{id:'lamp'});assert.equal(a.cash,24.5);assert.throws(()=>action(a,'life:sell',{id:'lamp'}));assert.ok(validSave(a));});
+test('older life saves keep known household listings',()=>{let a=freshInitial();delete a.life.found;assert.equal(foundItems(a.life).length,3);assert.equal(action(a,'life:sell',{id:'console'}).cash,57.5);});
+test('small offer requires knowledge and condition, pays once per day',()=>{let a=freshInitial(),o=offerFor(a.life);assert.throws(()=>action(a,'life:offer',{id:o.id}));a=action(a,'life:activity',{id:'book'});let before=a.cash;a=action(a,'life:offer',{id:o.id});assert.equal(a.cash,before+o.pay);assert.equal(a.life.knowledge,3);assert.equal(a.life.phase,'clicker');assert.throws(()=>action(a,'life:offer',{id:o.id}));a=action(a,'life:sleep');assert.notEqual(offerFor(a.life).id,o.id);assert.throws(()=>action(a,'life:offer',{id:o.id}));});
+test('offer cannot bypass low nourishment or mood',()=>{let a=freshInitial();a.life.knowledge=10;a.life.food=19;assert.throws(()=>action(a,'life:offer',{id:offerFor(a.life).id}));a.life.food=100;a.life.mood=24;assert.throws(()=>action(a,'life:offer',{id:offerFor(a.life).id}));});
 console.log('PASS '+checks+' apartment checks');
