@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.28. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.29. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -90,3 +90,11 @@ Added strategy-industries.mjs to runner/package: 45 fully earned salary-to-compa
 Cafe service choices now change real visit ticket, demand and capacity: standard preserves the previous behavior; counter lowers ticket 10%, raises capacity 30% and demand 10%; table raises ticket 25%, lowers capacity 25% and demand 10%. Free reversible format changes preserve ingredient units and paid cost basis. Local previews show actual projected visits/profit and warn that stock/demand limit outcomes. Exact-cent tickets are shown. Engine tests prove forecast/settlement match, retained stock/cash, rejected wrong-firm/invalid styles, save restore, and that one-employee vs two-employee contexts prefer different formats. Optional cafeStyle is absent on older saves, which retain standard behavior. Finance fuzz includes style changes.
 
 Final acceptance: 165 engine checks, 34 apartment checks; all previous fuzz/soak/strategy/UI suites plus the new 45-path matrix. Deep UI uses an explicitly funded local cafe fixture to select table service and check actual setting, stock/cash preservation and settlement; that UI fixture is not earned-start proof. ROADMAP.md now included in package.
+
+
+## v29 - shared cash allocation and earned four-firm portfolios
+Books now exposes the existing sequential settlement rule with per-firm collection/stock/bills/net rows and free reversible earlier/later controls. Order changes the shared cash available for manager restock after preceding collections/bills. No setup cost or time passes when reordering; array order persists through save/restore. Existing saves keep their current order. The view explains that the manager's $500 purchasing floor is not a solvency guarantee and that living/property/loan flows differ from firm-only cash.
+
+Two tests prove free reversible ordering, validation, persistence and tight-cash order-sensitive stock funding with actual settlement reconciliation. Financial fuzz includes order changes. Deep UI uses a labeled local two-firm tight-cash fixture, reorders, checks saved/displayed order and exact settlement, and captures 320/390/1280. This fixture is not earned-path evidence.
+
+strategy-portfolios.mjs adds 10 fully earned fresh-to-four-firm 120-week portfolios: service/shop/manufacturing/logistics and service/mechanic/cafe/transport across five seeds. Starting capital is salary-earned, salary stops at first ownership, later firms are funded by company operations, no cash injection/manual customer-job farming. Conservative reserve thresholds; not minimum-capital claims. Per-action solvency, shared cash forecast reconciliation, order changes and exact restore required. End cash about $135k-$189k; all four firms earned by weeks 40-54. Run full extracted runner: 167 engine +34 apartment checks and all previous fuzz/soak/strategy/seven-UI checks. ROADMAP updated with next goals.
