@@ -69,6 +69,7 @@ try:
  st=state();assert len(st['businesses'])==2;assert len(st['properties'])==1;assert st['startups'][0]['funded'];assert st['businesses'][0]['manager']
  before=st;cmd('Page.reload');time.sleep(.3);after=state();assert all(after[k]==before[k] for k in ['week','cash','properties','startups','market','ledger','stocks']),'reload changed progress';assert all(after['businesses'][i].get(k)==v for i,b in enumerate(before['businesses']) for k,v in b.items()),'reload changed company progress'
  nav('city');shot('earned-city-390');js('document.querySelector(".journey").open=true');js('document.querySelector(".journey").scrollIntoView({block:"start"})');shot('earned-journey-390');js('Array.from(document.querySelectorAll("h3")).find(x=>x.innerText==="Before the next week").scrollIntoView({block:"center"})');shot('earned-cash-plan-390');print('PASS earned UI journey: $110, shifts/classes/jobs, managed company, logistics, property, founder, 20 weeks, exact save refresh')
+ nav('report');js('document.querySelector(".cash-history").scrollIntoView({block:"center"})');shot('earned-cash-history-390')
  # Continue the earned founder stake all the way to a real UI buyer review and cash exit.
  nav('deals');js('document.querySelector("[data-dealtab=founders]").click()');founder=state()['startups'][0];fid=founder['id']
  for _ in range(3):click('mentor',{'id':fid})
