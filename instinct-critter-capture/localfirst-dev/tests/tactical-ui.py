@@ -92,6 +92,28 @@ try:
  assert js('JSON.stringify(CritterDebug.state())')==earned
  assert js('CritterDebug.validSave(CritterDebug.state())')
  print('PASS captured family save reload preserves full state bytes including HP/XP/identity/lineage/supplies')
+ # Read-only current habitat hunting notes and phone layout.
+ js('Math.random=()=>.99;document.querySelector("#menuBtn").click()')
+ js('Array.from(document.querySelectorAll("#modalBody button")).find(b=>b.getAttribute("aria-label")==="Wild encounters").click()')
+ assert js('document.querySelector("#modalBody").innerText.includes("In this habitat right now")')
+ for w,h in [(320,568),(390,844),(1280,844)]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800})
+  before=js('JSON.stringify(CritterDebug.state())')
+  js('CritterDebug.showEncounterNotes()')
+  assert js('JSON.stringify(CritterDebug.state())')==before
+  assert not js('document.documentElement.scrollWidth>innerWidth')
+  assert js('document.querySelector("#modalBody").innerText.includes("Unrecorded species")')
+  shot('rarity-habitat-'+str(w))
+  js('document.querySelector("#modalBody").parentElement.scrollTop=10000')
+  shot('rarity-coats-'+str(w))
+  js('document.querySelector("#closeModal").click()')
+ print('PASS habitat hunting notes read-only320/390/1280: common/uncommon/rare rates, unseen names hidden, separate coats and ultra breeding rules')
+ # Isolated real rare-species encounter fixture. This is not an earned journey or a granted collection.
+ js('CritterDebug.state().timeMode="Day";CritterDebug.state().weatherMode="Clear";CritterDebug.setPosition("forest",10,5);window._oldRandom=Math.random;window._firstRoll=true;window._rareRoll=(()=>{let t=CritterDebug.encounterTable(),sum=0;for(let[id,w]of t){if(id==="thoughtlet")return (sum+w/2)/100;sum+=w}throw Error("Missing rare habitat resident")})();Math.random=()=>{if(_firstRoll){_firstRoll=false;return _rareRoll}return .5};CritterDebug.startBattle(false);Math.random=_oldRandom')
+ assert js('CritterDebug.battle().foes[0].id==="thoughtlet"&&CritterDebug.battle().foes[0].wildRarity===0')
+ assert js('CritterDebug.battle().log.some(s=>s.includes("Rare species"))')
+ js('CritterDebug.finishBattle("Fixture complete")')
+ print('PASS actual wild encounter uses continuous species sampler and announces rare species independently of Native coat; isolated fixture')
  # Explicit isolated tactical fixture, not an earned battle or capture.
  js('window.a=CritterDebug.createMon("cindlet",18);window.a.ivs=[31,31,31,31,31,31];a.evs=[0,120,0,120,0,0];CritterDebug.setParty([a]);CritterDebug.startBattle("wren")')
  time.sleep(.2)
