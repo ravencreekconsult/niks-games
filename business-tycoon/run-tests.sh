@@ -13,6 +13,8 @@ tail -1 "$BUSINESS_GAME_OUTPUT/engine-results.txt"
 node fuzz-life.mjs
 node fuzz.mjs
 node soak.mjs
+node strategy-portfolios.mjs > "$BUSINESS_GAME_OUTPUT/strategy-portfolios-results.txt"
+grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-portfolios-results.txt"
 node strategy-industries.mjs > "$BUSINESS_GAME_OUTPUT/strategy-industries-results.txt"
 grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-industries-results.txt"
 node strategy-life.mjs > "$BUSINESS_GAME_OUTPUT/strategy-life-results.txt"
