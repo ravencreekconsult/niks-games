@@ -9,7 +9,7 @@ No account or external paid service is required for local testing.
 
 ## What is proved
 
-154 legacy deterministic checks plus 31 new apartment checks; 10,000 seeded randomized transitions; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
+172 deterministic engine checks plus 34 apartment checks; two separate 10,000-transition seeded fuzz runs; 550-week mixed portfolio and mortgage payoff; 200-week unattended property deterioration. UI tests cover one earned start-to-portfolio path, late-system fixtures and widths 320/390/1280, mouse/keyboard, Chrome touch emulation, corrupt save retention, a funded founder through support/round/exit, and downloaded-file export/import with backup. Fixture-based checks are not evidence those late states were earned. Chrome touch emulation is not a real Safari/device test.
 
 ## Morning hands-on smoke
 
@@ -78,3 +78,10 @@ Books now exposes the existing sequential settlement rule with per-firm collecti
 Two tests prove free reversible ordering, validation, persistence and tight-cash order-sensitive stock funding with actual settlement reconciliation. Financial fuzz includes order changes. Deep UI uses a labeled local two-firm tight-cash fixture, reorders, checks saved/displayed order and exact settlement, and captures 320/390/1280. This fixture is not earned-path evidence.
 
 strategy-portfolios.mjs adds 10 fully earned fresh-to-four-firm 120-week portfolios: service/shop/manufacturing/logistics and service/mechanic/cafe/transport across five seeds. Starting capital is salary-earned, salary stops at first ownership, later firms are funded by company operations, no cash injection/manual customer-job farming. Conservative reserve thresholds; not minimum-capital claims. Per-action solvency, shared cash forecast reconciliation, order changes and exact restore required. End cash about $135k-$189k; all four firms earned by weeks 40-54. Run full extracted runner: 167 engine +34 apartment checks and all previous fuzz/soak/strategy/seven-UI checks. ROADMAP updated with next goals.
+
+## v30 evidence
+50 fully earned fresh-to-industry 32-week paths: all seven industries, cafe styles and express logistics across five seeds; startup earned by salary, no outside salary after opening. Existing 10 earned 120-week four-firm paths remain. Conservative reserves, not minimal opening capital. Five new deterministic dispatch tests cover free switching, capacity/fuel/profit/cash tradeoff, invoice non-retiming, collection exactly once, cash-plan reconciliation over switches, validation and restore. v29 no-route numeric forecasts and cash plans separately compared equal across seven industries.
+
+Local funded logistics UI fixture checks switching, existing invoice dates, no setup charge, exact price label, 44px buttons, no horizontal overflow at 320/390/1280, and focus with reduced-motion emulation. This does not claim real Safari or a full accessibility audit. Actual screenshots inspected.
+
+Design reference review adopted the identity-first and hierarchy/a11y review principles described at https://github.com/madebymustafa/design-taste and https://github.com/marvkr/better-design. No third-party code installed. The first dispatch layout hid key cash values below the phone fold; revised to compact profit/cash rows and expandable capacity/fuel terms, then inspected again. Eight supplied repo pages skimmed; Hyperiux/trickle fetches unavailable. No new dependency, shader or paid tool.
