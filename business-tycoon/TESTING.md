@@ -105,3 +105,6 @@ UI fixture shows shop 250 budget buying7 units for224 against target24, then1000
 
 ## v34 earned transition feedback
 The all-UI fresh-life earned path now verifies its first actual hire receipt (0to6 capacity and no injected state). Funded manager fixture tests receipt after hire/manager, modeled buyer independence scope for nonstock services, widths320/390/1280 and save-byte-preserving dismissal. Receipt persists only in the current session and is labeled accordingly; it does not alter save format. Actual post-toast pixels inspected after adding sticky-header scroll clearance. Stock managers still need separate automatic stock/production switches. No real Safari/cloud/full-accessibility acceptance claim.
+
+## v35 company wayfinding
+The funded local fixture checks all company section jump destinations at320/390/1280, keyboard focus and reduced-motion emulation, default-closed profit/rival explanations, native expansion, return to controls and byte-identical saved state. It is not an earned progression claim. Existing earned apartment-to-owner and portfolio suites still run.
