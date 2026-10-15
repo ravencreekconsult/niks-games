@@ -1,11 +1,11 @@
-# Business sim checkpoint - October 15, 2026, 2:15 PM Pacific
+# Business sim checkpoint - October 15, 2026, 2:36 PM Pacific
 
 ## Saved checkpoint
-Latest completed cumulative build: v37, business-tycoon-slice-v37.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
+Latest completed cumulative build: v38, business-tycoon-slice-v38.tar.gz. Full extracted-package tests and screenshot inspection finished before this checkpoint. The archive and decisive images have been transferred to the project owner for backup/deployment. Deployment is a separate lane; this checkpoint does not claim this version is live.
 
 Implemented opening: unemployed small-task clicker, daily energy/mood/knowledge/nourishment, food/rest/social tiers, household discovery/sales, upgrades and daily odd jobs. Casual shifts plus knowledge earn full-time work; full-time salary becomes the main action, taps end on first-company ownership. The workshop then becomes the operating screen. Career pay progression and actual condition costs are visible. Company cash timing separates accounting profit from collections and deferred bills/invoices. Old saves are preserved.
 
-Cumulative acceptance: 178 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
+Cumulative acceptance: 180 deterministic engine checks +34 apartment checks; 10,000 apartment/career/action/save transitions and 10,000 finance/action/save transitions; 550-week portfolio/payoff/restore and 200-week unattended property tests; 15 fresh-life-to-managed-owner strategies and 15 legacy 32-week strategies; all seven local Chrome UI suites. Actual phone and desktop screenshots inspected. Fresh opening UI proof and seeded legacy/factory fixtures are separate claims. Real Safari and signed-in cloud acceptance remain unproved here.
 
 ## Next goals
 1. Earned industry paths and cash-runway balance. Extend fresh-start, no-injected-capital strategy coverage beyond the first service firm into stock-based and delayed-payment industries. Exercise purchasing/production/collection timing, delegation and shared cash across firms. Use failures to improve runway warnings or balance, with exact regression tests. Do not mistake seeded factory UI fixtures for earned progression.
@@ -69,3 +69,9 @@ The operating screen now shows labor slots, physical slots and condition-adjuste
 Home's multi-firm next-decision card now compares every firm's planned operating profit with cash change and still-accrued bills, following actual cash order. Stock purchase and invoice timing stay with each firm. Manage links select the firm and focus its controls. Comparison is folded in Business, with the existing quick switcher retained. Uses the cash planner, not naive current-stock profit. Corrected Home's shortfall label to match actual forecast cash gap.
 
 Next: earned medium-reserve second-firm choice and whether startup fit-out versus operating runway is clear before expanding; then review portfolio/city priorities without another wall of panels. No new economy or save fields.
+
+
+## Second-firm runway checkpoint
+60 earned service-to-second-firm48-week paths cover six industries,500/2500 operating-cash targets and five seeds.43 survive,17 reach their asserted first-negative balance. Expansion is funded only by service-company cash; reserves overshoot in earned settlement steps. Factory2500 varies by seed, and one transport500 path survives from a larger target overshoot. These are not minimum-capital thresholds or identical post-open balances.
+
+Startup review now shows fit-out paid immediately and remaining cash, empty staffing/stock, delayed sales receipts and a disclosed illustrative first-crew cost. Example is not a promise, staffing recommendation or extra purchase. Back stays visible at320x568. Next goals: city/portfolio priorities and active operating needs without another default wall of panels; review whether low-reserve owner recovery remains discoverable after a second firm fails. Preserve negative outcomes, no forced bailout or economy flattening.
