@@ -10,6 +10,8 @@ node test-engine.mjs > "$BUSINESS_GAME_OUTPUT/engine-results.txt"
 tail -1 "$BUSINESS_GAME_OUTPUT/engine-results.txt"
 node fuzz.mjs
 node soak.mjs
+node strategy.mjs > "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
+grep '^PASS' "$BUSINESS_GAME_OUTPUT/strategy-results.txt"
 if [[ ${1:-} == --ui ]]; then
   command -v google-chrome-stable >/dev/null
   python3 -c 'import websocket'
