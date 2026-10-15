@@ -37,6 +37,7 @@ try:
   if args:code+='.find(x=>'+ '&&'.join('JSON.parse(x.dataset.args).'+k+'==='+json.dumps(v) for k,v in args.items())+')'
   else:code+='.at(0)'
   # Colons in data-action values require the quoted selector above.
+  if not js('!!'+code):raise Exception('missing '+action+' '+str(args)+' '+str(state()['life'])+' '+js('document.querySelector("#modal").innerText'))
   js(code+'.click()')
  def sheet(name):js('document.querySelector("[data-life-sheet='+name+']").click()')
  def close():js('document.querySelector("#modal").close()')
@@ -100,7 +101,7 @@ try:
  shot('clicker-owner-import-review-390');js('Array.from(document.querySelectorAll(".cs-b")).find(x=>x.textContent==="Import to this device").click()');time.sleep(.7)
  assert state()==saved
  # A separate empty localhost origin proves a bad first week is recoverable, with no injected balance.
- cmd('Page.navigate',{'url':'http://localhost:8799/'})
+ cmd('Storage.clearDataForOrigin',{'origin':'http://localhost:8799','storageTypes':'all'});cmd('Page.navigate',{'url':'http://localhost:8799/'})
  for _ in range(60):
   if js('!!document.querySelector(".life-room")'):break
   time.sleep(.1)
@@ -113,7 +114,10 @@ try:
  sheet('rest');click('life:sleep');close()
  sheet('jobs');click('life:casualShift');close()
  assert state()['cash']>0;shot('clicker-earned-negative-recovery-390')
- print('PASS earned fresh clicker -> casual shifts -> full-time -> company -> crew; daily/weekly hours, tap retirement, actual exported-file restore, real touch/keyboard activation, overwork/breaks, skipped-week negative-cash recovery and 320/390/1280 layouts')
+ sheet('sell');shot('clicker-search-before-390');click('life:search',{'id':'cupboard'});shot('clicker-search-found-390');click('life:sell',{'id':'lamp'});click('life:search',{'id':'closet'});click('life:sell',{'id':'console'});assert state()['life']['sold']==['lamp','console'];shot('clicker-discovery-390');close()
+ sheet('food');click('life:pantry');close()
+ sheet('learn');old=state()['cash'];click('life:offer',{'id':'popup'});assert state()['cash']==old+14;assert state()['life']['offerDay']==state()['life']['day'];shot('clicker-odd-job-complete-390');close()
+ print('PASS earned fresh clicker -> casual shifts -> full-time -> company -> crew; daily/weekly hours, tap retirement, actual exported-file restore, real touch/keyboard activation, overwork/breaks, room discovery/sales/daily odd job, skipped-week negative-cash recovery and 320/390/1280 layouts')
 finally:
  try:ws.close()
  except:pass
