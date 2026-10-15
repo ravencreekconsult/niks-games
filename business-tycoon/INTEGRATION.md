@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.20. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.21. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -23,7 +23,7 @@ Outside equity, actual-history buyer values and amortizing growth loans; three u
 
 ## Verified local evidence
 
-154 legacy deterministic checks plus 18 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
+154 legacy deterministic checks plus 21 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
 
 ## Honest limits
 
@@ -33,4 +33,10 @@ Playable preview, not full-depth completion. Four concurrent companies, three li
 ## v20 opening
 Fresh profiles start unemployed at $12.50, daily life bars, $0.50 taps, three per-tap upgrades, three one-off fictional Facebook sales, learning/food/rest/social choices and casual jobs. First full-time coordinator requires 6 knowledge and 2 casual shifts. Only that role opens the existing career/company game; tap income remains until first company. Existing v19 saves have no life object and remain exactly on their old path. Do not clear user saves to show the new opening. Use a fresh browser profile or local save backup before intentional restart.
 
-life.mjs is a REQUIRED new runtime module. Copy it alongside engine.mjs/app.mjs; an omitted module prevents startup. No shared dashboard files changed. Screenshots show actual tested local app, not mockups. Transition wiring is a working bridge in v20; further work will tighten the weekly/personal-time relationship and extend earned proof into company ownership. Free pantry once per day, free walks/books/rest and no real-time wait prevent pay/clock softlocks. Food costs are additional to the existing weekly $75 living cost.
+life.mjs is a REQUIRED new runtime module. Copy it alongside engine.mjs/app.mjs; an omitted module prevents startup. No shared dashboard files changed. Screenshots show actual tested local app, not mockups. Transition wiring is a working bridge in v20; v21 shares productive time with the 40h weekly budget and proves the fresh opening through company ownership and an actual exported-file restore. Free pantry once per day, free walks/books/rest and no real-time wait prevent pay/clock softlocks. Food costs are additional to the existing weekly $75 living cost.
+
+
+## v21 transition increment
+Full-time employment changes the main room action from tapping to a salary shift. Tapping remains a smaller action until first company; it is removed at ownership. Daily hours/energy/mood/nourishment now apply to salary shifts, foundation training/classes, customer work and practical courses before ownership. Productive apartment tasks share the existing 40h/week budget; food/rest/social actions use daily hours only. Next week aligns the personal calendar to the next weekly boundary, while sleep advances one personal day. Weekly living costs settle only once.
+
+Fresh Chrome UI run now earns $12.50 start -> household sale/upgrade -> casual shifts/books -> full-time -> company/first employee without injected money/state, then exports an actual file, advances, imports it and checks exact restoration. New company records carry save defaults immediately so export/restore does not add fields on first reload. New path is separate from the legacy portfolio path. No cloud/Safari claim.
