@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {initial,action,forecast,worth,validSave,restore} from './engine.mjs';
+let s={...initial(),cash:1000000,skill:3};for(let industry of ['manufacturing','mechanic','logistics','cafe']){s=action(s,'open',{industry});let id=s.businesses.at(-1).id;for(let i=0;i<2;i++)s=action(s,'hire',{id});s=action(s,'manager',{id});if(industry!=='logistics'){s=action(s,'autoRestock',{id});s=action(s,'restockBudget',{id,level:3000});}if(industry==='manufacturing')s=action(s,'autoProduction',{id});}for(let kind of ['apartments','retail','warehouse'])s=action(s,'property',{kind});for(let founder of ['loop','crate','relay']){s=action(s,'diligence',{founder});s=action(s,'startup',{founder,offer:'negotiate'});}s=action(s,'stock',{id:'north',count:100});s=action(s,'collect',{id:'watch'});
+for(let week=0;week<550;week++){
+ if(week%24===0)for(let b of s.businesses)s=action(s,'maintenance',{id:b.id});
+ for(let p of s.properties){if(p.condition<68)s=action(s,'repairProperty',{id:p.id});if(p.occupied<.7)s=action(s,'leaseProperty',{id:p.id});}
+ let before=s.cash;s=action(s,'week');assert.ok(Math.abs(s.cash-before-s.report.net)<.005);assert.ok(Math.abs(s.report.items.reduce((n,i)=>n+i.amount,0)-s.report.net)<.1);assert.ok(validSave(s),'invalid save at '+s.week);assert.ok(Number.isFinite(worth(s)));for(let b of s.businesses)assert.ok(Number.isFinite(forecast(s,b).profit));if(week%10===0){let r=restore(JSON.parse(JSON.stringify(s)));assert.equal(r.cash,s.cash);assert.equal(r.week,s.week);s=r;}
+}
+assert.ok(s.properties.every(p=>p.debt===0));console.log('PASS 550-week mixed portfolio, reports, save roundtrips and all mortgage payoffs');
+let abandoned=action({...initial(),cash:1000000,skill:3},'property',{kind:'warehouse'});for(let i=0;i<200;i++)abandoned=action(abandoned,'week');assert.ok(validSave(abandoned),'unrepaired property state invalid');assert.ok(abandoned.properties[0].condition>=0);console.log('PASS 200-week unattended property deterioration remains importable');
