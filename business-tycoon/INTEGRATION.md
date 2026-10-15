@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.22. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.23. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -23,7 +23,7 @@ Outside equity, actual-history buyer values and amortizing growth loans; three u
 
 ## Verified local evidence
 
-154 legacy deterministic checks plus 26 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
+154 legacy deterministic checks plus 30 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
 
 ## Honest limits
 
@@ -48,3 +48,11 @@ IMPORTANT FIX: negative cash no longer blocks free apartment work, learning, pan
 Sustained productive work/study beyond 4 hours since a proper break costs 2 extra mood per hour. Walks/friends/full naps clear that streak; power naps/full meals reduce it by 2 hours and fast food by 1. Exact learning effect previews include the extra mood cost, and the room warns about overwork. Sleep clears the streak; sleep/skip-week overnight changes match and apply once. Rest sheet offers skip-to-next-week with costs and lost time explicit.
 
 Verification now includes 10,000 additional seeded apartment/career/save transitions, real Chrome touch tap and keyboard earning with actual balance assertions, mood drain/break proof, earned negative-balance recovery and the prior fresh-to-company/export/restore path. Existing six suites retain legacy save coverage. No live cloud/real Safari claim.
+
+
+## v23 early variability and room discovery
+New fresh openings know only the spare headphones. Searching the cupboard and closet finds two more one-off sale items; searches use productive time and energy and cannot be repeated. Saves from v20-v22 without found-items metadata retain all their old listings, so the update takes nothing away.
+
+The desk has three authored rotating daily small offers: photo tagging, printer help and pop-up retail help. Each has distinct pay/time/condition effects, knowledge prerequisites and minimum mood/food. One per day, paid once, saved across reload. Completing one builds knowledge but is explicitly not full-time employment; it does not bypass the full-time gate. These are three authored offers, not unlimited generated content or actual external work.
+
+Fresh UI proof additionally searches both room places, sells the finds and earns the current daily offer through the actual menu. 30 deterministic apartment checks plus 10,000 randomized life transitions and the full previous runner pass.
