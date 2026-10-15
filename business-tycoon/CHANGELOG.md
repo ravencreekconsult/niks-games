@@ -1,3 +1,8 @@
+# v34 - October 15, 2026
+- Hiring, delegation, equipment, training and maintenance now leave a dismissible session change summary rather than only a fleeting toast. Separates purchase cost, weekly cost and before/after forecast.
+- Earned first hire now has persistent visible feedback; manager scope differs for stock and nonstock companies. No save or economy changes.
+- Corrected owner-HUD warning to show actual forecast cash shortfall, not full required reserve.
+
 # v33 - October 15, 2026
 - 300 earned operating-strategy comparisons preserve success and failure outcomes, covering staffing/delegation, restock limits and short express bridge. No economy rebalance.
 - Manager stock controls now show held/target/order units and warn when cash or budget leaves the current target short. A spending cap is not a fixed purchase or free payroll protection.
