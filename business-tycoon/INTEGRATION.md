@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.32. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.33. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -107,3 +107,6 @@ Adds a pure one-settlement `cashExposure` view over the existing cash plan. Show
 
 ## v32 fast settlement safety
 UI-only review when a company portfolio's next cash plan forecasts a negative balance. Explicit Run week anyway continues once; Back or Inspect cash plan changes no game state. No extra confirmation on nonnegative forecast or pre-owner career weeks. Simulation actions/economy and saves unchanged. Game-money risk review, not a real payment flow.
+
+## v33 operating comparison
+Adds `strategy-alternates.mjs` to source/acceptance only. Runtime change is explanatory manager-restock preview: ordered/target/held units and a limitation warning. Uses current standalone restock quote, clearly labeled as affected by prior firms. No economy, action, schema or save changes.
