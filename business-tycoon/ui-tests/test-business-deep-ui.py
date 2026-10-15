@@ -262,4 +262,30 @@ try:
  assert js('JSON.parse(localStorage.getItem("business-sim-v1")).businesses[0].staff===0')
  print('PASS startup fitout/operating-budget separation, three industries320/390/1280, state-free cancellation and only fitout charged on confirmation')
 
+ # Load a genuinely earned engine path's first negative second-firm balance.
+ failure_path=out+'/earned-expansion-failure.json'
+ if not os.path.exists(failure_path):subprocess.run(['node','strategy-expansion.mjs'],cwd=root,env={**os.environ,'BUSINESS_GAME_OUTPUT':out},stdout=subprocess.DEVNULL,check=True)
+ failure=json.load(open(failure_path));assert failure['cash']<0;assert len(failure['businesses'])==2
+ js('localStorage.setItem("business-sim-v1",'+json.dumps(json.dumps(failure))+');setTimeout(()=>location.reload(),0)');time.sleep(.3)
+ js('document.querySelector("[data-nav=report]").click()')
+ recovery_save=js('localStorage.getItem("business-sim-v1")')
+ assert js('!!document.querySelector("[data-owner-work]")')
+ for w,h in [(320,568),(390,844),(1280,844)]:
+  cmd('Emulation.setDeviceMetricsOverride',{'width':w,'height':h,'deviceScaleFactor':1,'mobile':w<800})
+  js('document.querySelector("[data-owner-work]").click()')
+  assert js('document.querySelector(".life-controls").open')
+  assert js('document.activeElement.dataset.action==="shift"')
+  assert js('localStorage.getItem("business-sim-v1")')==recovery_save
+  assert not js('document.documentElement.scrollWidth>innerWidth')
+  time.sleep(.5)
+  assert js('(()=>{let r=document.activeElement.getBoundingClientRect();return r.top>=0&&r.bottom<innerHeight-70})()')
+  shot('earned-owner-recovery-'+str(w))
+  js('document.querySelector("[data-nav=report]").click()')
+ js('document.querySelector("[data-owner-work]").click()')
+ before_recovery=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ js('document.querySelector(".life-controls [data-action=shift]").click()')
+ after_recovery=js('JSON.parse(localStorage.getItem("business-sim-v1"))')
+ assert after_recovery['cash']>before_recovery['cash'];assert after_recovery['week']==before_recovery['week'];assert after_recovery['businesses']==before_recovery['businesses']
+ print('PASS earned-engine negative second-firm save reaches existing owner shifts via state-free earning link, widths320/390/1280, then actual shift earns without changing firms or week')
+
 finally:p.terminate();server.shutdown()
