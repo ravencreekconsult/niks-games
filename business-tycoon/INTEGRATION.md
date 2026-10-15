@@ -1,6 +1,6 @@
 # Business simulation preview integration
 
-Current package: v0.21. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
+Current package: v0.22. Slug: business-tycoon. Dashboard label: Business sim (final name not chosen).
 Runtime folder: public/games/business-tycoon/.
 
 ## Runtime allowlist
@@ -23,7 +23,7 @@ Outside equity, actual-history buyer values and amortizing growth loans; three u
 
 ## Verified local evidence
 
-154 legacy deterministic checks plus 21 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
+154 legacy deterministic checks plus 26 new apartment checks, 10,000 seeded randomized transitions, 550-week mixed portfolio/payoffs/JSON restores, 200-week unattended property and 15 conservative 32-week strategies. Seven Chrome UI suites (six explicitly seeded with existing v19 saves for compatibility; one unseeded fresh clicker run): earned path, deep fixtures/widths, mouse/keyboard/recovery, founder exit plus real exported-file import/backup, and touch emulation plus compact landscape/phone layouts. ./run-tests.sh --ui is the acceptance entry point; TESTING.md has requirements and hands-on smoke. Package audit also verifies extracted-path execution and runtime hashes. See CHANGELOG.md for the history, not current facts.
 
 ## Honest limits
 
@@ -40,3 +40,11 @@ life.mjs is a REQUIRED new runtime module. Copy it alongside engine.mjs/app.mjs;
 Full-time employment changes the main room action from tapping to a salary shift. Tapping remains a smaller action until first company; it is removed at ownership. Daily hours/energy/mood/nourishment now apply to salary shifts, foundation training/classes, customer work and practical courses before ownership. Productive apartment tasks share the existing 40h/week budget; food/rest/social actions use daily hours only. Next week aligns the personal calendar to the next weekly boundary, while sleep advances one personal day. Weekly living costs settle only once.
 
 Fresh Chrome UI run now earns $12.50 start -> household sale/upgrade -> casual shifts/books -> full-time -> company/first employee without injected money/state, then exports an actual file, advances, imports it and checks exact restoration. New company records carry save defaults immediately so export/restore does not add fields on first reload. New path is separate from the legacy portfolio path. No cloud/Safari claim.
+
+
+## v22 recovery and meaningful mood
+IMPORTANT FIX: negative cash no longer blocks free apartment work, learning, pantry or casual shifts. New UI proof starts on a second empty origin, skips the first week into -$62.50, then earns back above zero using free actions/casual work, without injected state or a reset.
+
+Sustained productive work/study beyond 4 hours since a proper break costs 2 extra mood per hour. Walks/friends/full naps clear that streak; power naps/full meals reduce it by 2 hours and fast food by 1. Exact learning effect previews include the extra mood cost, and the room warns about overwork. Sleep clears the streak; sleep/skip-week overnight changes match and apply once. Rest sheet offers skip-to-next-week with costs and lost time explicit.
+
+Verification now includes 10,000 additional seeded apartment/career/save transitions, real Chrome touch tap and keyboard earning with actual balance assertions, mood drain/break proof, earned negative-balance recovery and the prior fresh-to-company/export/restore path. Existing six suites retain legacy save coverage. No live cloud/real Safari claim.
