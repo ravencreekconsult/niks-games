@@ -1,5 +1,5 @@
 import subprocess,time,urllib.request,json,websocket,os,base64,threading,http.server,functools
-root='/tmp/business-game';out='/tmp/business-ui';os.makedirs(out,exist_ok=True)
+root=os.environ.get('BUSINESS_GAME_ROOT','/tmp/business-game');out=os.environ.get('BUSINESS_GAME_OUTPUT','/tmp/business-ui');os.makedirs(out,exist_ok=True)
 class Handler(http.server.SimpleHTTPRequestHandler):
  def log_message(self,*args):pass
 server=http.server.ThreadingHTTPServer(('127.0.0.1',8799),functools.partial(Handler,directory=root));threading.Thread(target=server.serve_forever,daemon=True).start()
