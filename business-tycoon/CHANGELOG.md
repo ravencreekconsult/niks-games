@@ -115,3 +115,10 @@ Recovered v17 from repository backup after working storage reset; all runtime ha
 ## v0.19 acquisition terms audit
 
 Removed stale hardcoded cafe acquisition capacity. Review now uses the same forecast rules as the acquired company, including current skills/events/rivals, condition, stock and wages, and labels spoilage/extras. Pure review-to-acquired forecast equality regression added. 154 checks and full six-UI/fuzz/soak/strategy runner pass; acquisition phone pixels inspected. No other economy changes or live verification.
+
+
+## v0.20 - unemployed room-first opening
+- Actual room overlay with daily bars, tap-to-earn cents, food/rest/learning/social sheets, household sales and tap upgrades.
+- Casual employment does not end clicker; first full-time job opens career/company bridge. First company retires tapping.
+- Optional validated life save object; existing saves preserve old progression. Required life.mjs module.
+- 18 new apartment checks; separate fresh-start earned Chrome suite. Existing six suites are explicitly v19-save compatibility checks.
