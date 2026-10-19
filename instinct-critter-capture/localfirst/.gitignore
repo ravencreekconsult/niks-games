@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+.dev.vars
+*.pem
+*.key
+*.tar.xz
+*.tar.gz
+*.log
+.DS_Store
+.wrangler/
+dist/
+build/
+snapshots/
