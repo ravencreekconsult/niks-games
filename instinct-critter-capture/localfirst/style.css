@@ -87,3 +87,7 @@ body.shared-battle-open{overflow:hidden}
 .raid-simulation-arena{display:grid;gap:12px;margin:16px 0}.raid-simulation-side{display:grid;grid-template-columns:1fr 1fr;gap:8px}.raid-simulation-side h4{grid-column:1/-1;margin:4px 0}.raid-simulation-card{min-width:0;text-align:center;border:1px solid #769082;border-radius:12px;background:#10231d;padding:10px 6px;overflow-wrap:anywhere}.raid-simulation-card strong{font-size:13px}.raid-simulation-card p{font-size:13px;line-height:1.45;margin:5px 0}.raid-simulation-card.raid-fainted{opacity:.6}
 @keyframes battleIn{0%{filter:brightness(2.4) saturate(.4)}100%{filter:none}}
 #screen.battling canvas{animation:battleIn .5s ease-out}
+@keyframes capWobble{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+#screen.wobble canvas{animation:capWobble .35s ease-in-out}
+@keyframes capFlash{0%{filter:brightness(2.2) saturate(1.6)}100%{filter:none}}
+#screen.caughtFlash canvas{animation:capFlash .7s ease-out}
