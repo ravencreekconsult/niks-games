@@ -10,9 +10,9 @@
  const imgs={};
  const load=(id,src)=>{const im=new Image();im.onload=()=>{imgs[id]=im};im.src=src};
  for(const id of ['tuft','cottage','cottage-b','cottage-c','cottage-a2','cottage-a3','cartoon-fir','oak','oakb'])load(id,A+id+'.png');
- for(const id of ['player-m','player-f','wren','lark','keeper','breeder','villager','kid'])load('cast-'+id,A+'cast/'+id+'.png');
+ for(const id of ['tamsin','jun','iona','maren','player-m','player-f','wren','lark','keeper','breeder','villager','kid'])load('cast-'+id,A+'cast/'+id+'.png');
  const indoor=new Set(['lab','nursery','depot','hall','thornhall','granitehall','tidehall','cave','mine']);
- const MH={village:36,town:36,harbor:36,route:64,forest:64,cave:64,mine:64,lake:64,orchard:64,marsh:64,ruins:64,ridge:64,farm:48};
+ const MH={village:36,town:36,harbor:36,route:64,forest:64,cave:64,mine:64,lake:64,orchard:64,marsh:64,ruins:64,ridge:64,farm:48,highwater:40,windscar:40,bellmouth:40,cairnwick:40,switchyard:48,lampworks:20};
  let frame=null,installed=false,playerVariant='m';
  const pathTrees=new Set(),pathTreesDone=new Set();
  const H=(x,y,s)=>((Math.imul(x,73856093)^Math.imul(y,19349663)^Math.imul(s,2654435761))>>>0);
@@ -28,7 +28,7 @@
   const band=Math.round(raw*4)/4;
   return Math.max(-.11,Math.min(.09,band*.5))}
  // NPC id -> cast sprite. Engine ids arrive via Art.npc's last argument.
- const CAST={wren:'wren',scout:'wren',fern:'wren',thorn:'wren',
+ const CAST={tamsin:'tamsin',jun:'jun',iona:'iona',maren:'maren',wren:'wren',scout:'wren',fern:'wren',thorn:'wren',
   ranger:'lark',rowan:'lark',rowanFinal:'lark',aurora:'lark',brook:'lark',
   breeder:'breeder',ivy:'breeder',restorer:'breeder',
   shopkeeper:'keeper',lakekeeper:'keeper',hallkeeper:'keeper',labGuide:'keeper',researcher:'keeper',granite:'keeper',
